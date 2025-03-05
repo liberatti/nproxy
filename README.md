@@ -1,6 +1,6 @@
 # NProxy
 
-![NProxy design](https://nproxy.tooka.com.br/design.png)
+![NProxy design](https://nproxy.tooka.com.br/design-v1.png)
 
 ## Features
 
