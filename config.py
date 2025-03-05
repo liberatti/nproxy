@@ -14,7 +14,7 @@ SECURITY_ENABLED = True
 # Config database (MongoDB)
 MONGO_URI=os.environ.get("MONGO_URI")
 
-JWT_SECRET_KEY="dev"
+JWT_SECRET_KEY=os.environ.get("JWT_SECRET_KEY", "dev")
 JWT_EXPIRE=3600
 JWT_AUD="nproxy"
 DATETIME_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
