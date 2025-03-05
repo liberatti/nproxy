@@ -37,8 +37,6 @@ def save():
 def search():
     dao = UserDao()
     result = dao.get_all(pagination=get_pagination())
-    for r in result["data"]:
-        r.pop("password")
     if result["metadata"]["total_elements"] > 0:
         return ResponseBuilder.data(result, dao.pageSchema)
     else:

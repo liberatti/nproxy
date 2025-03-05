@@ -22,6 +22,8 @@ import {FeedFormComponent} from "./view/feed-form/feed-form.component";
 import {DashboardHomeComponent} from "./view/dashboard-home/dashboard-home.component";
 import {RouteFilterListComponent} from "./view/route_filter-list/route_filter-list.component";
 import {RouteFilterFormComponent} from "./view/route_filter-form/route_filter-form.component";
+import {UserListComponent} from "./view/user-list/user-list.component";
+import {UserFormComponent} from "./view/user-form/user-form.component";
 
 export const routes: Routes = [
     {
@@ -63,6 +65,15 @@ export const routes: Routes = [
             {path: '', component: FeedListComponent},
             {path: 'add', component: FeedFormComponent},
             {path: 'edit/:id', component: FeedFormComponent},
+        ]
+    },
+    {
+        path: 'users',
+        component: AdminLayoutComponent,
+        children: [
+            {path: '', component: UserListComponent},
+            {path: 'add', component: UserFormComponent},
+            {path: 'edit/:id', component: UserFormComponent},
         ]
     },
     {

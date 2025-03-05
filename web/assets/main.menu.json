@@ -1,8 +1,9 @@
-[ {
-  "label": "view.dashboard.link",
-  "route": "/dashboard",
-  "icon": "dashboard"
-},
+[
+  {
+    "label": "view.dashboard.link",
+    "route": "/dashboard",
+    "icon": "dashboard"
+  },
   {
     "label": "view.transaction.link",
     "route": "/trn",
@@ -51,6 +52,11 @@
         "label": "view.feed.link",
         "route": "/feed",
         "icon": "rss_feed"
+      },
+      {
+        "label": "view.user.link",
+        "route": "/users",
+        "icon": "supervised_user_circle"
       }
     ]
   },

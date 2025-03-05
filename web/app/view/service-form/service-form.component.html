@@ -356,7 +356,8 @@
                         </div>
                         <div class="mat-mdc-card-actions">
                             <button mat-raised-button matStepperPrevious>Back</button>
-                            <button (click)="onSubmit()" mat-raised-button color="primary">
+                            <button (click)="onSubmit()" mat-raised-button color="primary"
+                                    *ngIf="oauth.isRole('superuser')">
                                 <mat-icon>save</mat-icon>
                                 {{ 'actions.save' | translate }}
                             </button>
