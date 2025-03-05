@@ -1,0 +1,11 @@
+{
+  "name": "cruzit web attacks",
+  "slug": "cruzit",
+  "provider": "iblocklist",
+  "version": "latest",
+  "type": "network",
+  "source": "http://list.iblocklist.com/?list=czvaehmjpsnwwttrdoyl&fileformat=cidr&archiveformat=gz",
+  "update_interval": "day",
+  "description":"Individual IP addresses of compromised machines scanning for vulnerabilities and DDOS attacks.",
+  "format": "cdir_gz"
+}
