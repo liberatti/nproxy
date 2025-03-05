@@ -1,0 +1,102 @@
+.navbar-spacer {
+  flex: 1 1 auto;
+}
+/* Estilos do Footer */
+.footer {
+  background: var(--footer-background);
+  color: var(--footer-text-color);
+  padding: 2px;
+  margin-top: auto;
+  text-align: center;
+  font-size: small;
+}
+
+.footer-content {
+  margin: 0px 0px 10px 0px;
+}
+
+.navbar-brand {
+  text-decoration: none;
+  color: white;
+}
+
+.navbar-container {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.navbar-is-mobile .navbar {
+  position: fixed;
+  z-index: 2;
+}
+
+.navbar-sidenav-container {
+  flex: 1;
+}
+
+.navbar-is-mobile .navbar-sidenav-container {
+  flex: 1 0 auto;
+}
+
+.progress-bar-container {
+  height: 5px;
+}
+
+a.mat-list-item.active {
+  background: rgba(0, 0, 0, .04);
+}
+
+#push-bottom {
+  position: absolute;
+  bottom: 0;
+}
+
+
+.breadcrumb {
+  font-size: 12pt;
+}
+
+.icon-link {
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+.icon-link mat-icon {
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.icon-link span {
+  margin-top: 4px;
+  vertical-align: middle;
+}
+
+.active {
+  background-color: gainsboro;
+}
+
+mat-sidenav-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.sub-1{
+  margin-left: 10px;
+  font-size: 6pt;
+}
+.expanded-sub{
+  background-color: #f8f9fa;
+}
+mat-nav-list{
+  overflow-x: hidden !important; /* Impede o scroll horizontal */
+
+}
+mat-mdc-card-header{
+  text-wrap: nowrap;
+}

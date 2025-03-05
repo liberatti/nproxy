@@ -1,0 +1,188 @@
+<ng-container>
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title>{{ 'view.upstream.title'|translate }}</mat-card-title>
+            <mat-card-subtitle>{{ (isAddMode ? 'actions.create' : 'actions.edit')| translate }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <form [formGroup]="form">
+                <div class="mat-row">
+                    <div class="mat-col-6">
+                        <div class="mat-row">
+                            <div class="mat-col-7">
+                                <mat-form-field class='full-width'>
+                                    <mat-label>Name</mat-label>
+                                    <input id="upstream.name" matInput formControlName="name">
+                                </mat-form-field>
+                            </div>
+                            <div class="mat-col-5">
+                                <mat-form-field class="full-width">
+                                    <mat-label>Type</mat-label>
+                                    <mat-select formControlName="type">
+                                        <mat-option *ngFor="let ut of _types" [value]="ut"
+                                                    style="text-transform: capitalize">
+                                            {{ ut }}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                            </div>
+                        </div>
+                        <div class="mat-row">
+                            <div class="mat-col-12">
+                                <mat-form-field class="full-width">
+                                    <mat-label>Description</mat-label>
+                                    <textarea id="upstream.description" matInput
+                                              formControlName="description"></textarea>
+                                </mat-form-field>
+                            </div>
+                        </div>
+                        <div *ngIf="form.value.type == 'backend'">
+                            <mat-form-field>
+                                <mat-label>Protocol</mat-label>
+                                <mat-select formControlName="protocol">
+                                    <mat-option *ngFor="let ut of _supportedProtocols" [value]="ut">
+                                        {{ ut }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                            <mat-form-field>
+                                <mat-label>Retry attempts</mat-label>
+                                <input matInput formControlName="retry">
+                            </mat-form-field>
+                            <mat-form-field>
+                                <mat-label>Retry Timeout (seconds)</mat-label>
+                                <input matInput formControlName="retry_timeout">
+                            </mat-form-field>
+                            <mat-form-field>
+                                <mat-label>Connection Timeout (seconds)</mat-label>
+                                <input matInput formControlName="conn_timeout">
+                            </mat-form-field>
+
+                            <mat-form-field *ngIf="form.value.protocol == 'FASTCGI'">
+                                <mat-label>FastCGI Script Path</mat-label>
+                                <input matInput formControlName="script_path">
+                            </mat-form-field>
+                            <mat-card class="full-width mt-2">
+                                <mat-card-header>
+                                    <mat-card-actions class="align-right" style="text-wrap: nowrap;">
+                                        <mat-slide-toggle id="upstream.persist" [formControl]="persistEnabledControl"
+                                                          (change)="persistChange()">
+                                            Session Persistence
+                                        </mat-slide-toggle>
+                                    </mat-card-actions>
+                                </mat-card-header>
+                                <mat-card-content *ngIf="persistEnabledControl.value" formGroupName="persist"
+                                                  class='mt-2'>
+                                    <mat-form-field>
+                                        <mat-label>Cookie Name (Optional)</mat-label>
+                                        <input id="upstream.cookie_name" matInput formControlName="cookie_name">
+                                    </mat-form-field>
+                                    <mat-form-field>
+                                        <mat-label>Cookie Path (Optional)</mat-label>
+                                        <input id="upstream.cookie_path" matInput formControlName="cookie_path">
+                                    </mat-form-field>
+                                </mat-card-content>
+                            </mat-card>
+                        </div>
+                    </div>
+                    <div class="mat-col-6">
+                        <div class="mat-row" *ngIf="form.value.type == 'static'">
+
+                            <mat-card class="full-width">
+                                <mat-card-header>
+                                    <mat-card-title>
+                                        Static Content
+                                    </mat-card-title>
+                                </mat-card-header>
+                                <mat-card-content>
+                                    <div class="mat-row">
+                                        <div class="mat-col-8">
+                                            <input class="form-control" type="file" id="uploadConfig"
+                                                   accept="application/zip, .zip" (change)="onFileSelected($event)">
+                                        </div>
+                                        <div class="mat-col-4">
+                                            <mat-form-field class="full-width">
+                                                <mat-label>Index File</mat-label>
+                                                <input matInput formControlName="index">
+                                            </mat-form-field>
+                                        </div>
+                                    </div>
+                                </mat-card-content>
+                            </mat-card>
+
+                        </div>
+                        <div *ngIf="form.value.type == 'backend'">
+                            <mat-card class="full-width">
+                                <mat-card-header>
+                                    <mat-card-title>
+                                        Targets
+                                    </mat-card-title>
+
+                                </mat-card-header>
+                                <mat-card-content>
+                                    <table mat-table [dataSource]="targetDS" matSort>
+                                        <tr mat-header-row *matHeaderRowDef="targetDC"></tr>
+                                        <tr mat-row *matRowDef="let row; columns: targetDC;"></tr>
+
+                                        <ng-container matColumnDef="host">
+                                            <th mat-header-cell *matHeaderCellDef mat-sort-header> Network Address</th>
+                                            <td mat-cell *matCellDef="let element">
+                                                {{ element.host }}
+                                            </td>
+                                        </ng-container>
+
+                                        <ng-container matColumnDef="port">
+                                            <th mat-header-cell *matHeaderCellDef mat-sort-header> Service Port</th>
+                                            <td mat-cell *matCellDef="let element"> {{ element.port }}</td>
+                                        </ng-container>
+
+                                        <ng-container matColumnDef="weight">
+                                            <th mat-header-cell *matHeaderCellDef mat-sort-header> Distribution Weight
+                                            </th>
+                                            <td mat-cell *matCellDef="let element"> {{ element.weight }}</td>
+                                        </ng-container>
+
+                                        <ng-container matColumnDef="action">
+                                            <th mat-header-cell *matHeaderCellDef mat-sort-header></th>
+                                            <td mat-cell *matCellDef="let element" class="text-right">
+                                                <div class="table-cell-actions">
+                                                    <div style="border:none" class="toggle-container">
+                                                        <mat-button mat-button [matMenuTriggerFor]="menu">
+                                                            <mat-icon>more_vert</mat-icon>
+                                                        </mat-button>
+                                                        <mat-menu #menu="matMenu" xPosition="before">
+                                                            <button mat-menu-item type="button"
+                                                                    (click)="onRemove(element)">
+                                                                <mat-icon>delete</mat-icon>
+                                                                {{ 'actions.remove'|translate }}
+                                                            </button>
+                                                        </mat-menu>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </ng-container>
+                                    </table>
+                                </mat-card-content>
+                                <mat-card-actions class="align-right mt-2">
+                                    <button mat-button color="primary" (click)="onAddTarget()">
+                                        <mat-icon>add</mat-icon>
+                                        {{ 'actions.create'|translate }}
+                                    </button>
+                                </mat-card-actions>
+                            </mat-card>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </mat-card-content>
+        <mat-card-actions align="end">
+            <button id="save-btn" type="button" (click)="onSubmit()" mat-raised-button color="primary">
+                <mat-icon>save</mat-icon>
+                {{ 'actions.save' | translate }}
+            </button>
+            <button mat-mini-fab [routerLink]="['/ups']">
+                <mat-icon>keyboard_return</mat-icon>
+            </button>
+        </mat-card-actions>
+    </mat-card>
+</ng-container>

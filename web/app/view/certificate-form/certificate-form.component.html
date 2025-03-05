@@ -1,0 +1,58 @@
+<ng-container>
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title>{{ 'view.certificate.title'|translate }}</mat-card-title>
+            <mat-card-subtitle>{{ (isAddMode ? 'actions.create' : 'actions.edit')| translate }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <div class="row">
+                <div class="col">
+                    <form [formGroup]="form">
+                        <mat-form-field class="full-width">
+                            <mat-label>Name</mat-label>
+                            <input matInput formControlName="name" [readonly]="!isAddMode">
+                        </mat-form-field>
+                        <mat-form-field>
+                            <mat-label>Certificate Provider</mat-label>
+                            <mat-select id="provider" formControlName="provider">
+                                <mat-option id="p-{{i}}" *ngFor="let ut of _supportedProviders;  let i = index"
+                                            [value]="ut">
+                                    {{ ut }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        @if (form.value.provider == 'EXTERNAL') {
+                            <mat-form-field class="full-width">
+                                <mat-label>Certificate</mat-label>
+                                <textarea matInput cdkTextareaAutosize #autosize="cdkTextareaAutosize"
+                                          cdkAutosizeMinRows="6" cdkAutosizeMaxRows="15"
+                                          formControlName="certificate"></textarea>
+                            </mat-form-field>
+                            <mat-form-field class="full-width">
+                                <mat-label>Certificate Key</mat-label>
+                                <textarea matInput cdkTextareaAutosize cdkAutosizeMinRows="6" cdkAutosizeMaxRows="15"
+                                          formControlName="private_key"></textarea>
+                            </mat-form-field>
+                            <mat-form-field class="full-width">
+                                <mat-label>Certificate Authority</mat-label>
+                                <textarea matInput cdkTextareaAutosize #autosize="cdkTextareaAutosize"
+                                          cdkAutosizeMinRows="6" cdkAutosizeMaxRows="15"
+                                          formControlName="chain"></textarea>
+                            </mat-form-field>
+                        }
+
+                    </form>
+                </div>
+            </div>
+        </mat-card-content>
+        <mat-card-actions align="end">
+            <button type="button" (click)="onSubmit()" mat-raised-button color="primary">
+                <mat-icon>save</mat-icon>
+                {{ 'actions.save'|translate }}
+            </button>
+            <button mat-mini-fab [routerLink]="['/certificate']">
+                <mat-icon>keyboard_return</mat-icon>
+            </button>
+        </mat-card-actions>
+    </mat-card>
+</ng-container>
