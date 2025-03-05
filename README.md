@@ -13,6 +13,7 @@ This project aims to create a secure and efficient environment for API exposure,
 - **Operational Simplicity:** Uses **OpenResty** to provide a lightweight, easily configurable, and maintainable solution, reducing operational overhead.
 - **Scalability:** The modular architecture facilitates horizontal scalability, allowing expansion as demand for services increases.
 
+
 ## NProxy Distribution Formats
 
 ### Container Image
