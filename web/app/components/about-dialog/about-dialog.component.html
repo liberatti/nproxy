@@ -1,0 +1,42 @@
+<mat-dialog-content>
+    <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="end" (selectedTabChange)="onTabChanged($event)">
+        <mat-tab label="About">
+            <p [innerHTML]="'content.about' |translate"></p>
+            <a href="https://github.com/liberatti/nproxy" target="_blank">
+                <img class="img-round" style="height: 36px;width: auto;" src="assets/github-mark.png"/>
+            </a>
+        </mat-tab>
+        <mat-tab label="Restore config" style="padding: 10px;">
+            <div class="loading-box" *ngIf="!restoreReady">
+                <div class="spinner"></div>
+            </div>
+            <form enctype="multipart/form-data" *ngIf="restoreReady" #fileForm>
+                <p>
+                    Configuration Restore Notice: <b>All existing data will be overwritten</b> by the restored
+                    configuration.
+                </p>
+                <input class="form-control" type="file" id="uploadConfig"
+                       accept="application/zip, .zip" (change)="onFileSelected($event)">
+            </form>
+        </mat-tab>
+    </mat-tab-group>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button *ngIf="currentTab==1" mat-raised-button color="warn" (click)="onSubmit()" [disabled]="!restoreReady">
+        <mat-icon>
+            restore
+        </mat-icon>
+        Restore
+    </button>
+    <button *ngIf="currentTab==0" mat-raised-button color="primary" (click)="downloadConfig()">
+        <mat-icon>
+            file_download
+        </mat-icon>
+        Download Config
+    </button>
+
+    <button (click)="onDismiss()" mat-raised-button>
+        <mat-icon>exit_to_app</mat-icon>
+        {{ 'actions.close'|translate }}
+    </button>
+</mat-dialog-actions>

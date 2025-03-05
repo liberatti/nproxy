@@ -1,0 +1,372 @@
+<ng-container>
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title>{{ 'view.service.title'|translate }}</mat-card-title>
+            <mat-card-subtitle>{{ (isAddMode ? 'actions.create' : 'actions.edit')| translate }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <form [formGroup]="form">
+                <mat-stepper [linear]="false" #stepper>
+                    <mat-step label="Details">
+                        <div class="mat-row">
+                            <div class="mat-col-6">
+                                <div class="mat-row">
+                                    <div class="mat-col-12">
+                                        <mat-form-field class="full-width">
+                                            <mat-label>Name</mat-label>
+                                            <input matInput formControlName="name">
+                                        </mat-form-field>
+                                        <form [formGroup]="sansForm">
+                                            <mat-card>
+                                                <mat-form-field>
+                                                    <mat-label>Domain</mat-label>
+                                                    <input id="sans-domain" matInput formControlName="cn">
+                                                    <button id="btn-add-sans" color="primary" matSuffix mat-icon-button
+                                                            (click)="onAddCN()">
+                                                        <mat-icon>add</mat-icon>
+                                                    </button>
+                                                </mat-form-field>
+                                                <mat-card-content>
+                                                    <mat-chip-listbox>
+                                                        <mat-chip-row *ngFor="let p of form.value.sans"
+                                                                      (removed)="onRemoveCN(p)">
+                                                            {{ p }}
+                                                            <button matChipRemove>
+                                                                <mat-icon>cancel</mat-icon>
+                                                            </button>
+                                                        </mat-chip-row>
+                                                    </mat-chip-listbox>
+                                                </mat-card-content>
+                                            </mat-card>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="mat-row">
+                                    <div class="mat-col-12 full-width">
+
+                                    </div>
+                                </div>
+                                <div class="mat-row">
+                                    <div class="mat-col-12">
+                                        <mat-checkbox formControlName="compression">compression</mat-checkbox>
+                                        <mat-checkbox formControlName="rate_limit">Limit requests</mat-checkbox>
+                                        <mat-checkbox formControlName="jail_enable">Source Jail</mat-checkbox>
+                                    </div>
+                                </div>
+                                <div class="mat-row">
+                                    <div class="mat-col-12">
+                                        <mat-form-field class="full-width" *ngIf="form.value.jail_enable">
+                                            <mat-label>Jail</mat-label>
+                                            <mat-select formControlName="jail" [compareWith]="compareFn">
+                                                <mat-option *ngFor="let c of _jails;" [value]="c">
+                                                    {{ c.name }}
+                                                </mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </div>
+                                </div>
+                                <div class="mat-row">
+                                    <div class="mat-col-12">
+                                        <mat-form-field *ngIf="form.value.rate_limit">
+                                            <mat-label>Requests per seconds</mat-label>
+                                            <input matInput type="number" formControlName="rate_limit_per_sec">
+                                        </mat-form-field>
+                                    </div>
+                                </div>
+                                <div class="mat-row">
+                                    <div class="mat-col-12">
+                                        <mat-form-field>
+                                            <mat-label>Request Body Limit (MB)</mat-label>
+                                            <input matInput type="number" formControlName="body_limit">
+                                        </mat-form-field>
+                                        <mat-form-field>
+                                            <mat-label>Request Timeout (seconds)</mat-label>
+                                            <input matInput type="number" formControlName="timeout">
+                                        </mat-form-field>
+                                    </div>
+                                    <mat-card class="mt-2">
+                                        <mat-card-header>
+                                            <mat-card-subtitle>Security Inspection</mat-card-subtitle>
+                                        </mat-card-header>
+                                        <mat-card-content>
+                                            <mat-form-field>
+                                                <mat-label>Inspect Level</mat-label>
+                                                <input matInput type="number" formControlName="inspect_level">
+                                            </mat-form-field>
+                                            <mat-form-field>
+                                                <mat-label>inboundScore</mat-label>
+                                                <input matInput type="number" formControlName="inbound_score">
+                                            </mat-form-field>
+                                            <mat-form-field>
+                                                <mat-label>outboundScore</mat-label>
+                                                <input matInput type="number" formControlName="outbound_score">
+                                            </mat-form-field>
+                                        </mat-card-content>
+                                    </mat-card>
+                                </div>
+                            </div>
+                            <div class="mat-col-6">
+                                <mat-card>
+                                    <mat-card-header>
+                                        <mat-card-subtitle>Service Port Bindings</mat-card-subtitle>
+                                        <div style="flex: auto">
+                                            <button style="float: right" mat-icon-button color="primary"
+                                                    (click)="onAddBind()">
+                                                <mat-icon>add</mat-icon>
+                                            </button>
+                                        </div>
+                                    </mat-card-header>
+                                    <mat-card-content>
+                                        <table mat-table [dataSource]="bindingDS">
+                                            <tr mat-header-row *matHeaderRowDef="bindingDC"></tr>
+                                            <tr mat-row *matRowDef="let row; columns: bindingDC;"></tr>
+
+                                            <ng-container matColumnDef="port">
+                                                <th mat-header-cell *matHeaderCellDef> Port</th>
+                                                <td mat-cell *matCellDef="let element">
+                                                    {{ element.port }}
+                                                </td>
+                                            </ng-container>
+                                            <ng-container matColumnDef="protocol">
+                                                <th mat-header-cell *matHeaderCellDef> Protocol</th>
+                                                <td mat-cell *matCellDef="let element">
+                                                    {{ element.protocol }}
+                                                </td>
+                                            </ng-container>
+                                            <ng-container matColumnDef="ssl_upgrade">
+                                                <th mat-header-cell *matHeaderCellDef> Force SSL</th>
+                                                <td mat-cell *matCellDef="let element">
+                                                    @if (element.ssl_upgrade) {
+                                                        <mat-icon color="primary">security</mat-icon>
+                                                    }
+                                                </td>
+                                            </ng-container>
+                                            <ng-container matColumnDef="action">
+                                                <th mat-header-cell *matHeaderCellDef></th>
+                                                <td mat-cell *matCellDef="let element;let i = index;">
+                                                    <div class="table-cell-actions">
+                                                        <button mat-button type="button" [matMenuTriggerFor]="menu">
+                                                            <mat-icon>more_vert</mat-icon>
+                                                        </button>
+                                                        <mat-menu #menu="matMenu" xPosition="before"
+                                                                  [overlapTrigger]="true">
+                                                            <button mat-menu-item type="button" (click)="onEditBind(i)">
+                                                                <mat-icon>edit</mat-icon>
+                                                                Edit
+                                                            </button>
+                                                            <button mat-menu-item type="button"
+                                                                    (click)="onBindRemove(i)">
+                                                                <mat-icon>delete</mat-icon>
+                                                                Delete
+                                                            </button>
+                                                        </mat-menu>
+                                                    </div>
+                                                </td>
+                                            </ng-container>
+                                        </table>
+
+                                    </mat-card-content>
+                                </mat-card>
+                                @if (hasSslSupport()) {
+                                    <mat-card class="mt-2">
+                                        <mat-card-header>
+                                            <mat-card-subtitle>SSL Configuration</mat-card-subtitle>
+                                        </mat-card-header>
+                                        <mat-card-content>
+                                            <mat-form-field class="mt-2 full-width">
+                                                <mat-label>Certificate</mat-label>
+                                                <mat-select id="certificate" formControlName="certificate"
+                                                            [compareWith]="compareFn">
+                                                    <mat-option id="certificate-{{i}}"
+                                                                *ngFor="let c of _certificates;  let i = index"
+                                                                [value]="c">
+                                                        {{ c.name }}
+                                                    </mat-option>
+                                                </mat-select>
+                                            </mat-form-field>
+                                            <mat-checkbox formControlName="ssl_client_auth">Support SSL Client Auth
+                                            </mat-checkbox>
+                                            @if (form.value.ssl_client_auth) {
+                                                <mat-form-field class="full-width">
+                                                    <mat-label>Certificate Authority</mat-label>
+                                                    <textarea matInput cdkTextareaAutosize
+                                                              #autosize="cdkTextareaAutosize"
+                                                              cdkAutosizeMinRows="6" cdkAutosizeMaxRows="15"
+                                                              formControlName="ssl_client_ca"></textarea>
+                                                </mat-form-field>
+                                            }
+                                            <form [formGroup]="protocolForm">
+                                                <mat-card>
+                                                    <mat-form-field class="full-width">
+                                                        <mat-label>Protocol</mat-label>
+                                                        <input matInput formControlName="text">
+                                                        <button color="primary" matSuffix mat-icon-button
+                                                                (click)="onAddProto()">
+                                                            <mat-icon>add</mat-icon>
+                                                        </button>
+                                                    </mat-form-field>
+                                                    <mat-card-content>
+                                                        <mat-chip-listbox>
+                                                            <mat-chip-row *ngFor="let p of form.value.ssl_protocols"
+                                                                          (removed)="onRemoveProto(p)">
+                                                                {{ p }}
+                                                                <button matChipRemove>
+                                                                    <mat-icon>cancel</mat-icon>
+                                                                </button>
+                                                            </mat-chip-row>
+                                                        </mat-chip-listbox>
+                                                    </mat-card-content>
+                                                </mat-card>
+                                            </form>
+                                        </mat-card-content>
+                                    </mat-card>
+                                }
+
+                            </div>
+                        </div>
+                        <div class="mat-mdc-card-actions">
+                            <button mat-raised-button color="primary" matStepperNext>Next</button>
+                        </div>
+                    </mat-step>
+                    <mat-step label="Overrides">
+                        <div style="padding: 10px;">
+                            <mat-card>
+                                <mat-card-header>
+                                    <mat-card-subtitle>Headers</mat-card-subtitle>
+                                    <div style="flex: auto">
+                                        <button style="float: right" mat-icon-button color="primary"
+                                                (click)="onAddHeader()">
+                                            <mat-icon>add</mat-icon>
+                                        </button>
+                                    </div>
+                                </mat-card-header>
+                                <mat-card-content>
+                                    <table mat-table [dataSource]="headerDS">
+                                        <tr mat-header-row *matHeaderRowDef="headerDC"></tr>
+                                        <tr mat-row *matRowDef="let row; columns: headerDC;"></tr>
+
+                                        <ng-container matColumnDef="name">
+                                            <th mat-header-cell *matHeaderCellDef> Name</th>
+                                            <td mat-cell *matCellDef="let element"> {{ element.name }}</td>
+                                        </ng-container>
+
+                                        <ng-container matColumnDef="content">
+                                            <th mat-header-cell *matHeaderCellDef> Content</th>
+                                            <td mat-cell *matCellDef="let element"> {{ element.content }}</td>
+                                        </ng-container>
+
+                                        <ng-container matColumnDef="action">
+                                            <th mat-header-cell *matHeaderCellDef></th>
+                                            <td mat-cell *matCellDef="let element;let i = index;">
+                                                <div class="table-cell-actions">
+                                                    <button mat-button type="button" [matMenuTriggerFor]="menu">
+                                                        <mat-icon>more_vert</mat-icon>
+                                                    </button>
+                                                    <mat-menu #menu="matMenu" xPosition="before"
+                                                              [overlapTrigger]="true">
+                                                        <button mat-menu-item type="button" (click)="onRemoveHeader(i)">
+                                                            <mat-icon>delete</mat-icon>
+                                                            Delete
+                                                        </button>
+                                                    </mat-menu>
+                                                </div>
+                                            </td>
+                                        </ng-container>
+                                    </table>
+                                </mat-card-content>
+                            </mat-card>
+
+                        </div>
+                        <div class="mat-mdc-card-actions">
+                            <button mat-raised-button matStepperPrevious>Back</button>
+                            <button mat-raised-button color="primary" matStepperNext>Next</button>
+                        </div>
+                    </mat-step>
+                    <mat-step label="Routes">
+                        <div style="padding: 10px;">
+                            <mat-card>
+                                <mat-card-header>
+                                    <mat-card-subtitle>Routes</mat-card-subtitle>
+                                    <div style="flex: auto">
+                                        <button style="float: right" mat-icon-button color="primary"
+                                                (click)="onAddRoute()">
+                                            <mat-icon>add</mat-icon>
+                                        </button>
+                                    </div>
+                                </mat-card-header>
+                                <mat-card-content>
+                                    <table class="mat-mdc-table mdc-data-table__table cdk-table cdk-drop-list-table">
+                                        <thead>
+                                        <tr class="mat-mdc-header-row mdc-data-table__header-row cdk-header-row no-wrap">
+                                            <th class="mat-mdc-header-cell mdc-data-table__header-cell cdk-header-cell">
+                                            </th>
+                                            <th *ngFor="let h of routeDC"
+                                                class="mat-mdc-header-cell mdc-data-table__header-cell cdk-header-cell">
+                                                <div *ngIf="h != 'action'">
+                                                    {{ h }}
+                                                </div>
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody cdkDropList [cdkDropListData]="form.value.routes"
+                                               (cdkDropListDropped)="moveRoute($event)">
+                                        <tr cdkDrag *ngFor="let r of form.value.routes; let i = index;"
+                                            class="mat-mdc-row mdc-data-table__row cdk-row">
+                                            <td cdkDragHandle>
+                                                <mat-icon>drag_indicator</mat-icon>
+                                            </td>
+                                            <td class="no-wrap">
+                                                {{ r.name }}
+                                            </td>
+                                            <td class="no-wrap">
+                                                <ng-container *ngIf="r.type != 'redirect'">
+                                                    {{ r.upstream.name }}
+                                                </ng-container>
+                                            </td>
+                                            <td class="full-width">
+                                                <mat-chip-listbox>
+                                                    <mat-chip-row *ngFor="let p of r.paths">
+                                                        {{ p }}
+                                                    </mat-chip-row>
+                                                </mat-chip-listbox>
+                                            </td>
+                                            <td class="table-cell-actions">
+                                                <div class="toggle-container">
+                                                    <button mat-button type="button" [matMenuTriggerFor]="menu">
+                                                        <mat-icon>more_vert</mat-icon>
+                                                    </button>
+                                                    <mat-menu #menu="matMenu" xPosition="before"
+                                                              [overlapTrigger]="true">
+                                                        <button mat-menu-item type="button" (click)="onEditRoute(i)">
+                                                            <mat-icon>edit</mat-icon>
+                                                            Edit
+                                                        </button>
+                                                        <button mat-menu-item type="button" (click)="onRemoveRoute(i)">
+                                                            <mat-icon>delete</mat-icon>
+                                                            Delete
+                                                        </button>
+                                                    </mat-menu>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </mat-card-content>
+                            </mat-card>
+                        </div>
+                        <div class="mat-mdc-card-actions">
+                            <button mat-raised-button matStepperPrevious>Back</button>
+                            <button (click)="onSubmit()" mat-raised-button color="primary">
+                                <mat-icon>save</mat-icon>
+                                {{ 'actions.save' | translate }}
+                            </button>
+                            <button mat-mini-fab [routerLink]="['/service']">
+                                <mat-icon>keyboard_return</mat-icon>
+                            </button>
+                        </div>
+                    </mat-step>
+                </mat-stepper>
+            </form>
+        </mat-card-content>
+    </mat-card>
+</ng-container>

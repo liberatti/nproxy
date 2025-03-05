@@ -1,0 +1,73 @@
+FROM --platform=${BUILDPLATFORM:-linux/amd64} rockylinux:9 AS engine
+
+ENV MODSECURITY_INC "/opt/nproxy/modsec/include"
+ENV MODSECURITY_LIB "/opt/nproxy/modsec/lib"
+
+RUN dnf -y install 'dnf-command(config-manager)' \
+  && dnf config-manager --set-enabled devel \
+  && dnf -y install \
+    git wget openssl-devel gcc gcc-c++ zlib-devel make automake libtool readline-devel \
+    libinput libcurl-devel pcre2-devel libxml2-devel libxslt-devel libgcrypt-devel gd-devel \
+    libffi-devel rpmdevtools rpm-build rpm-devel yajl-devel lua-devel python3.12 python3.12-devel \
+    yajl lua perl-ExtUtils-Embed shadow-utils util-linux python3.12-pip openldap-devel \
+  && dnf clean all
+
+WORKDIR /root/rpmbuild/SPECS
+COPY packages/ssdeep.spec .
+RUN rpmbuild -bb ssdeep.spec \
+  && rpm -ivh /root/rpmbuild/RPMS/**/ssdeep-*.rpm
+
+RUN wget https://dl.fedoraproject.org/pub/epel/9/Everything/x86_64/Packages/l/luarocks-3.9.2-5.el9.noarch.rpm \
+  && rpm -ivh luarocks-3.9.2-5.el9.noarch.rpm \
+  && rm -f luarocks-3.9.2-5.el9.noarch.rpm
+
+COPY packages/nproxy-openresty.spec /root/rpmbuild/SPECS/
+RUN rpmbuild -bb nproxy-openresty.spec
+
+FROM --platform=${BUILDPLATFORM:-linux/amd64} node:lts AS frontend
+
+WORKDIR /app
+COPY web/package*.json .
+RUN npm install && npm cache clean --force
+
+COPY web web
+COPY *.json .
+RUN cd web && npm run build
+
+FROM --platform=${BUILDPLATFORM:-linux/amd64} rockylinux:9-minimal AS main
+
+ENV INSTALL_TYPE CONTAINER
+
+ENV PATH ${PATH}:/opt/nproxy/.local/bin:/opt/nproxy/nginx/sbin
+ENV LUA_PATH "/opt/nproxy/lualib/share/lua/5.4/?.lua;/opt/nproxy/lualib/share/lua/5.4/resty/?.lua;;"
+ENV LUA_CPATH "/opt/nproxy/lualib/lib64/lua/5.4/?.so;/opt/nproxy/lualib/lib/?.so;/opt/nproxy/lualib/?.so;;"
+
+RUN microdnf install -y procps openssl bind-utils pkg-config shadow-utils util-linux gcc-c++ wget \
+    libX11 libXext libXi libXrender libXtst alsa-lib freetype sudo \
+    python3.12 python3.12-devel python3.12-pip yajl lua \
+  && microdnf clean all
+
+COPY --from=engine /root/rpmbuild/RPMS/**/*.rpm /RPMS/
+RUN rpm -ivh /RPMS/*.rpm && rm -rf /RPMS
+
+WORKDIR /opt/nproxy/admin
+USER nproxy
+
+COPY requirements.txt /opt/nproxy/admin/
+RUN pip3.12 install -r /opt/nproxy/admin/requirements.txt
+
+COPY --from=frontend /app/web/dist /opt/nproxy/admin/static
+COPY --from=frontend /app/web/dist/index.html /opt/nproxy/admin/templates/
+
+COPY api /opt/nproxy/admin/api
+COPY config /opt/nproxy/admin/config
+COPY *.py /opt/nproxy/admin/
+
+RUN mkdir -p /opt/nproxy/lualib/share/lua/5.4/nproxy/
+COPY lualib /opt/nproxy/lualib/share/lua/5.4/nproxy/
+
+EXPOSE 5000
+EXPOSE 80
+EXPOSE 443
+
+ENTRYPOINT ["gunicorn", "-k", "eventlet", "-w", "1", "main:app", "-b", "0.0.0.0:5000"]

@@ -1,0 +1,46 @@
+<div class="container">
+    <mat-card class="node-card">
+        <mat-card-header>
+            <mat-card-title>Nodes</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <div *ngFor="let n of nodeList" class="node-item">
+                <div class="node-header">
+
+                    <small> <b>{{ n.name }}</b>
+                        <mat-chip>
+                            {{ n.role }}
+                        </mat-chip>
+                    </small>
+                    <div class="status-actions">
+                        <mat-chip [ngClass]="{'online': n.online, 'offline': !n.online}">
+                            {{ n.online ? 'Online' : 'Offline' }}
+                        </mat-chip>
+                        <button *ngIf="!n.healthy" mat-flat-button color="warn" (click)="show_details(n)"
+                                class="warn-button">
+                            <mat-icon>warning_amber</mat-icon>
+                            Details
+                        </button>
+                    </div>
+                </div>
+                <div class="node-details">
+                    <div class="status">
+                        <mat-icon>monitor_heart</mat-icon>
+                        {{ n.last_check | dateFormat }}
+                    </div>
+                    <div class="version">
+                        <mat-icon>system_update_alt</mat-icon>
+                        <small>{{ n.version }}</small>
+                    </div>
+                    <div class="synchronization">
+                        <b>Synchronization:</b> {{ n.scn }}
+                        <mat-icon>cloud_download</mat-icon>
+                        {{ n.net_recv |byteFormat }}/s
+                        <mat-icon>cloud_upload</mat-icon>
+                        {{ n.net_send|byteFormat }}/s
+                    </div>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+</div>

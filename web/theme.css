@@ -1,0 +1,115 @@
+:root {
+    --primary-color: #009639;
+    --primary-light-color: #33b16c;
+    --primary-dark-color: #007a2f;
+    --accent-color: #00a859;
+    --background-color: rgba(255, 255, 255, 0.92);
+    --text-color: #e0e0e0; /* Texto claro */
+    --mdc-chip-label-text-color: #e0e0e0;
+    --toolbar-background: #1a1a1a;
+    --footer-background: #009639;
+    --footer-text-color: #ffffff;
+    --warn-color: #f44336;
+    --rejected-color: #f77676;
+    --warning-color: #f79c03;
+    --passed-color: #4caf50;
+}
+
+html {
+    --mat-app-background-color: var(--background-color);
+}
+
+.mat-primary {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+}
+
+.mat-mdc-mini-fab.mat-accent {
+    background-color: var(--primary-light-color);
+}
+
+.mat-toolbar.mat-primary {
+    background: linear-gradient(135deg, #00688c, #02a103);
+    /*background-color: var(--toolbar-background);*/
+    box-shadow: 0 1px 1px -1px #007a2f, 0 1px 5px -2px #00a859;
+    height: 36px;
+    z-index: 2;
+}
+
+.mat-mdc-form-field-icon-suffix, .mat-mdc-form-field-icon-prefix {
+    color: var(--primary-dark-color) !important;
+}
+
+.mat-horizontal-stepper-header-container .mat-primary {
+    background-color: transparent !important;
+    color: #1a1a1a !important;
+}
+
+
+.mat-mdc-select-panel {
+    background-color: var(--background-color) !important;
+}
+
+.mat-app-background {
+    margin: 0px;
+    padding: 0px;
+}
+
+.mat-mdc-raised-button.mat-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.mat-mdc-card-header-text {
+    color: var(--text-color);
+    text-wrap: nowrap;
+}
+
+.mat-mdc-card-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.mat-mdc-card-header .mat-mdc-card-actions {
+    margin-left: auto;
+    width: 100%;
+}
+
+.mat-sidenav {
+    min-width: 180px !important;
+    border-right: 1px solid #444444;
+    box-shadow: 6px 0 6px rgba(0, 0, 0, .1);
+}
+
+.mat-toolbar-row, .mat-toolbar-single-row {
+    height: 36px;
+}
+
+mat-nav-list mat-nav-list {
+    margin-left: 16px; /* Indentação para submenus */
+}
+
+mat-nav-list a {
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+mat-nav-list a:hover {
+    color: var(--primary-light-color);
+}
+
+mat-form-field.mat-primary, mat-tab-group.mat-primary {
+    background-color: transparent !important;
+}
+
+mat-form-field.mat-primary .mat-form-field-outline {
+    border-color: transparent !important;
+}
+
+.shadow {
+    box-shadow: 0px 1px 15px 1px rgba(69, 65, 78, 0.08);
+}
+
+.mat-mdc-standard-chip:not(.mdc-evolution-chip--disabled) .mdc-evolution-chip__text-label {
+    color: #f8f9fa !important;
+}
