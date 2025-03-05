@@ -19,13 +19,13 @@ export const JwtInterceptor: HttpInterceptorFn = (req, next) => {
             .set('Authorization', accessToken ? `Bearer ${accessToken}` : '')
     });
     if (!req.headers.has('Content-Type')) {
-        if ( req.body instanceof FormData) {
+        if (req.body instanceof FormData) {
             authReq = authReq.clone({
                 headers: authReq.headers
                     //.set('Content-Type', 'multipart/form-data')
                     .set('Pragma', 'no-cache')
             });
-        }else{
+        } else {
             authReq = authReq.clone({
                 headers: authReq.headers
                     .set('Content-Type', 'application/json')
@@ -37,12 +37,12 @@ export const JwtInterceptor: HttpInterceptorFn = (req, next) => {
     function isAPIErrorResponse(error: any): error is APIErrorResponse {
         return (
             typeof error.error.code === 'number' &&
-            typeof error.error.details === 'string' &&
             typeof error.error.message === 'string' &&
             typeof error.error.method === 'string' &&
             typeof error.error.url === 'string'
         );
     }
+
     //console.log('Requisição HTTP:', req);
     //console.log('Cabeçalhos:', req.headers);
     //if (req.body instanceof FormData)
@@ -77,9 +77,9 @@ export const JwtInterceptor: HttpInterceptorFn = (req, next) => {
                     }
                 } else {
                     if (isAPIErrorResponse(err)) {
-                        notificationService.openSnackBar('['+err.error.code+'] '+err.error.message);
-                    }else{
-                        console.error('Unknown error:', { status: err.status, message: err.message });
+                        notificationService.openSnackBar('[' + err.error.code + '] ' + err.error.message);
+                    } else {
+                        console.error('Unknown error:', {status: err.status, message: err.message});
                     }
                 }
             } else {

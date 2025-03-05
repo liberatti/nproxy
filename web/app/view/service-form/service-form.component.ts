@@ -45,6 +45,7 @@ import {MatExpansionModule} from '@angular/material/expansion';
 import {Certificate} from "../../models/certificate";
 import {CertificateService} from "../../services/certificate.service";
 import {MatStepperModule} from "@angular/material/stepper";
+import {OAuthService} from "../../services/oauth.service";
 
 @Component({
     selector: 'app-service-form',
@@ -119,7 +120,8 @@ export class ServiceFormComponent implements OnInit {
         private notificationService: NotificationService,
         private serviceService: ServiceService,
         private jailService: JailService,
-        private certificateService: CertificateService
+        private certificateService: CertificateService,
+        protected oauth: OAuthService,
     ) {
         this.headerDS = new MatTableDataSource<Header>;
         this.routeDS = new MatTableDataSource<Route>;

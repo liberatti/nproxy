@@ -81,6 +81,11 @@
       "title": "Route Filters",
       "subtitle": "List of all route filters"
     },
+    "user": {
+      "link": "Users",
+      "title": "Users",
+      "subtitle": "List of all users"
+    },
     "config": {
       "link": "Config",
       "title": "Config",

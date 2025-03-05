@@ -20,6 +20,7 @@ class UserSchema(Schema):
     email = fields.String()
     password = fields.String()
     locale = fields.String(required=False)
+    role = fields.String()
 
 
 class UserDao(MongoDAO):
@@ -28,7 +29,7 @@ class UserDao(MongoDAO):
 
     def _load(self, vo):
         super()._load(vo)
-        if vo:
+        if vo and "password" in vo:
             vo.pop("password")
 
     def get_by_email(self, email):
