@@ -100,7 +100,7 @@ class ClusterTool:
                 node_st = {"name": server_id(), "upstreams": []}
                 pk = dao_st.persist(node_st)
                 node_st.update({"_id": pk})
-            node_st.update({"version": ENGINE_VERSION, "role": NODE_ROLE})
+            node_st.update({"version": ENGINE_VERSION, "role": NODE_ROLE,"last_check": datetime.now()})
 
             if cls.CONFIG:
                 node_st.update({"scn": cls.CONFIG['scn']})
@@ -108,7 +108,6 @@ class ClusterTool:
             if len(upstreams) > 0:
                 response = requests.get("http://127.0.0.1:9000/ngx_up_status")
                 if response.status_code == 200:
-                    node_st.update({"last_check": datetime.now()})
                     ngx_status = response.json()
                     node_st["upstreams"] = []
                     for u in upstreams:
@@ -116,7 +115,7 @@ class ClusterTool:
                         node_st["upstreams"].append(ups)
                 else:
                     logger.error(f"Monitor error [{response.status_code}] {response.text}")
-                dao_st.update_by_id(node_st['_id'], node_st)
+            dao_st.update_by_id(node_st['_id'], node_st)
             return node_st
         except Exception as e:
             # stack_trace = traceback.format_exc()

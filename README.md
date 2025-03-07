@@ -17,20 +17,35 @@ This project aims to create a secure and efficient environment for API exposure,
 ## NProxy Distribution Formats
 
 ### Container Image
-For containerized environments, NProxy is also available as a container image. This enables seamless deployment using container orchestration tools such as Docker or Kubernetes. Pull the NProxy container image from the registry and run it in your containerized environment.
 
+Pull the NProxy container image from the registry and run it in your containerized environment.
+
+#### Docker environment
 ```docker
-docker run -it -p 5000:5000 -p 80:80 -p 443:443 \
+docker run -it \
+ -e MONGO_URI='mongodb://<ipaddr>'\
+ -e NODE_ROLE="main"\
+ -e SERVERID="nproxy-node01"\
+ -p 5000:5000 \
+ -p 80:80 
+ -p 443:443 \
 liberatti/nproxy:latest
 ```
+#### Docker compose
 
-**Managment interface:** [http://localhost:5000](http://localhost:5000)
+[Download Docker Compose Minimal](https://nproxy.tooka.com.br/docker-compose-minimal.yml)
+
+```docker
+docker compose -f docker-compose-minimal.yml up -d
+```
+
+**Managment interface: ** [http://localhost:5000](http://localhost:5000)
 
 **Default Account:** admin@local **Password:** admin   
 
-### Test security
+## Test security
 
-#### Gotestwaf
+### Gotestwaf
 GoTestWAF is a tool for API and OWASP attack simulation that supports a wide range of API protocols including REST, GraphQL, gRPC, SOAP, XMLRPC, and others.
 [Know more](https://github.com/wallarm/gotestwaf)
 
