@@ -41,23 +41,24 @@ ENV INSTALL_TYPE CONTAINER
 ENV PATH ${PATH}:/opt/nproxy/.local/bin:/opt/nproxy/nginx/sbin
 ENV LUA_PATH "/opt/nproxy/lualib/share/lua/5.4/?.lua;/opt/nproxy/lualib/share/lua/5.4/resty/?.lua;;"
 ENV LUA_CPATH "/opt/nproxy/lualib/lib64/lua/5.4/?.so;/opt/nproxy/lualib/lib/?.so;/opt/nproxy/lualib/?.so;;"
+ENV PYTHONUSERBASE /opt/nproxy/admin/site-packages
 
-RUN microdnf install -y procps openssl bind-utils pkg-config shadow-utils util-linux gcc-c++ wget \
-    libX11 libXext libXi libXrender libXtst alsa-lib freetype sudo \
-    python3.12 python3.12-devel python3.12-pip yajl lua \
+RUN microdnf install -y procps openssl bind-utils shadow-utils util-linux gcc-c++ \
+    libX11 libXext libXi libXrender libXtst freetype sudo \
+    python3.12 python3.12-devel python3.12-pip yajl lua wget\
+  && microdnf update -y\
   && microdnf clean all
 
 COPY --from=engine /root/rpmbuild/RPMS/**/*.rpm /RPMS/
 RUN rpm -ivh /RPMS/*.rpm && rm -rf /RPMS
 
+COPY --from=frontend /app/web/dist /opt/nproxy/admin/static
+COPY --from=frontend /app/web/dist/index.html /opt/nproxy/admin/templates/
+
 WORKDIR /opt/nproxy/admin
-USER nproxy
 
 COPY requirements.txt /opt/nproxy/admin/
 RUN pip3.12 install -r /opt/nproxy/admin/requirements.txt
-
-COPY --from=frontend /app/web/dist /opt/nproxy/admin/static
-COPY --from=frontend /app/web/dist/index.html /opt/nproxy/admin/templates/
 
 COPY api /opt/nproxy/admin/api
 COPY config /opt/nproxy/admin/config
@@ -65,6 +66,10 @@ COPY *.py /opt/nproxy/admin/
 
 RUN mkdir -p /opt/nproxy/lualib/share/lua/5.4/nproxy/
 COPY lualib /opt/nproxy/lualib/share/lua/5.4/nproxy/
+
+RUN chown -R nproxy /opt/nproxy
+
+USER nproxy
 
 EXPOSE 5000
 EXPOSE 80

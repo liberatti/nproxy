@@ -42,6 +42,7 @@ def initialize_db():
             "email": "admin@local",
             "username": "admin",
             "password": hashed.decode("utf-8"),
+            "role":"superuser"
         }
     )
     logger.info("Initialize DB completed")
