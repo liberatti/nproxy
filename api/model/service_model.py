@@ -196,7 +196,7 @@ class ServiceDao(MongoDAO):
         return rows
 
     def getall_by_certificate_id(self, certificate_id):
-        query = {"bindings.certificate_id": ObjectId(certificate_id)}
+        query = {"certificate_id": ObjectId(certificate_id),"active":True}
         logger.debug(query)
         rows = list(self.collection.find(query))
         for e in rows:

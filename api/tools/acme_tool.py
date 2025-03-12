@@ -62,11 +62,11 @@ class AcmeTool:
             cn = None
             sans = []
             for s in services:
-                if not cn:
+                if cn:
+                    sans.extend(s['sans'])
+                else:
                     cn = s['sans'][0]
                     sans = s['sans'][1:]
-                else:
-                    sans.extend(s['sans'])
 
             result = SSLLetsEncryptTool.create_certificate(
                 cn, sans=sans, email="fake@tooka.com.br"
@@ -105,8 +105,8 @@ class AcmeTool:
             cls.clean_expired_challenges()
             dao_service = ServiceDao()
             services = dao_service.get_all()
+            crt_count = 0
             if 'data' in services:
-                crt_count = 0
                 for service in services['data']:
                     if 'certificate' in service:
                         renew_date = datetime.now() - timedelta(days=cls.__CERTIFICATE_RENEW)
