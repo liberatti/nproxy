@@ -235,7 +235,7 @@ class EngineManager:
         sb.append(" sendfile on;")
         sb.append(" keepalive_timeout 65;")
         sb.append(f" log_format logger-json escape=json '{self.__LOG_FORMAT}';")
-
+        sb.append(f"large_client_header_buffers 4 32k;")
         self._build_config_policy()
 
         sb.append(
