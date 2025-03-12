@@ -30,6 +30,4 @@ jobs:
           provenance: true
           labels: ${{ steps.docker_meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
-          tags: |
-            liberatti/nproxy:${{ github.ref_name }}
-            liberatti/nproxy:latest
+          tags: liberatti/nproxy:${{ github.ref_name }},liberatti/nproxy:latest
