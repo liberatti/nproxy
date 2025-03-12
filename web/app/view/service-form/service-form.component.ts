@@ -99,7 +99,7 @@ export class ServiceFormComponent implements OnInit {
         inspect_level: new FormControl<number>(3),
         inbound_score: new FormControl<number>(15),
         outbound_score: new FormControl<number>(15),
-        buffer: new FormControl<number>(1),
+        buffer: new FormControl<number>(256),
         compression: new FormControl<boolean>(true),
         rate_limit: new FormControl<boolean>(true),
         rate_limit_per_sec: new FormControl<number>(256),

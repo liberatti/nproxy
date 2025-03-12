@@ -68,6 +68,15 @@
                                 <div class="mat-row">
                                     <div class="mat-col-12">
                                         <mat-form-field *ngIf="form.value.rate_limit">
+                                            <mat-label>Buffer (KB)</mat-label>
+                                            <input matInput type="number" formControlName="buffer">
+                                        </mat-form-field>
+                                    </div>
+                                </div>
+
+                                <div class="mat-row">
+                                    <div class="mat-col-12">
+                                        <mat-form-field *ngIf="form.value.rate_limit">
                                             <mat-label>Requests per seconds</mat-label>
                                             <input matInput type="number" formControlName="rate_limit_per_sec">
                                         </mat-form-field>

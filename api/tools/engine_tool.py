@@ -315,6 +315,7 @@ class EngineManager:
             sb.append(f"  proxy_request_buffering on;")
             sb.append(f"  proxy_buffers 8 {service['buffer']}k;")
             sb.append(f"  proxy_buffer_size {service['buffer']}k;")
+            sb.append(f"  proxy_busy_buffers_size {service['buffer']}k;")
         else:
             sb.append(f"  proxy_request_buffering off;")
             sb.append(f"  proxy_buffering off;")

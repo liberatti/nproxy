@@ -170,6 +170,13 @@ class ClusterTool:
                 shell=True,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
+            if not cls.is_running():
+                logger.info(f"Nginx reload failed, start required")
+                result = subprocess.Popen(
+                    f"sudo {EngineManager.nginx}",
+                    shell=True,
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                )
         else:
             logger.info(f"Nginx is not running, start required")
             result = subprocess.Popen(
