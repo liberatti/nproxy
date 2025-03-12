@@ -34,18 +34,27 @@ services:
 
   mongo:
     image: mongodb/mongodb-community-server:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: nproxy_usr
+      MONGO_INITDB_ROOT_PASSWORD: nproxy_psw
     ports:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
 
   proxy:
+    depends_on:
+      - mongo
     image: liberatti/nproxy:latest
     build:
       context: .
       dockerfile: Dockerfile
     environment:
-      MONGO_URI: mongodb://mongo
+      MONGO_HOST: mongo
+      MONGO_PORT: 27017
+      MONGO_DB: nproxy
+      MONGO_USER: nproxy_usr
+      MONGO_PASS: nproxy_psw
       NODE_ROLE: "main"
       SERVERID: "dev-node"
     entrypoint: [ "gunicorn","-k","eventlet","-w","1","main:app","-b","0.0.0.0:5000" ]

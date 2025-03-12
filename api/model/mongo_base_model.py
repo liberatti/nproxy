@@ -5,12 +5,13 @@ from bson import ObjectId
 from marshmallow import Schema, fields
 
 from api.common_utils import logger, config_db
+from config import MONGO_DB
 
 
 class MongoDAO:
 
     def __init__(self, collection_name, schema=None):
-        self.__DB_NAME__ = "nproxy"
+        self.__DB_NAME__ = MONGO_DB
         self.database = getattr(config_db, self.__DB_NAME__)
         self.collection_name = collection_name
         self.collection = self.database[collection_name]

@@ -12,7 +12,12 @@ ENGINE_VERSION="1.27.1"
 SECURITY_ENABLED = True
 
 # Config database (MongoDB)
-MONGO_URI=os.environ.get("MONGO_URI")
+MONGO_HOST=os.environ.get("MONGO_HOST")
+MONGO_PORT=os.environ.get("MONGO_PORT")
+MONGO_DB=os.environ.get("MONGO_DB")
+MONGO_USER=os.environ.get("MONGO_USER")
+MONGO_PASS=os.environ.get("MONGO_PASS")
+MONGO_URI = f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB}?authSource=admin"
 
 JWT_SECRET_KEY=os.environ.get("JWT_SECRET_KEY", "dev")
 JWT_EXPIRE=3600
