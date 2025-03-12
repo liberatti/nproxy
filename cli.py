@@ -21,12 +21,12 @@ def initialize_db():
     logger.info("Initialize DB")
     config_dao = ConfigDao()
     config_dao.drop_database()
-    ca = SSLTool.gen_ca("Tooka-Internal", crt_org="Tooka")
+    ca = SSLTool.gen_ca("Internal-CA", crt_org="NProxy")
     config_dao.persist(
         {
             "maxmind_key": "",
-            "iblocklist_username": "liberatti.gustavo",
-            "iblocklist_pin": "964647",
+            "iblocklist_username": "",
+            "iblocklist_pin": "",
             "ca_certificate": SSLTool.crt_to_pem(ca["certificate"]),
             "ca_private": SSLTool.private_to_pem(ca["private_key"]),
             "acme_directory_url": "https://acme-v02.api.letsencrypt.org/directory",
@@ -40,13 +40,11 @@ def initialize_db():
         {
             "name": "Administrator",
             "email": "admin@local",
-            "username": "admin",
             "password": hashed.decode("utf-8"),
             "role":"superuser"
         }
     )
     logger.info("Initialize DB completed")
-
 
 def install():
     logger.info(f"Installation started")
@@ -84,6 +82,21 @@ def update():
     RuleSetTool.update()
     SecurityFeedTool.update()
 
+def reset_admin():
+    psw = sys.argv[2]
+    user_model = UserDao()
+    user = user_model.get_by_email("admin@local")
+    if not user:
+        logger.error(f"User: admin@local not found")
+        sys.exit(1)
+    hashed = bcrypt.hashpw(psw.encode("utf8"), bcrypt.gensalt())
+    user_model.update_by_id(user['_id'],
+        {
+            "password": hashed.decode("utf-8"),
+            "role": "superuser"
+        }
+    )
+    logger.info(f"User: {user['name']} reset is ok")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -92,7 +105,8 @@ if __name__ == "__main__":
 
     switch = {
         'install': install,
-        'update': update
+        'update': update,
+        'reset_admin': reset_admin
     }
 
     fn = switch.get(sys.argv[1])

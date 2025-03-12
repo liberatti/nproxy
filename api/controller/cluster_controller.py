@@ -117,9 +117,9 @@ def save():
         return ResponseBuilder.error_parse(err)
 
 
-@routes.route("/apply_pending", methods=["GET"])
+@routes.route("/changes", methods=["GET"])
 @has_any_authority(["viewer", "superuser"])
-def apply_pending():
+def config_changes():
     dao = ChangeDao()
     result = dao.get_all()
     if result["metadata"]["total_elements"] > 0:

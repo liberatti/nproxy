@@ -174,6 +174,11 @@ def has_any_authority(_authorities):
                     msg="Expired authorization",
                     details=traceback.format_exc()
                 )
+            except Exception as e2:
+                return ResponseBuilder.error_401(
+                    msg=e2,
+                    details=traceback.format_exc()
+                )
             return ResponseBuilder.error_403(message="Invalid authorization")
 
         return decorator
