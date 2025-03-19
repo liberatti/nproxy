@@ -7,23 +7,82 @@ import re
 import socket
 import tarfile
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 from zipfile import ZipFile
 
 import geoip2.database
 import requests
 from marshmallow import ValidationError
 
-from api.common_utils import logger
+from api.common_utils import logger, replace_tz
 from api.model.config_model import ConfigDao
 from api.model.dictionary_model import DictionaryDao
 from api.model.feed_model import FeedDao
 from api.model.geoip_model import GeoIpDao
+from api.model.jail_model import JailDao
 from api.model.seclang_model import RuleCategoryDao, RuleCategorySchema, RuleDao
 from api.model.sensor_model import SensorDao
+from api.model.service_model import ServiceDao
+from api.model.transaction_model import TransactionDao
 from api.tools.ruleset_tool import RuleSetParser
 from config import APP_BASE, TZ
 
+
+class JailTool:
+
+    @classmethod
+    def __is_jail_active(cls,services,jail):
+        for s in services:
+            for j in s['jails']:
+                if j['id'] in jail ['id']:
+                    return True
+        return False
+
+    @classmethod
+    def process_jails(cls):
+        dt = replace_tz(datetime.now())
+        dao = JailDao()
+        trn_dao = TransactionDao()
+        srv_dao = ServiceDao()
+
+        services = srv_dao.get_all()['data']
+        for j in dao.get_by_type("dynamic"):
+            cs={}
+
+            bl=[]
+            for c in j['content']:
+                if replace_tz(c["banned_on"] + timedelta(minutes=j['bantime'])) < dt:
+                    bl.append(c)
+
+            transactions = trn_dao.get_last_n_minutes(j['interval'])
+            logger.info(f"Processing jail {j['name']} with {len(j['rules'])} rules for {len(transactions)} transactions")
+
+            for t in transactions:
+                if not cls.__is_jail_active(services,j):
+                    pass
+                source_ip=t['source']['ip']
+                if source_ip not in cs:  # register source ip
+                    cs[source_ip] = 0
+
+                for rule in j['rules']:
+                    if 'src.header' in rule['field']:
+                        for h in t['http']['request']['headers']:
+                            if re.search(rule['regex'], h['name']+h['content']):
+                                cs[source_ip]+=1
+                    if 'src.request_line' in rule['field']:
+                        if re.search(rule['regex'], t['http']['request']['request_line']):
+                            cs[source_ip] += 1
+                    if 'action' in rule['field']:
+                        if re.search(rule['regex'], t['action']):
+                            cs[source_ip] += 1
+                    if 'status_code' in rule['field']:
+                        if re.search(rule['regex'], t['http']['response']['status_code']):
+                            cs[source_ip] += 1
+            for ip, score in cs.items():
+                if score >= j['occurrence']:
+                    bl.append({"ipaddr":ip,"banned_on":dt})
+
+            dao.update_by_id(j['_id'],{"content":bl})
 
 class RuleSetTool:
     @classmethod

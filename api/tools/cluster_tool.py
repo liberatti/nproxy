@@ -13,7 +13,7 @@ from api.model.telemetry_model import TelemetryTrnDao
 from api.model.transaction_model import TransactionDao
 from api.model.upstream_model import UpstreamDao, NodeStatusDao
 from api.tools.engine_tool import EngineManager
-from api.tools.security_feed_tool import SecurityFeedTool
+from api.tools.feed_tool import SecurityFeedTool
 from api.tools.service_watcher import ServiceWatcher
 from config import APP_BASE, ENGINE_VERSION, NODE_ROLE
 

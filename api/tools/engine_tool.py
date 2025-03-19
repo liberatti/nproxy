@@ -154,22 +154,6 @@ class EngineManager:
                 f.write(c["private_key"])
 
     def build_dictionaries(self):
-        ruleset_path = f"{APP_BASE}/modsec/conf"
-        dt = replace_tz(datetime.now())
-        jail_dao = JailDao()
-        for jail in self.CONFIG["jails"]:
-            with open(f"{ruleset_path}/{jail['name']}-jl.data", "w") as file_data:
-                jc = []
-                for c in jail["content"]:
-                    if (
-                            "banned_on" in c
-                            and replace_tz(c["banned_on"]) < dt
-                    ):
-                        file_data.write("\n".join(c["ipaddr"]))
-                        jc.append(c)
-            jail.update({"content": jc})
-            jail_dao.update_by_id(jail["_id"], jail)
-
         for service in self.CONFIG["services"]:
             if "active" in service and service["active"]:
                 for route in service["routes"]:
@@ -186,10 +170,20 @@ class EngineManager:
                             f"{service['name']}-{route['name']}", sensor
                         )
 
+    def build_jails(self):
+        ruleset_path = f"{APP_BASE}/modsec/conf"
+        for jail in self.CONFIG["jails"]:
+            with open(f"{ruleset_path}/{jail['name']}-jl.data", "w") as file_data:
+                for c in jail["content"]:
+                    file_data.write("\n".join(c["ipaddr"]))
+
+
     def flush_feeds(self):
         self.build_dictionaries()
+        self.build_jails()
         self.build_keystore()
         self.build_crs()
+
 
     def build_crs(self):
         ruleset_path = f"{APP_BASE}/modsec/conf"
@@ -581,12 +575,14 @@ class EngineManager:
 
                 if "filters" in route:
                     for f in route['filters']:
-                        if 'GEOIP_BLOCK' in f['type']:
+                        if 'GEOIP_BLOCK' in f['type']: #TODO Test geoip blocking
                             sb.append(f"   set $block_countries \"{f['countries']}\";")
+                            sb.append(f"   access_by_lua_file {APP_BASE}/lualib/share/lua/5.4/nproxy/access_by_geoip.lua;")
 
                         if 'SSL_CLIENT_AUTH' in f['type']:
                             sb.append("   if ($ssl_client_verify != SUCCESS) {return 403;}")
                             # sb.append("   if ($ssl_client_i_dn !~ '" +f['ssl_dn_regex']+"')  {return 403;}")
+
                         if 'LDAP_BASIC_AUTH' in f['type']:
                             sb.append(f"   set $ldap_host \"{f['ldap_host']}\";")
                             sb.append(f"   set $ldap_base_dn \"{f['ldap_base_dn']}\";")
@@ -594,7 +590,6 @@ class EngineManager:
                             sb.append(f"   set $ldap_bind_password \"{f['ldap_bind_password']}\";")
                             if 'ldap_group_dn' in f:
                                 sb.append(f"   set $ldap_group_dn \"{f['ldap_group_dn']}\";")
-
                             sb.append(
                                 f"   access_by_lua_file {APP_BASE}/lualib/share/lua/5.4/nproxy/access_by_ldap_auth.lua;")
 

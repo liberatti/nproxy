@@ -14,7 +14,7 @@ from api.model.upstream_model import NodeStatusDao
 from api.tools.acme_tool import AcmeTool
 from api.tools.cluster_tool import ClusterTool
 from api.tools.mongo_tool import MongoTool
-from api.tools.security_feed_tool import SecurityFeedTool
+from api.tools.feed_tool import SecurityFeedTool
 
 routes = Blueprint("cluster", __name__)
 

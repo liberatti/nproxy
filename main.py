@@ -30,8 +30,8 @@ from api.model.config_model import ConfigDao
 from api.tools.acme_tool import AcmeTool
 from api.tools.archive_tool import LogArchiverTool
 from api.tools.cluster_tool import ClusterTool
-from api.tools.security_feed_tool import RuleSetTool
-from api.tools.security_feed_tool import SecurityFeedTool
+from api.tools.feed_tool import RuleSetTool, JailTool
+from api.tools.feed_tool import SecurityFeedTool
 from cli import install
 from config import APP_BASE, NODE_ROLE, MAINTENANCE_WINDOW
 
@@ -142,6 +142,7 @@ with app.app_context():
         schedule.every().day.at(MAINTENANCE_WINDOW).do(AcmeTool.auto_renew)
         schedule.every().day.at(MAINTENANCE_WINDOW).do(ClusterTool.auto_update_feeds)
         schedule.every(30).seconds.do(ClusterTool.auto_telemetry)
+        schedule.every(10).seconds.do(JailTool.process_jails)
     else:
         schedule.every(30).seconds.do(ClusterTool.auto_replicate_config)
 

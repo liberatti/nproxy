@@ -46,6 +46,7 @@ import {Certificate} from "../../models/certificate";
 import {CertificateService} from "../../services/certificate.service";
 import {MatStepperModule} from "@angular/material/stepper";
 import {OAuthService} from "../../services/oauth.service";
+import {FormaterService} from "../../services/formater.service";
 
 @Component({
     selector: 'app-service-form',
@@ -78,7 +79,9 @@ export class ServiceFormComponent implements OnInit {
     sansForm = new FormGroup({
         cn: new FormControl<string>('')
     });
-
+    jailForm = new FormGroup({
+        jail: new FormControl<Jail>({} as Jail)
+    });
     protocolForm = new FormGroup({
         text: new FormControl<string>('')
     });
@@ -104,7 +107,7 @@ export class ServiceFormComponent implements OnInit {
         rate_limit: new FormControl<boolean>(true),
         rate_limit_per_sec: new FormControl<number>(256),
         jail_enable: new FormControl<boolean>(false),
-        jail: new FormControl<Jail>({} as Jail),
+        jails: new FormControl<Array<Jail>>([]),
         sans: new FormControl<Array<string>>([]),
         ssl_protocols: new FormControl<Array<string>>(['TLSv1', 'TLSv1.1', 'TLSv1.2', 'TLSv1.3']),
         certificate: new FormControl<Certificate>({} as Certificate),
@@ -122,6 +125,7 @@ export class ServiceFormComponent implements OnInit {
         private jailService: JailService,
         private certificateService: CertificateService,
         protected oauth: OAuthService,
+        protected formater: FormaterService
     ) {
         this.headerDS = new MatTableDataSource<Header>;
         this.routeDS = new MatTableDataSource<Route>;
@@ -157,7 +161,10 @@ export class ServiceFormComponent implements OnInit {
                     this.form.get('rate_limit')?.setValue(data.rate_limit);
                     this.form.get('rate_limit_per_sec')?.setValue(data.rate_limit_per_sec);
                     this.form.get('jail_enable')?.setValue(data.jail_enable);
-                    this.form.get('jail')?.setValue(data.jail);
+                    if (data.jails)
+                        this.form.get('jails')?.setValue(data.jails);
+                    else
+                        this.form.get('jails')?.setValue([]);
 
                     this.form.get('certificate')?.setValue(data.certificate);
                     if (data.ssl_protocols)
@@ -177,11 +184,12 @@ export class ServiceFormComponent implements OnInit {
             this.form.get('headers')?.setValue(basicHeaders);
             this.headerDS.data = basicHeaders;
         }
-        this.jailService.get().subscribe((data) => {
-            this._jails = data.data;
-        });
+
         this.certificateService.get().subscribe(data => {
             this._certificates = data.data;
+        });
+        this.jailService.get().subscribe((data) => {
+            this._jails = data.data;
         });
     }
 
@@ -195,8 +203,24 @@ export class ServiceFormComponent implements OnInit {
         return false;
     }
 
+
+    onAddJail(): void {
+        let j = this.jailForm.value.jail as Jail;
+        if (this.form.value.jails)
+            this.form.value.jails?.push(j);
+        this.jailForm.reset();
+    }
+
+    onRemoveJail(keyword: any): void {
+        if (this.form.value.jails != null) {
+            let index = this.form.value.jails.indexOf(keyword);
+            if (index >= 0) {
+                this.form.value.jails.splice(index, 1);
+            }
+        }
+    }
+
     onAddCN(): void {
-        console.log(this.sansForm.value.cn);
         const formData = this.sansForm.value.cn as string;
         this.form.value.sans?.push(formData);
         this.sansForm.reset();

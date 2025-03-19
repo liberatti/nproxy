@@ -87,7 +87,7 @@ class ServiceSchema(Schema):
     rate_limit = fields.Boolean()
     rate_limit_per_sec = fields.Integer()
     jail_enable = fields.Boolean()
-    jail = fields.Nested(JailSchema)
+    jails = fields.Nested(JailSchema, many=True)
 
     sans = fields.List(fields.String())
 

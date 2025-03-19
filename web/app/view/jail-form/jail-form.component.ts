@@ -19,10 +19,12 @@ import {MatSidenavModule} from '@angular/material/sidenav';
 import {MatSortModule} from '@angular/material/sort';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {TranslateModule} from '@ngx-translate/core';
-import {Jail, JailEntry} from 'app/models/jail';
+import {Jail, JailEntry, JailRule} from 'app/models/jail';
 import {JailService} from 'app/services/jail.service';
 import {NotificationService} from 'app/services/notification.service';
 import {DateFormatPipe} from "../../pipes/date_format.pipe";
+import {JailRuleFormDialogComponent} from "../../components/jail-rule-form-dialog/jail-rule-form-dialog.component";
+import {MatDialog} from "@angular/material/dialog";
 
 @Component({
     selector: 'app-jail-form',
@@ -40,9 +42,11 @@ import {DateFormatPipe} from "../../pipes/date_format.pipe";
 export class JailFormComponent implements OnInit {
     isAddMode: boolean;
     submitted = false;
+    _types: string[] = ['static', 'dynamic']
 
-    jailDC: string[] = ['name', 'sans', 'action'];
-    jailDS: MatTableDataSource<Jail>;
+    ruleDS: MatTableDataSource<JailRule>;
+    ruleDC: string[] = ['field', 'regex', 'action'];
+
     contentForm = new FormGroup({
         text: new FormControl<string>('')
     });
@@ -50,9 +54,12 @@ export class JailFormComponent implements OnInit {
     form = new FormGroup({
         _id: new FormControl<string>(''),
         name: new FormControl<string>(''),
+        type: new FormControl<string>(''),
         content: new FormControl<Array<JailEntry>>([]),
         bantime: new FormControl<number>(60),
-
+        occurrence: new FormControl<number>(1),
+        interval: new FormControl<number>(1),
+        rules: new FormControl<Array<JailRule>>([]),
     });
 
     constructor(
@@ -60,8 +67,9 @@ export class JailFormComponent implements OnInit {
         private route: ActivatedRoute,
         private router: Router,
         private jailService: JailService,
+        private confirmDialog: MatDialog,
     ) {
-        this.jailDS = new MatTableDataSource<Jail>;
+        this.ruleDS = new MatTableDataSource<JailRule>;
         this.isAddMode = false;
     }
 
@@ -71,8 +79,13 @@ export class JailFormComponent implements OnInit {
             this.jailService.getById(this.route.snapshot.params['id']).subscribe(data => {
                 this.form.get('_id')?.setValue(data._id);
                 this.form.get('name')?.setValue(data.name);
+                this.form.get('type')?.setValue(data.type);
                 this.form.get('content')?.setValue(data.content);
                 this.form.get('bantime')?.setValue(data.bantime);
+                this.form.get('occurrence')?.setValue(data.occurrence);
+                this.form.get('interval')?.setValue(data.interval);
+                this.form.get('rules')?.setValue(data.rules);
+                this.ruleDS.data = data.rules;
             });
         }
     }
@@ -100,12 +113,6 @@ export class JailFormComponent implements OnInit {
         }
     }
 
-    onRemove(selectedIndex: number) {
-        const data = this.jailDS.data;
-        data.splice(selectedIndex, 1);
-        this.jailDS.data = data;
-    }
-
     get f(): { [key: string]: AbstractControl } {
         return this.form.controls;
     }
@@ -130,4 +137,49 @@ export class JailFormComponent implements OnInit {
             }
         }
     }
+
+    onRuleRemove(index: number) {
+        const data = this.ruleDS.data;
+        data.splice(index, 1);
+        this.ruleDS.data = data;
+    }
+
+    onAddRule() {
+        const dialogRef = this.confirmDialog.open(JailRuleFormDialogComponent, {
+            width: '450px',
+            data: {
+                bind: {} as JailRule
+            }
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+            if (result) {
+                const data = this.ruleDS.data;
+                data.push(result);
+                this.ruleDS.data = data;
+                this.form.get('rules')?.reset(data);
+            }
+        });
+    }
+
+    onEditRule(index: number) {
+
+        const dialogRef = this.confirmDialog.open(JailRuleFormDialogComponent,
+            {
+                maxWidth: undefined,
+                data: this.ruleDS.data[index]
+            });
+
+        dialogRef.afterClosed().subscribe(result => {
+            if (result) {
+                this.onRuleRemove(index);
+                const data = this.ruleDS.data;
+                data.push(result);
+                this.ruleDS.data = data;
+                this.form.get('rules')?.reset(data);
+            }
+        });
+
+    }
+
 }

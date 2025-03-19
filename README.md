@@ -23,7 +23,12 @@ Pull the NProxy container image from the registry and run it in your containeriz
 #### Docker environment
 ```docker
 docker run -it \
- -e MONGO_URI='mongodb://<ipaddr>'\
+ -e MONGO_HOST="<mongo ipaddr>"\
+ -e MONGO_PORT=27017\
+ -e MONGO_DB="nproxy"\
+ -e MONGO_USER="nproxy_usr"\
+ -e MONGO_PASS="xxxxxxxxxxxxxxxxxxx"\
+ -e NODE_KEY="xxxxxxxxxxxxxxxxxxx"\
  -e NODE_ROLE="main"\
  -e SERVERID="nproxy-node01"\
  -p 5000:5000 \

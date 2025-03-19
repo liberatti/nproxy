@@ -1,9 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from bson import ObjectId
 from marshmallow import EXCLUDE, Schema, fields
 
-from api.common_utils import logger
+from api.common_utils import logger, replace_tz
 from api.model.mongo_base_model import MongoDAO
 from api.model.sensor_model import SensorSchema, SensorDao
 from api.model.service_model import ServiceSchema, ServiceDao
@@ -293,6 +293,21 @@ class TransactionDao(MongoDAO):
         logger.debug(query)
         rs = self.collection.aggregate(query)
         return list(rs)
+
+    def get_last_n_minutes(self,minutes):
+        dt_start = (
+            replace_tz((datetime.now() - timedelta(minutes=minutes)))
+        )
+        query = {
+            "logtime": {
+                "$gte": dt_start
+            }
+        }
+        logger.debug(query)
+        rows = list(self.collection.find(query))
+        for e in rows:
+            self._load(e)
+        return rows
 
     def get_all(
             self, pagination=None, dt_start=None, dt_end=None, filters=None

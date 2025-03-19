@@ -9,8 +9,8 @@ from api.common_utils import logger
 from api.model.config_model import ConfigDao
 from api.model.feed_model import FeedDao
 from api.model.oauth_model import UserDao
-from api.tools.security_feed_tool import RuleSetTool
-from api.tools.security_feed_tool import SecurityFeedTool
+from api.tools.feed_tool import RuleSetTool
+from api.tools.feed_tool import SecurityFeedTool
 from api.tools.ssl_tool import SSLTool
 from config import APP_BASE
 

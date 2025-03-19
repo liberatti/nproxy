@@ -90,7 +90,7 @@ export interface Service {
     rate_limit: boolean;
     rate_limit_per_sec: number;
     jail_enable: boolean;
-    jail: Jail;
+    jails: Jail[];
     sans: string[];
 
     ssl_protocols: Array<string>;

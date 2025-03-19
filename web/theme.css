@@ -13,6 +13,7 @@
     --rejected-color: #f77676;
     --warning-color: #f79c03;
     --passed-color: #4caf50;
+    --mdc-list-list-item-one-line-container-height: 40px;
 }
 
 html {
@@ -86,11 +87,11 @@ html {
 }
 
 mat-nav-list mat-nav-list {
-    margin-left: 16px; /* Indentação para submenus */
+    margin-left: 14px; /* Indentação para submenus */
 }
 
 mat-nav-list a {
-    font-size: 14px;
+    font-size: 12px !important;
     color: var(--text-color);
 }
 

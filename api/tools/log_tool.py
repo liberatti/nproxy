@@ -8,7 +8,7 @@ from ua_parser import user_agent_parser
 
 from api.common_utils import deep_merge, logger, server_id
 from api.model.transaction_model import TransactionDao
-from api.tools.security_feed_tool import SecurityFeedTool
+from api.tools.feed_tool import SecurityFeedTool
 from config import TZ
 
 

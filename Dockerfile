@@ -47,7 +47,9 @@ RUN microdnf install -y procps openssl bind-utils shadow-utils util-linux gcc-c+
     libX11 libXext libXi libXrender libXtst freetype sudo \
     python3.12 python3.12-devel python3.12-pip yajl lua wget\
   && microdnf update -y\
-  && microdnf clean all
+  && microdnf clean all\
+  && python3.12 -m pip install --upgrade pip\
+  && python3.12 -m pip install --upgrade setuptools
 
 COPY --from=engine /root/rpmbuild/RPMS/**/*.rpm /RPMS/
 RUN rpm -ivh /RPMS/*.rpm && rm -rf /RPMS

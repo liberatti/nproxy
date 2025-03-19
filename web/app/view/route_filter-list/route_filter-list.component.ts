@@ -61,7 +61,8 @@ export class RouteFilterListComponent implements OnInit {
     updateGridTable() {
         this.dictService.get(this.route_filterPA).subscribe(data => {
             this.route_filterDS.data = data.data;
-            this.route_filterPA.total_elements = data.metadata.total_elements;
+            if (data.metadata)
+                this.route_filterPA.total_elements = data.metadata.total_elements;
         });
     }
 
