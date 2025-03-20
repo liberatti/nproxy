@@ -95,18 +95,3 @@ export interface TransactionLog {
     limit_req_status: string;
     score: number;
 }
-
-
-/**
- *
- {
- "audit":{
- "connector":"ModSecurity-nginx v1.0.3",
- "engine":"ModSecurity v3.0.12 (Linux)",
- "messages":[
-
- ],
- "mode":"Enabled"
- }
- }
- */
