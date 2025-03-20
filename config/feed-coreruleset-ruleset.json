@@ -363,9 +363,52 @@
         {
             "name": "global",
             "phase": 6,
+            "rules": [
+                {
+                    "code": 98,
+                    "phase": 2,
+                    "order": 1,
+                    "scope": ["TX:ANOMALY_SCORE"],
+                    "condition": "@gt 0",
+                    "action": "pass",
+                    "logging": "nolog",
+                    "audit_log": "auditlog",
+                    "schema_type": "SecRule",
+                    "t": [
+                        "none"
+                    ],
+                    "msg": "'%{tx.anomaly_score}'"
+                }
+            ]
+        },
+        {
+            "name": "global",
+            "phase": 6,
+            "rules": [
+                {
+                    "code": 99,
+                    "phase": 4,
+                    "order": 2,
+                    "scope": ["TX:ANOMALY_SCORE"],
+                    "condition": "@gt 0",
+                    "action": "pass",
+                    "logging": "nolog",
+                    "audit_log": "auditlog",
+                    "schema_type": "SecRule",
+                    "t": [
+                        "none"
+                    ],
+                    "msg": "'%{tx.anomaly_score}'"
+                }
+            ]
+        },
+        {
+            "name": "global",
+            "phase": 6,
             "file": "RESPONSE-959-BLOCKING-EVALUATION.conf",
             "rules": []
         },
+
         {
             "name": "global",
             "phase": 6,

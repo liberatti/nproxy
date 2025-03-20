@@ -39,7 +39,13 @@ class ClusterTool:
             if manager.CONFIG:
                 if not cls.CONFIG or manager.CONFIG["scn"] not in cls.CONFIG["scn"]:
                     logger.info(f"Flush feeds {cls.CONFIG['scn']} -> {manager.CONFIG['scn']}")
-                    cls.CONFIG = manager.CONFIG
+                    cls.CONFIG.update({
+                        "scn":manager.CONFIG["scn"],
+                        "certificates":  manager.CONFIG["certificates"],
+                        "dictionaries":  manager.CONFIG["dictionaries"],
+                        "categories":  manager.CONFIG["categories"],
+                        "jails":  manager.CONFIG["jails"]
+                    })
                     manager.flush_feeds()
                     cls.restart()
 

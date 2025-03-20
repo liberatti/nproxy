@@ -60,11 +60,16 @@
             <ng-container matColumnDef="logtime">
                 <mat-header-cell *matHeaderCellDef> Time</mat-header-cell>
                 <mat-cell *matCellDef="let element">
-                    <div class="trn-action {{element.action|lowercase}}"></div>
-                    {{ element.logtime |dateFormat }}
+                    <p class="no-wrap">{{ element.logtime |dateFormat }}</p>
                 </mat-cell>
             </ng-container>
-
+            <ng-container matColumnDef="score">
+                <mat-header-cell *matHeaderCellDef> Score</mat-header-cell>
+                <mat-cell *matCellDef="let element">
+                    <div class="trn-action {{element.action|lowercase}}"></div>
+                    {{ element.score }}
+                </mat-cell>
+            </ng-container>
             <ng-container matColumnDef="source">
                 <mat-header-cell *matHeaderCellDef> Source</mat-header-cell>
                 <mat-cell *matCellDef="let element" style="text-wrap: nowrap;">

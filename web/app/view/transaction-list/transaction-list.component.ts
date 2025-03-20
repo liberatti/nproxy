@@ -82,7 +82,7 @@ export class TransactionListComponent implements OnInit {
         filters: new FormControl<Array<string>>([]),
     });
 
-    transactionDC: string[] = ['logtime', 'source', 'service', 'request_line', 'duration', 'expand'];
+    transactionDC: string[] = ['logtime', 'score', 'source', 'service', 'request_line', 'duration', 'expand'];
     transactionDS: MatTableDataSource<TransactionLog>;
     transactionPA = new DefaultPageMeta();
     transactions: Array<TransactionLog> = [];

@@ -195,6 +195,8 @@ class LogParserTool:
                         if  msg['rule_code'] in ['949110','959100']: # Internal messages
                             match = re.search(r"Total Score: (\d+)", msg["text"])
                             record.update({"score":int(match.group(1))})
+                        elif msg['rule_code'] in ['98','99']:
+                            record.update({"score": int(msg["text"])})
                         else:
                             messages.append(msg)
                     audit.update({"messages": messages})

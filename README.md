@@ -71,6 +71,7 @@ docker run --rm -v ${PWD}/reports:/app/reports \
   - 52 - requestBodyProcessor=XML
   - 53 - requestBodyProcessor=JSON
   - 55 - Failed to parse request body. JSON
+  - 99 - Collect pass score
 - 100,000–199,999; reserved for rules published by Oracle.
 - 200,000–299,999; reserved for rules published Comodo.
 - 300,000-399,999; reserved for rules published at gotroot.com.
