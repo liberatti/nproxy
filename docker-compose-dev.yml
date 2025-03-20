@@ -69,7 +69,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
+          memory: 1512M
   proxy-worker-01:
     image: liberatti/nproxy:latest
     environment:

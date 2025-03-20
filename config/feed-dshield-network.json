@@ -2,6 +2,7 @@
   "name": "dshield",
   "slug": "dshield",
   "provider": "iblocklist",
+  "restricted": false,
   "version": "latest",
   "type": "network",
   "source": "http://list.iblocklist.com/?list=xpbqleszmajjesnzddhv&fileformat=cidr&archiveformat=gz",

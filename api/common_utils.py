@@ -153,7 +153,7 @@ def jwt_create_refresh_token(sub):
     return jwt.encode(payload, JWT_SECRET_KEY, algorithm='HS256')
 
 
-def gen_random_string(length):
+def gen_random_string(length=16):
     letters = string.ascii_lowercase
     return "".join(random.choice(letters) for i in range(length))
 

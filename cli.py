@@ -81,6 +81,7 @@ def update():
 
     RuleSetTool.update()
     SecurityFeedTool.update()
+    logger.info(f"Update done")
 
 def reset_admin():
     psw = sys.argv[2]

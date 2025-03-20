@@ -134,7 +134,7 @@ class TransactionSchema(Schema):
     sensor = fields.Nested(SensorSchema)
     upstream = fields.Nested(UpstreamSchema)
     service = fields.Nested(ServiceSchema)
-
+    score = fields.Integer(required=False)
 
 class DashboardServiceRequests(Schema):
     class Meta:

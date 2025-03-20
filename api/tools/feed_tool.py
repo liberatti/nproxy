@@ -7,6 +7,7 @@ import re
 import socket
 import tarfile
 import traceback
+from copy import deepcopy
 from datetime import datetime, timedelta
 from zipfile import ZipFile
 
@@ -24,6 +25,7 @@ from api.model.seclang_model import RuleCategoryDao, RuleCategorySchema, RuleDao
 from api.model.sensor_model import SensorDao
 from api.model.service_model import ServiceDao
 from api.model.transaction_model import TransactionDao
+from api.tools.engine_tool import EngineManager
 from api.tools.ruleset_tool import RuleSetParser
 from config import APP_BASE, TZ
 
@@ -34,7 +36,7 @@ class JailTool:
     def __is_jail_active(cls,services,jail):
         for s in services:
             for j in s['jails']:
-                if j['id'] in jail ['id']:
+                if j['_id'] in jail ['_id']:
                     return True
         return False
 
@@ -51,12 +53,10 @@ class JailTool:
 
             bl=[]
             for c in j['content']:
-                if replace_tz(c["banned_on"] + timedelta(minutes=j['bantime'])) < dt:
+                if (dt - replace_tz( c["banned_on"])).total_seconds() / 60 < j['bantime']:
                     bl.append(c)
 
             transactions = trn_dao.get_last_n_minutes(j['interval'])
-            logger.info(f"Processing jail {j['name']} with {len(j['rules'])} rules for {len(transactions)} transactions")
-
             for t in transactions:
                 if not cls.__is_jail_active(services,j):
                     pass
@@ -79,7 +79,7 @@ class JailTool:
                         if re.search(rule['regex'], t['http']['response']['status_code']):
                             cs[source_ip] += 1
             for ip, score in cs.items():
-                if score >= j['occurrence']:
+                if score >= j['occurrence'] and not any(entry["ipaddr"] == ip for entry in bl):
                     bl.append({"ipaddr":ip,"banned_on":dt})
 
             dao.update_by_id(j['_id'],{"content":bl})
@@ -179,11 +179,13 @@ class SecurityFeedTool:
         for feed in feed_dao.get_by_type('network'):
             try:
                 source_url = feed["source"]
-                if 'iblocklist' in feed['provider']:
-                    if "iblocklist_username" in conf and len(conf["iblocklist_username"]) > 0:
-                        source_url = f"{source_url}&username={conf['iblocklist_username']}&pin={conf['iblocklist_pin']}"
-                    else:
-                        logger.info(f"Feed {feed['name']} skipped, no credentials")
+                if feed['restricted']:
+                    if 'iblocklist' in feed['provider']:
+                        if "iblocklist_username" in conf and len(conf["iblocklist_username"]) > 0:
+                            source_url = f"{source_url}&username={conf['iblocklist_username']}&pin={conf['iblocklist_pin']}"
+                        else:
+                            logger.info(f"Feed {feed['name']} skipped, no credentials")
+                            continue
 
                 resp = requests.get(source_url)
                 if resp and resp.status_code == 200:

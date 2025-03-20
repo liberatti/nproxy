@@ -2,6 +2,7 @@
   "name": "cruzit web attacks",
   "slug": "cruzit",
   "provider": "iblocklist",
+  "restricted": false,
   "version": "latest",
   "type": "network",
   "source": "http://list.iblocklist.com/?list=czvaehmjpsnwwttrdoyl&fileformat=cidr&archiveformat=gz",

@@ -47,7 +47,6 @@ class EngineManager:
                 jail_page = JailDao().get_all()
                 conf = ConfigDao().get_active()
                 self.CONFIG = {
-                    "applied": False,
                     "config": conf,
                     "certificates": certificate_page["data"],
                     "upstreams": upstream_page["data"],
@@ -172,10 +171,13 @@ class EngineManager:
 
     def build_jails(self):
         ruleset_path = f"{APP_BASE}/modsec/conf"
-        for jail in self.CONFIG["jails"]:
-            with open(f"{ruleset_path}/{jail['name']}-jl.data", "w") as file_data:
-                for c in jail["content"]:
-                    file_data.write("\n".join(c["ipaddr"]))
+        for s in self.CONFIG['services']:
+            with open(f"{ruleset_path}/{s['name']}-jl.data", "w") as file_data:
+                for sj in s['jails']:
+                    for jail in self.CONFIG["jails"]:
+                        if sj['_id'] in jail['_id']:
+                            for c in jail["content"]:
+                                file_data.write(c['ipaddr']+"\n")
 
 
     def flush_feeds(self):
@@ -433,7 +435,7 @@ class EngineManager:
                     "logdata": "'%{MATCHED_VAR}'",
                     "audit_log": "auditlog",
                     "scope": ["REMOTE_ADDR"],
-                    "condition": f"@ipMatchFromFile {service['jail']['name']}-jl.data",
+                    "condition": f"@ipMatchFromFile {service['name']}-jl.data",
                     "msg": "'IP is Jailed'"
                 }
             )

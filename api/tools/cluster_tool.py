@@ -36,8 +36,13 @@ class ClusterTool:
     def auto_update_feeds(cls):
         try:
             manager = EngineManager()
-            manager.flush_feeds()
-            cls.restart()
+            if manager.CONFIG:
+                if not cls.CONFIG or manager.CONFIG["scn"] not in cls.CONFIG["scn"]:
+                    logger.info(f"Flush feeds {cls.CONFIG['scn']} -> {manager.CONFIG['scn']}")
+                    cls.CONFIG = manager.CONFIG
+                    manager.flush_feeds()
+                    cls.restart()
+
         except Exception as e:
             stack_trace = traceback.format_exc()
             logger.error(f"Error executing command: {stack_trace}")
@@ -58,6 +63,7 @@ class ClusterTool:
             if not cls.CONFIG or manager.CONFIG["scn"] not in cls.CONFIG["scn"]:
                 r_st = manager.flush_config()
                 if r_st:
+                    logger.info(f"Replicate {cls.CONFIG['scn']} -> {manager.CONFIG['scn']}")
                     cls.CONFIG = manager.CONFIG
                     cls.restart(fully=True)
 

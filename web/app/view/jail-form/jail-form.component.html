@@ -27,21 +27,21 @@
                                 </mat-form-field>
                             </div>
                         </div>
-                        <mat-form-field>
+                        <mat-form-field class="full-width">
                             <mat-label>Bantime</mat-label>
                             <input id="jail.bantime" matInput formControlName="bantime">
                         </mat-form-field>
                         <div *ngIf="form.value.type == 'dynamic'">
                             <div class="mat-row">
                                 <div class="mat-col-6">
-                                    <mat-form-field>
-                                        <mat-label>occurrence</mat-label>
+                                    <mat-form-field class="full-width">
+                                        <mat-label>Occurrence</mat-label>
                                         <input matInput type="number" formControlName="occurrence">
                                     </mat-form-field>
                                 </div>
                                 <div class="mat-col-6">
-                                    <mat-form-field>
-                                        <mat-label>interval</mat-label>
+                                    <mat-form-field class="full-width">
+                                        <mat-label>Interval</mat-label>
                                         <input matInput type="number" formControlName="interval">
                                     </mat-form-field>
                                 </div>

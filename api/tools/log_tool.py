@@ -1,4 +1,5 @@
 import json
+import re
 import threading
 import time
 import traceback
@@ -191,7 +192,11 @@ class LogParserTool:
                                     "severity": d["severity"],
                                 }
                             )
-                        messages.append(msg)
+                        if  msg['rule_code'] in ['949110','959100']: # Internal messages
+                            match = re.search(r"Total Score: (\d+)", msg["text"])
+                            record.update({"score":int(match.group(1))})
+                        else:
+                            messages.append(msg)
                     audit.update({"messages": messages})
                 record.update({"audit": audit})
                 return record

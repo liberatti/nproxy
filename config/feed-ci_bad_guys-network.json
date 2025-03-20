@@ -2,6 +2,7 @@
   "name": "ci_bad_guys",
   "slug": "ci_bad_guys",
   "provider": "cinsscore",
+  "restricted": false,
   "version": "latest",
   "type": "network",
   "source": "http://cinsscore.com/list/ci-badguys.txt",

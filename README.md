@@ -59,6 +59,36 @@ docker run --rm -v ${PWD}/reports:/app/reports \
     wallarm/gotestwaf --url=https://<PUBLIC_ENDPOINT> --noEmailReport
 ```
 
+## ID Reservations
+- 1-99,999; reserved for local (internal) use. Use as you see fit but do not use this range for rules that are distributed to others.
+  - 10 - Sensor config
+  - 12 - Method is not allowed by route
+  - 13 - Blacklist config
+  - 14 - Whitelist config
+  - 15 - Jail config
+  - 50 - ModSecurity internal error
+  - 51 - Multipart parser detected a possible unmatched boundary
+  - 52 - requestBodyProcessor=XML
+  - 53 - requestBodyProcessor=JSON
+  - 55 - Failed to parse request body. JSON
+- 100,000–199,999; reserved for rules published by Oracle.
+- 200,000–299,999; reserved for rules published Comodo.
+- 300,000-399,999; reserved for rules published at gotroot.com.
+- 400,000–419,999; unused (available for reservation).
+- 420,000-429,999; reserved for ScallyWhack .
+- 430,000–439,999: reserved for rules published by Flameeyes
+- 440,000-599,999; unused (available for reservation).
+- 600,000-699,999; reserved for use by Akamai http://www.akamai.com/html/solutions/waf.html
+- 700,000-799,999; reserved for Ivan Ristic.
+- 900,000-999,999; reserved for the OWASP ModSecurity Core Rule Set project.
+- 1,000,000-1,009,999; reserved for rules published by Redhat Security Team
+- 1,010,000-1,999,999; unused (available for reservation)
+- 2,000,000-2,999,999; reserved for rules from Trustwave's SpiderLabs Research team
+- 3,000,000-3,999,999; reserved for use by Akamai
+- 4,000,000-4,099,999; reserved in use by AviNetworks
+- 4,100,000-4,199,999; reserved in use by Fastly
+- 4,200,000 and above; unused (available for reservation)
+
 ## License
 
 This project is licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).

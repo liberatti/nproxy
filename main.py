@@ -140,11 +140,11 @@ with app.app_context():
         schedule.every().day.at(MAINTENANCE_WINDOW).do(RuleSetTool.update)
         schedule.every().day.at(MAINTENANCE_WINDOW).do(SecurityFeedTool().update)
         schedule.every().day.at(MAINTENANCE_WINDOW).do(AcmeTool.auto_renew)
-        schedule.every().day.at(MAINTENANCE_WINDOW).do(ClusterTool.auto_update_feeds)
-        schedule.every(30).seconds.do(ClusterTool.auto_telemetry)
         schedule.every(10).seconds.do(JailTool.process_jails)
+        schedule.every(10).seconds.do(ClusterTool.auto_update_feeds)
+        schedule.every(30).seconds.do(ClusterTool.auto_telemetry)
     else:
-        schedule.every(30).seconds.do(ClusterTool.auto_replicate_config)
+        schedule.every(10).seconds.do(ClusterTool.auto_replicate_config)
 
     schedule.every(10).seconds.do(ClusterTool().node_monitor)
     schedule.every(60).seconds.do(LogArchiverTool.auto_archive)
