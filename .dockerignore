@@ -13,10 +13,7 @@ npm-debug.log
 Dockerfile
 DockerfileARM
 .git
-.gitignore
-.data
 .vscode
-.github
 .angular
 sample
 logs
@@ -24,11 +21,7 @@ data
 /**/__pycache__
 /web/.angular
 easy-rsa
-logs
 server.conf
 server.pid
-easy-rsa
-data
-logs
 /web/node_modules
 target

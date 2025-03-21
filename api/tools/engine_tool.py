@@ -5,12 +5,11 @@ import pickle
 import time
 import traceback
 from collections import OrderedDict
-from datetime import datetime
 
 import requests
 from marshmallow import ValidationError
 
-from api.common_utils import hash_dict, logger, server_id, unpack_zip, clear_directory, replace_tz
+from api.common_utils import hash_dict, logger, get_server_id, unpack_zip, clear_directory
 from api.model.certificate_model import CertificateDao
 from api.model.config_model import ConfigDao
 from api.model.dictionary_model import DictionaryDao
@@ -24,6 +23,7 @@ from api.tools.ruleset_tool import RuleSetParser
 from config import APP_BASE, CLUSTER_ENDPOINT, ENGINE_BASE, NODE_KEY, NODE_ROLE
 
 
+# noinspection PyMethodMayBeStatic
 class EngineManager:
     __LOG_FORMAT = '{"time":"$time_local","service_id":"$service_id","route_name":"$route_name","upstream_id":"$upstream_id","target_addr":"$upstream_addr","sensor_id":"$sensor_id","uniqueid":"$request_id","host":"$http_host","remote_addr":"$remote_addr","remote_port":$remote_port,"server_port":$server_port,"request_line":"$request","method":"$request_method","status":$status,"bytes_in":$request_length,"bytes_out":$body_bytes_sent,"duration":$request_time,"uht":"$upstream_header_time","urt":"$upstream_response_time","referer":"$http_referer","user_agent":"$http_user_agent","limit_req_status":"$limit_req_status"}'
     CONFIG = None
@@ -94,15 +94,15 @@ class EngineManager:
             os.makedirs(f"{APP_BASE}/temp/{f}", exist_ok=True)
 
     def _get_config_rules(self):
-        APP_CONFIG_DIR = os.path.join(APP_BASE, "admin/config")
-        for arq_name in os.listdir(APP_CONFIG_DIR):
+        app_config_dir = os.path.join(APP_BASE, "admin/config")
+        for arq_name in os.listdir(app_config_dir):
             try:
                 if (
-                        os.path.isfile(os.path.join(APP_CONFIG_DIR, arq_name))
+                        os.path.isfile(os.path.join(app_config_dir, arq_name))
                         and arq_name.startswith('feed-')
                         and arq_name.endswith('.json')
                 ):
-                    with open(os.path.join(APP_CONFIG_DIR, arq_name), "r", encoding="utf-8") as arq:
+                    with open(os.path.join(app_config_dir, arq_name), "r", encoding="utf-8") as arq:
                         feed = json.load(arq)
                         if "ruleset" in feed['type']:
                             rules = []
@@ -113,6 +113,7 @@ class EngineManager:
                 logger.error(f"Failed to load {arq_name}: %s", e.messages)
                 logger.error(traceback.format_exc())
 
+    # noinspection PyListCreation
     def _build_config_policy(self):
         pcre = 10000
         sb = []
@@ -204,6 +205,7 @@ class EngineManager:
         with open(policy_file, "w") as f:
             f.write("\n".join(sensor_sb))
 
+    # noinspection PyListCreation
     def flush_config(self):
         self.flush_feeds()
         clear_directory(f"{APP_BASE}/html")
@@ -317,7 +319,7 @@ class EngineManager:
             sb.append(f"  proxy_buffering off;")
 
         sb.append(f"  add_header X-Request-Id $request_id;")
-        sb.append(f"  add_header X-Server-Id {server_id()};")
+        sb.append(f"  add_header X-Server-Id {get_server_id()};")
         for header in service["headers"]:
             sb.append(f"  add_header {header['name']} '{header['content']}';")
 
@@ -387,6 +389,7 @@ class EngineManager:
         sb.append(" }")
         return "\n".join(sb)
 
+    # noinspection PyListCreation
     def add_service_sensor(self, service):
         ruleset_path = f"{APP_BASE}/modsec/conf"
         config_policy = f"{ruleset_path}/config.policy"
@@ -447,15 +450,15 @@ class EngineManager:
         sb.append(f"  modsecurity_rules_file {ruleset_path}/crs.policy;")
         return "\n".join(sb)
 
-    def add_log(self, log_id, type):
+    def add_log(self, log_id, log_type):
         log_path = f"{APP_BASE}/logs"
-        if type == "AUDIT":
+        if log_type == "AUDIT":
             return f"SecAuditLog {log_path}/audit_log-{log_id}.log"
-        if type == "ACCESS_LOG":
+        if log_type == "ACCESS_LOG":
             return f"  access_log {log_path}/access_log-{log_id}.log logger-json;"
-        if type == "ERROR_LOG":
+        if log_type == "ERROR_LOG":
             return f"  error_log {log_path}/error_log-{log_id}.log;"
-        return f"# LOG {type} NOT SUPPORTED"
+        return f"# LOG {log_type} NOT SUPPORTED"
 
     def _create_whitelist(self, prefix_name, sensor):
         ruleset_path = f"{APP_BASE}/modsec/conf"
@@ -739,6 +742,7 @@ class EngineManager:
         """
         return "\n".join(sb)
 
+    # noinspection PyListCreation
     def add_monitor(self):
         sb = []
         sb.append(" server {")

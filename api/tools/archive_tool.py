@@ -76,5 +76,5 @@ class ElasticTool:
         res_headers = {item["name"]: item["content"] for item in _trn['http']['response'].pop('headers')}
         _trn['http']['request'].update({"headers": res_headers})
 
-        response = self.database.index(index="nproxy_trn", document=_trn)
+        self.database.index(index="nproxy_trn", document=_trn)
         # success, failed = bulk(es, documents)

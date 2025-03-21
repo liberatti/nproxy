@@ -18,15 +18,14 @@ from api.tools.feed_tool import SecurityFeedTool
 
 routes = Blueprint("cluster", __name__)
 
-
-@routes.before_request
-def before():
-    if request.method in ["PUT", "POST", "DELETE"]:
+@routes.after_request
+def after(response):
+    if request.method in ["PUT", "POST", "DELETE"] and  response.status_code in [200,201]:
         dao = ChangeDao()
         if not dao.get_by_name("config"):
             dao.persist({"name": "config"})
         socketio.emit('tracking_evt')
-
+    return response
 
 @routes.route("/backup", methods=["POST"])
 @has_any_authority(["superuser"])

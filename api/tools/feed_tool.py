@@ -7,8 +7,7 @@ import re
 import socket
 import tarfile
 import traceback
-from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import datetime
 from zipfile import ZipFile
 
 import geoip2.database
@@ -25,7 +24,6 @@ from api.model.seclang_model import RuleCategoryDao, RuleCategorySchema, RuleDao
 from api.model.sensor_model import SensorDao
 from api.model.service_model import ServiceDao
 from api.model.transaction_model import TransactionDao
-from api.tools.engine_tool import EngineManager
 from api.tools.ruleset_tool import RuleSetParser
 from config import APP_BASE, TZ
 
@@ -362,7 +360,7 @@ class SecurityFeedTool:
                                     "longitude": response_city.location.longitude,
                                 }
                             )
-                    except Exception as e:
+                    except Exception :
                         pass
         return ip_info
 

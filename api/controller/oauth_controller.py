@@ -5,7 +5,7 @@ from marshmallow import ValidationError
 from api.common_utils import ResponseBuilder, jwt_decode, jwt_create_access_token, \
     jwt_create_refresh_token, jwt_get_refresh
 from api.model.oauth_model import OIDCToken, UserDao
-from config import (ADMIN_ROLE, JWT_EXPIRE)
+from config import ( JWT_EXPIRE)
 
 routes = Blueprint("oauth", __name__)
 

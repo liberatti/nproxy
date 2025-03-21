@@ -15,7 +15,6 @@ def st_tpm():
     req = request.json
     st_date = replace_tz(datetime.strptime(req.pop("logtime_start"), DATETIME_FMT))
     ed_date = replace_tz(datetime.strptime(req.pop("logtime_end"), DATETIME_FMT))
-    tpm = None
     dao = TransactionDao()
     if "filters" in req:
         tpm = dao.get_tpm(

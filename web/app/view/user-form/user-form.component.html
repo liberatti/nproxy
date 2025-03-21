@@ -18,7 +18,7 @@
 
                             <div class="mat-col-3">
                                 <mat-form-field class="full-width">
-                                    <mat-label>Type</mat-label>
+                                    <mat-label>Role</mat-label>
                                     <mat-select id="type" formControlName="role">
                                         <mat-option id="p-{{i}}" *ngFor="let ut of _supportedRoles;  let i = index"
                                                     [value]="ut">
@@ -36,13 +36,13 @@
                             <div class="mat-col-6">
                                 <mat-form-field class="full-width">
                                     <mat-label>Password</mat-label>
-                                    <input matInput formControlName="password">
+                                    <input matInput type="password" formControlName="password">
                                 </mat-form-field>
                             </div>
                             <div class="mat-col-6">
                                 <mat-form-field class="full-width">
                                     <mat-label>Confirm Password</mat-label>
-                                    <input matInput formControlName="cpassword">
+                                    <input matInput type="password" formControlName="cpassword">
                                 </mat-form-field>
                             </div>
                         </div>

@@ -8,7 +8,7 @@ from datetime import datetime
 import psutil
 import requests
 
-from api.common_utils import logger, server_id
+from api.common_utils import logger, get_server_id
 from api.model.telemetry_model import TelemetryTrnDao
 from api.model.transaction_model import TransactionDao
 from api.model.upstream_model import UpstreamDao, NodeStatusDao
@@ -49,7 +49,7 @@ class ClusterTool:
                     manager.flush_feeds()
                     cls.restart()
 
-        except Exception as e:
+        except Exception:
             stack_trace = traceback.format_exc()
             logger.error(f"Error executing command: {stack_trace}")
 
@@ -91,10 +91,10 @@ class ClusterTool:
                         target.update({'healthy': ('UP' in s["status"].upper())})
                         if not target['healthy']:
                             logger.warn(
-                                f"Endpoint {upstream['name']}->{target['endpoint']} healthy {target['healthy']} on {server_id()}")
+                                f"Endpoint {upstream['name']}->{target['endpoint']} healthy {target['healthy']} on {get_server_id()}")
                         logger.debug(
                             f" {s['name']} == {target['endpoint']} and  {s['upstream']}=={upstream['name']} = {s['status'].upper()}")
-            except Exception as e:
+            except Exception:
                 stack_trace = traceback.format_exc()
                 logger.error(stack_trace)
 
@@ -107,9 +107,9 @@ class ClusterTool:
         dao_st = NodeStatusDao()
         model = UpstreamDao()
         try:
-            node_st = dao_st.get_by_name(server_id())
+            node_st = dao_st.get_by_name(get_server_id())
             if not node_st:
-                node_st = {"name": server_id(), "upstreams": []}
+                node_st = {"name": get_server_id(), "upstreams": []}
                 pk = dao_st.persist(node_st)
                 node_st.update({"_id": pk})
             node_st.update({"version": ENGINE_VERSION, "role": NODE_ROLE,"last_check": datetime.now()})
@@ -174,7 +174,6 @@ class ClusterTool:
             cls.stop_log_monitor()
 
         cls.run = subprocess.run(f"sudo chmod -R 777 {APP_BASE}/logs", shell=True)
-        result = None
         if cls.is_running():
             logger.info(f"Nginx is running, reload required")
             result = subprocess.Popen(

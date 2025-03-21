@@ -8,15 +8,14 @@ from api.model.sensor_model import SensorDao
 
 routes = Blueprint("sensor", __name__)
 
-
-@routes.before_request
-def before():
-    if request.method in ["PUT", "POST", "DELETE"]:
+@routes.after_request
+def after(response):
+    if request.method in ["PUT", "POST", "DELETE"] and  response.status_code in [200,201]:
         dao = ChangeDao()
         if not dao.get_by_name("sensor"):
             dao.persist({"name": "sensor"})
         socketio.emit('tracking_evt')
-
+    return response
 
 @routes.route("/<sensor_id>", methods=["GET"])
 @has_any_authority(["viewer", "superuser"])

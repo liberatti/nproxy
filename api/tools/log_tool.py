@@ -7,7 +7,7 @@ from datetime import datetime
 
 from ua_parser import user_agent_parser
 
-from api.common_utils import deep_merge, logger, server_id
+from api.common_utils import deep_merge, logger, get_server_id
 from api.model.transaction_model import TransactionDao
 from api.tools.feed_tool import SecurityFeedTool
 from config import TZ
@@ -68,14 +68,13 @@ class LogParserTool:
         logger.debug(f"merge_transactions shutdown")
 
     @classmethod
-    def follow_file(cls, cache, file_path, type):
+    def follow_file(cls, cache, file_path, log_type):
         with open(file_path, "w") as f:
             f.write("init\n")
-        # os.chmod(file_path, 0o777)
         setattr(threading.current_thread(), "active", True)
         try:
             with open(file_path, "r", encoding="utf-8", errors="ignore") as file:
-                logger.debug(f"{file_path} for {type}")
+                logger.debug(f"{file_path} for {log_type}")
                 file.seek(0, 2)
                 while getattr(threading.current_thread(), "active", False):
                     line = file.readline()
@@ -83,19 +82,19 @@ class LogParserTool:
                         time.sleep(5)
                         continue
                     t = None
-                    if type == "ERROR":
+                    if log_type == "ERROR":
                         t = cls.error_log(line)
-                    if type == "ACCESS":
+                    if log_type == "ACCESS":
                         t = cls.access_log(line)
-                    if type == "AUDIT":
+                    if log_type == "AUDIT":
                         t = cls.audit_log(line)
                     if t:
                         with cache.lock:
-                            if type == "ERROR":
+                            if log_type == "ERROR":
                                 cache.error_log.append(t)
-                            if type == "ACCESS":
+                            if log_type == "ACCESS":
                                 cache.access_log.append(t)
-                            if type == "AUDIT":
+                            if log_type == "AUDIT":
                                 cache.audit_log.append(t)
                 logger.info(f"{file_path} shutdown")
 
@@ -126,14 +125,14 @@ class LogParserTool:
 
     @classmethod
     def audit_log(cls, line):
-        SERVER_ID = server_id()
+        server_id = get_server_id()
         try:
             dto = json.loads(line)
             if "transaction" in dto:
                 trn = dto.pop("transaction")
 
                 record = {
-                    "server_id": SERVER_ID,
+                    "server_id": server_id,
                     "unique_id": trn["unique_id"],
                     "destination": {"ip": trn["host_ip"]},
                 }
@@ -208,16 +207,16 @@ class LogParserTool:
 
     @classmethod
     def access_log(cls, line):
-        SERVER_ID = server_id()
-        ST_FORMAT = "%d/%b/%Y:%H:%M:%S %z"
+        server_id = get_server_id()
+        st_format = "%d/%b/%Y:%H:%M:%S %z"
         try:
             dto = json.loads(line)
             record = {
-                "logtime": datetime.strptime(dto["time"], ST_FORMAT).astimezone(
+                "logtime": datetime.strptime(dto["time"], st_format).astimezone(
                     TZ
                 ),
                 "unique_id": dto["uniqueid"],
-                "server_id": SERVER_ID,
+                "server_id": server_id,
                 "service": {"_id": dto["service_id"]},
                 "action": cls.resolve_status_code(dto["status"]),
                 "limit_req_status": dto["limit_req_status"],

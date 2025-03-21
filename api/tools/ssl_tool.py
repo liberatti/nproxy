@@ -15,7 +15,7 @@ from cryptography.x509.oid import NameOID
 from api.common_utils import logger, replace_tz
 from api.model.acme_model import ChallengeDao
 from api.model.config_model import ConfigDao
-from config import APP_BASE, KEY_SIZE, ENGINE_BASE, TZ
+from config import APP_BASE, KEY_SIZE,  TZ
 
 
 class SSLTool:
@@ -85,7 +85,7 @@ class SSLTool:
         }
 
     @classmethod
-    def create_certificate(cls, domain, sans=None, email="fake@tooka.com.br", ca=None):
+    def create_certificate(cls, domain, sans=None,  ca=None):
         if not ca:
             ca = cls.gen_ca("Internal", crt_org="Tooka-Internal")
         curr_date = datetime.now().astimezone(TZ)
@@ -168,7 +168,7 @@ class SSLLetsEncryptTool:
                 with open(key_file, "r") as fk:
                     key = jose.JWK.json_loads(fk.read())
                     return {"key": key, "registry": registry}
-        except Exception as ex:
+        except Exception :
             key = jose.JWKRSA(key=SSLTool.generate_private_key())
             net = client.ClientNetwork(key)
             directory = messages.Directory.from_json(
@@ -211,7 +211,7 @@ class SSLLetsEncryptTool:
         order = acme.new_order(csr)
         for challenge in cls.challenge_body(order):
             token = challenge.path.rsplit("/", 1)[1]
-            validation = challenge.validation(account["key"])
+            challenge.validation(account["key"])
             response, validation = challenge.response_and_validation(acme.net.key)
             ch_model = ChallengeDao()
             ch_model.persist(
@@ -235,7 +235,7 @@ class SSLLetsEncryptTool:
                 }
                 certificate_dict.update(SSLTool.extract_info_from_crt(crt))
                 return certificate_dict
-            except Exception as e:
+            except Exception :
                 logger.error(f"{order} retry in 10 seconds")
                 time.sleep(10)
         return None

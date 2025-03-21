@@ -62,19 +62,6 @@ export class AdminLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     socket: any;
     trackingEvt: boolean = false;
 
-
-    /**
-     *   private readonly steps: IStepOption[] = [
-     {
-     anchorId: 'help.view.upstream.link',
-     title: 'Upstream',
-     content: 'Welcome to the demo tour!',
-     route: '/ups',
-     }
-     ];
-     */
-
-
     constructor(
         private changeDetectorRef: ChangeDetectorRef,
         protected oauth: OAuthService,
@@ -86,8 +73,7 @@ export class AdminLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         private clusterService: ClusterService,
         protected injector: Injector,
         private route: ActivatedRoute,
-        private router: Router,
-        // private tourService: TourService
+        private router: Router
     ) {
         this.httpClient = this.injector.get(HttpClient)
         breakpointObserver
@@ -109,18 +95,11 @@ export class AdminLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         this.config = this.localStorage.get('ui_config');
     }
 
-    /**
-     *   openHelp() {
-     if (!this.isSidenavActive()) {
-     this.onSidenavToggle();
-     }
-     this.tourService.start();
-     }
-     */
-    signout() {
+    signOut() {
         this.oauth.resetTokens();
         this.router.navigate(['/signin']);
     }
+
 
     isMobile() {
         return ['XSmall', 'Small'].includes(this.currentScreenSize);

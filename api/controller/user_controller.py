@@ -14,6 +14,8 @@ def get(user_id):
     dao = UserDao()
     user = dao.get_by_id(user_id)
     if user:
+        if "password" in user:
+            user.pop("password")
         return ResponseBuilder.data(user, dao.schema)
     else:
         return ResponseBuilder.error_404()
@@ -24,10 +26,13 @@ def get(user_id):
 def save():
     dao = UserDao()
     try:
-        user = dao.json_load(request.json)
-        dao.persist(user)
-        user.pop("password")
-        return ResponseBuilder.data(user, dao.schema)
+        vo = dao.json_load(request.json)
+        if "password" in vo and len(vo["password"]) > 1:
+            hashed = bcrypt.hashpw(vo["password"].encode("utf8"), bcrypt.gensalt())
+            vo.update({"password":hashed.decode("utf-8")})
+        dao.persist(vo)
+        vo.pop("password")
+        return ResponseBuilder.data(vo, dao.schema)
     except ValidationError as err:
         return ResponseBuilder.error_parse(err)
 
@@ -38,6 +43,9 @@ def search():
     dao = UserDao()
     result = dao.get_all(pagination=get_pagination())
     if result["metadata"]["total_elements"] > 0:
+        for user in result['data']:
+            if "password" in user:
+                user.pop("password")
         return ResponseBuilder.data(result, dao.pageSchema)
     else:
         return ResponseBuilder.error_404()

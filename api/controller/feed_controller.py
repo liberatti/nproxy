@@ -8,15 +8,14 @@ from api.model.feed_model import FeedDao
 
 routes = Blueprint("feed", __name__)
 
-
-@routes.before_request
-def before():
-    if request.method in ["PUT", "POST", "DELETE"]:
+@routes.after_request
+def after(response):
+    if request.method in ["PUT", "POST", "DELETE"] and  response.status_code in [200,201]:
         dao = ChangeDao()
         if not dao.get_by_name("feed"):
             dao.persist({"name": "feed"})
         socketio.emit('tracking_evt')
-
+    return response
 
 @routes.route("/<feed_id>", methods=["GET"])
 @has_any_authority(["viewer", "superuser"])

@@ -1,5 +1,4 @@
 import json
-import json
 import re
 
 from marshmallow import ValidationError
@@ -10,6 +9,7 @@ from api.model.seclang_model import SecAction, SecBaseSchema, \
     SecComponentSignature, SecMarker, SecRule
 
 
+# noinspection PyMethodMayBeStatic,PyListCreation
 class RuleSetParser:
     lines = []
     line_index = 0
@@ -107,7 +107,6 @@ class RuleSetParser:
 
     def _parse_rule(self, line) -> SecRule:
         fi = line.index(" ")
-        # logger.info(line)
         rule = SecRule().load(
             {
                 "schema_type": "SecRule",

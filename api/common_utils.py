@@ -53,7 +53,7 @@ def unpack_zip(content, target_dir="/var/www"):
     os.remove(zip_file_path)
 
 
-def server_id():
+def get_server_id():
     server_ = os.getenv("SERVERID")
     if server_ is None:
         server_ = socket.getfqdn()
@@ -169,14 +169,14 @@ def has_any_authority(_authorities):
                 payload = jwt_decode(token)
                 if any(a in payload.get("authorities", []) for a in _authorities):
                     return fn(*args, **kwargs)
-            except ExpiredSignatureError as e1:
+            except ExpiredSignatureError :
                 return ResponseBuilder.error_401(
                     msg="Expired authorization",
                     details=traceback.format_exc()
                 )
             except Exception as e2:
                 return ResponseBuilder.error_401(
-                    msg=e2,
+                    msg=str(e2),
                     details=traceback.format_exc()
                 )
             return ResponseBuilder.error_403(message="Invalid authorization")
@@ -373,14 +373,14 @@ class ResponseBuilder:
         if schema:
             return [schema.dump(i) for i in o]
         else:
-            return jsonify(o), 201
+            return jsonify(o), 200
 
     @classmethod
     def data(cls, o, schema=None):
         if schema:
-            return jsonify(schema.dump(o)), 201
+            return jsonify(schema.dump(o)), 200
         else:
-            return jsonify(o), 201
+            return jsonify(o), 200
 
 
 class LogCache:

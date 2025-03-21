@@ -8,15 +8,14 @@ from api.model.service_model import RouteFilterDao
 
 routes = Blueprint("route_filter", __name__)
 
-
-@routes.before_request
-def before():
-    if request.method in ["PUT", "POST", "DELETE"]:
+@routes.after_request
+def after(response):
+    if request.method in ["PUT", "POST", "DELETE"] and  response.status_code in [200,201]:
         dao = ChangeDao()
-        if not dao.get_by_name("route"):
+        if not dao.get_by_name("route_filter"):
             dao.persist({"name": "route_filter"})
         socketio.emit('tracking_evt')
-
+    return response
 
 @routes.route("", methods=["GET"])
 @has_any_authority(["viewer", "superuser"])
