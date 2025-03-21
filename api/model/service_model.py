@@ -109,10 +109,14 @@ class ServiceDao(MongoDAO):
     def _unload(self, vo):
         super()._unload(vo)
 
-        if "jail" in vo:
-            jail = vo.pop("jail")
-            if '_id' in jail:
-                vo.update({"jail_id": ObjectId(jail["_id"])})
+        if "jails" in vo:
+            jail_ids=[]
+            for jail in vo["jails"]:
+                if '_id' in jail:
+                    jail_ids.append(ObjectId(jail["_id"]))
+            vo.update({"jail_ids": jail_ids})
+        else:
+            vo.update({"jail_ids": []})
 
         if "certificate" in vo:
             certificate = vo.pop("certificate")
@@ -139,10 +143,14 @@ class ServiceDao(MongoDAO):
 
     def _load(self, vo):
         super()._load(vo)
-        if "jail_id" in vo:
-            jail_id = vo.pop("jail_id")
-            dao_jail = JailDao()
-            vo.update({"jail": dao_jail.get_by_id(jail_id)})
+
+        if "jail_ids" in vo:
+            jail_ids = vo.pop("jail_ids")
+            dao = JailDao()
+            jails =[]
+            for ji in jail_ids:
+                jails.append(dao.get_descr_by_id(ji))
+            vo.update({"jails": jails})
 
         if "certificate_id" in vo:
             crt_id = vo.pop("certificate_id")
