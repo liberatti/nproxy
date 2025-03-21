@@ -111,7 +111,7 @@ class ServiceDao(MongoDAO):
 
         if "jails" in vo:
             jail_ids=[]
-            for jail in vo["jails"]:
+            for jail in vo.pop("jails"):
                 if '_id' in jail:
                     jail_ids.append(ObjectId(jail["_id"]))
             vo.update({"jail_ids": jail_ids})
