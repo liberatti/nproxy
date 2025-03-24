@@ -57,7 +57,8 @@
             </form>
         </mat-card-content>
         <mat-card-actions align="end">
-            <button id="save-btn" type="button" (click)="onSubmit()" mat-raised-button color="primary">
+            <button id="save-btn" type="button" mat-raised-button color="primary"
+                    *ngIf="form.enabled" (click)="onSubmit()">
                 <mat-icon>save</mat-icon>
                 {{ 'actions.save' | translate }}
             </button>

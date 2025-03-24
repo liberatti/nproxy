@@ -1,31 +1,31 @@
-import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-import { FormGroup, FormControl, AbstractControl, ReactiveFormsModule } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
-import { MatDialog } from '@angular/material/dialog';
-import { ConfigService } from 'app/services/config.service';
-import { NotificationService } from 'app/services/notification.service';
-import { CommonModule } from '@angular/common';
-import { MatMomentDateModule } from '@angular/material-moment-adapter';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatListModule } from '@angular/material/list';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatPaginatorModule } from '@angular/material/paginator';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatSortModule } from '@angular/material/sort';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { TranslateModule } from '@ngx-translate/core';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { Config } from 'app/models/config';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatExpansionModule } from '@angular/material/expansion';
+import {Component, OnInit} from '@angular/core';
+import {Router, RouterModule} from '@angular/router';
+import {AbstractControl, FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
+import {MatTableModule} from '@angular/material/table';
+import {ConfigService} from 'app/services/config.service';
+import {NotificationService} from 'app/services/notification.service';
+import {CommonModule} from '@angular/common';
+import {MatMomentDateModule} from '@angular/material-moment-adapter';
+import {MatButtonModule} from '@angular/material/button';
+import {MatCardModule} from '@angular/material/card';
+import {MatChipsModule} from '@angular/material/chips';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatIconModule} from '@angular/material/icon';
+import {MatInputModule} from '@angular/material/input';
+import {MatListModule} from '@angular/material/list';
+import {MatMenuModule} from '@angular/material/menu';
+import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatProgressBarModule} from '@angular/material/progress-bar';
+import {MatSelectModule} from '@angular/material/select';
+import {MatSidenavModule} from '@angular/material/sidenav';
+import {MatSortModule} from '@angular/material/sort';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {TranslateModule} from '@ngx-translate/core';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {Config} from 'app/models/config';
+import {MatTabsModule} from '@angular/material/tabs';
+import {MatExpansionModule} from '@angular/material/expansion';
+import {OAuthService} from "../../services/oauth.service";
 
 @Component({
     selector: 'app-config-form',
@@ -37,7 +37,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
         MatListModule, MatCardModule, MatProgressBarModule, MatInputModule,
         MatTableModule, MatMenuModule, MatSortModule,
         MatTooltipModule, MatSelectModule, MatPaginatorModule, MatSlideToggleModule,
-        MatFormFieldModule, MatChipsModule, MatTabsModule,MatExpansionModule],
+        MatFormFieldModule, MatChipsModule, MatTabsModule, MatExpansionModule],
     templateUrl: './config-form.component.html',
     styleUrl: './config-form.component.css'
 })
@@ -66,7 +66,8 @@ export class ConfigFormComponent implements OnInit {
     constructor(
         private notificationService: NotificationService,
         private router: Router,
-        private configService: ConfigService
+        private configService: ConfigService,
+        protected oauth: OAuthService,
     ) {
     }
 
@@ -79,12 +80,13 @@ export class ConfigFormComponent implements OnInit {
             this.form.get('acme_directory_url')?.setValue(data.acme_directory_url);
             if (data.archive)
                 this.form.get('archive')?.setValue(data.archive);
-            if(data.purge)
-            this.form.get('purge')?.setValue(data.purge);
+            if (data.purge)
+                this.form.get('purge')?.setValue(data.purge);
 
         });
 
     }
+
     onSubmit() {
         this.submitted = true;
         if (this.form.status === "INVALID") {

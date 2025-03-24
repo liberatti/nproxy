@@ -23,6 +23,7 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {TranslateModule} from '@ngx-translate/core';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {RoutefilterService} from "../../services/routefilter.service";
+import {OAuthService} from "../../services/oauth.service";
 
 
 @Component({
@@ -64,13 +65,17 @@ export class RouteFilterFormComponent implements OnInit {
         private notificationService: NotificationService,
         private route: ActivatedRoute,
         private router: Router,
-        private rfService: RoutefilterService
+        private rfService: RoutefilterService,
+        protected oauth: OAuthService,
     ) {
         this.isAddMode = false;
     }
 
     ngOnInit(): void {
         this.isAddMode = !this.route.snapshot.params['id'];
+        if (!this.oauth.isRole('superuser')) {
+            this.form.disable();
+        }
         if (!this.isAddMode) {
             this.rfService.getById(this.route.snapshot.params['id']).subscribe(data => {
                 this.form.get('_id')?.setValue(data._id);

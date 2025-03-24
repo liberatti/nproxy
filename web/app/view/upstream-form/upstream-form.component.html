@@ -164,7 +164,8 @@
                                     </table>
                                 </mat-card-content>
                                 <mat-card-actions class="align-right mt-2">
-                                    <button mat-button color="primary" (click)="onAddTarget()">
+                                    <button mat-button color="primary"
+                                            *ngIf="form.enabled" (click)="onAddTarget()">
                                         <mat-icon>add</mat-icon>
                                         {{ 'actions.create'|translate }}
                                     </button>
@@ -176,7 +177,8 @@
             </form>
         </mat-card-content>
         <mat-card-actions align="end">
-            <button id="save-btn" type="button" (click)="onSubmit()" mat-raised-button color="primary">
+            <button id="save-btn" type="button" mat-raised-button color="primary"
+                    *ngIf="form.enabled" (click)="onSubmit()">
                 <mat-icon>save</mat-icon>
                 {{ 'actions.save' | translate }}
             </button>

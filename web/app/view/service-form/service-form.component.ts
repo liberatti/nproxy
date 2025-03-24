@@ -401,12 +401,13 @@ export class ServiceFormComponent implements OnInit {
     }
 
     onRemoveProto(keyword: any): void {
-        if (this.form.value.ssl_protocols != null) {
-            let index = this.form.value.ssl_protocols.indexOf(keyword);
-            if (index >= 0) {
-                this.form.value.ssl_protocols.splice(index, 1);
+        if (this.form.enabled)
+            if (this.form.value.ssl_protocols != null) {
+                let index = this.form.value.ssl_protocols.indexOf(keyword);
+                if (index >= 0) {
+                    this.form.value.ssl_protocols.splice(index, 1);
+                }
             }
-        }
     }
 
     compareFn(object1: any, object2: any) {

@@ -3,12 +3,7 @@ import {ActivatedRoute, Router, RouterModule} from '@angular/router';
 import {AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatTableDataSource, MatTableModule} from '@angular/material/table';
 import {MatDialog} from '@angular/material/dialog';
-import {
-    ProtocolType,
-    SessionPersistenceEntity,
-    SessionPersistenceType,
-    TargetEntity
-} from 'app/models/service';
+import {ProtocolType, SessionPersistenceEntity, SessionPersistenceType, TargetEntity} from 'app/models/service';
 import {Upstream} from 'app/models/upstream';
 import {UpstreamService} from 'app/services/upstream.service';
 import {NotificationService} from 'app/services/notification.service';
@@ -29,10 +24,9 @@ import {MatSidenavModule} from '@angular/material/sidenav';
 import {MatSortModule} from '@angular/material/sort';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {TranslateModule} from '@ngx-translate/core';
-import {
-    UpstreamTargetDialogComponent
-} from 'app/components/upstream-target-dialog/upstream-target-dialog.component';
+import {UpstreamTargetDialogComponent} from 'app/components/upstream-target-dialog/upstream-target-dialog.component';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {OAuthService} from "../../services/oauth.service";
 
 
 @Component({
@@ -52,10 +46,10 @@ export class UpstreamFormComponent implements OnInit {
     isAddMode: boolean;
     submitted = false;
     _supportedProtocols = Object.keys(ProtocolType);
-    _types: string[] = ['backend','static']
+    _types: string[] = ['backend', 'static']
     selectedFile: File | null = null;
 
-    targetDC: string[] = [ 'host', 'port', 'weight', 'action'];
+    targetDC: string[] = ['host', 'port', 'weight', 'action'];
     targetDS: MatTableDataSource<TargetEntity>;
     persistEnabledControl = new FormControl(false);
     form = new FormGroup({
@@ -88,7 +82,8 @@ export class UpstreamFormComponent implements OnInit {
         private route: ActivatedRoute,
         private router: Router,
         private upstreamService: UpstreamService,
-        private confirmDialog: MatDialog
+        private confirmDialog: MatDialog,
+        protected oauth: OAuthService,
     ) {
         this.targetDS = new MatTableDataSource<any>;
         this.isAddMode = false;
@@ -96,6 +91,9 @@ export class UpstreamFormComponent implements OnInit {
 
     ngOnInit(): void {
         this.isAddMode = !this.route.snapshot.params['id'];
+        if (!this.oauth.isRole('superuser')) {
+            this.form.disable();
+        }
         if (!this.isAddMode) {
             this.upstreamService.getById(this.route.snapshot.params['id']).subscribe(data => {
                 this.form.get('_id')?.setValue(data._id);
@@ -106,7 +104,7 @@ export class UpstreamFormComponent implements OnInit {
 
                 if (data.type)
                     this.form.get('type')?.setValue(data.type);
-                if (this.form.value.type == 'backend'){
+                if (this.form.value.type == 'backend') {
                     this.form.get('retry')?.setValue(data.retry);
                     this.form.get('retry_timeout')?.setValue(data.retry_timeout);
                     this.form.get('conn_timeout')?.setValue(data.conn_timeout);
@@ -118,12 +116,13 @@ export class UpstreamFormComponent implements OnInit {
                             this.persistEnabledControl.setValue(true);
                         }
                     }
-                }else{
+                } else {
                     this.form.get('index')?.setValue(data.index);
                 }
             });
         }
     }
+
     onFileSelected(event: any): void {
         this.selectedFile = event.target.files[0];
         if (this.selectedFile && this.selectedFile.type !== 'application/zip') {
@@ -131,6 +130,7 @@ export class UpstreamFormComponent implements OnInit {
             this.selectedFile = null;
         }
     }
+
     onSubmit() {
         this.submitted = true;
         let formData = {} as any;
@@ -139,15 +139,15 @@ export class UpstreamFormComponent implements OnInit {
             return;
         }
 
-        if (this.form.value.type == 'static'){
+        if (this.form.value.type == 'static') {
             formData = new FormData()
             let upstream = this.form.value as Upstream;
-            const jsonBlob = new Blob([JSON.stringify(upstream)], { type: 'application/json' });
+            const jsonBlob = new Blob([JSON.stringify(upstream)], {type: 'application/json'});
             formData.append('metadata', jsonBlob, 'metadata.json');
-            if (this.selectedFile){
+            if (this.selectedFile) {
                 formData.append('zipfile', this.selectedFile);
             }
-        }else{
+        } else {
             this.form.get('targets')?.setValue(this.targetDS.data);
             formData = this.form.value as Upstream;
         }
@@ -166,6 +166,7 @@ export class UpstreamFormComponent implements OnInit {
                 });
         }
     }
+
     persistChange() {
         if (this.persistEnabledControl.value) {
             this.form.get('persist')?.setValue({
@@ -173,7 +174,7 @@ export class UpstreamFormComponent implements OnInit {
                 'cookie_name': 'lb-route',
                 'cookie_path': '/'
             } as SessionPersistenceEntity);
-        }else{
+        } else {
             this.form.get('persist')?.setValue({
                 'type': SessionPersistenceType.NONE,
                 'cookie_name': '',
@@ -181,9 +182,11 @@ export class UpstreamFormComponent implements OnInit {
             } as SessionPersistenceEntity);
         }
     }
+
     isPersistEnabled() {
         return this.form.value.persist?.type != SessionPersistenceType.NONE;
     }
+
     onAddTarget() {
         const dialogRef = this.confirmDialog.open(UpstreamTargetDialogComponent, {
             width: '450px',
@@ -197,6 +200,7 @@ export class UpstreamFormComponent implements OnInit {
             }
         });
     }
+
     onRemove(selectedIndex: number) {
         const data = this.targetDS.data;
         data.splice(selectedIndex, 1);

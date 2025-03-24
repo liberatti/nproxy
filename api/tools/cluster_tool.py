@@ -3,19 +3,20 @@ import pickle
 import socket
 import subprocess
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import psutil
 import requests
 
 from api.common_utils import logger, get_server_id
+from api.model.config_model import ConfigDao
 from api.model.telemetry_model import TelemetryTrnDao
 from api.model.transaction_model import TransactionDao
 from api.model.upstream_model import UpstreamDao, NodeStatusDao
 from api.tools.engine_tool import EngineManager
 from api.tools.feed_tool import SecurityFeedTool
 from api.tools.service_watcher import ServiceWatcher
-from config import APP_BASE, ENGINE_VERSION, NODE_ROLE
+from config import APP_BASE, ENGINE_VERSION, NODE_ROLE, TELEMETRY_INTERVAL, TZ, TELEMETRY_URL
 
 
 class ClusterTool:
@@ -33,7 +34,7 @@ class ClusterTool:
             return False
 
     @classmethod
-    def auto_update_feeds(cls):
+    def auto_flush_feeds(cls):
         try:
             manager = EngineManager()
             if manager.CONFIG:
@@ -53,15 +54,45 @@ class ClusterTool:
             stack_trace = traceback.format_exc()
             logger.error(f"Error executing command: {stack_trace}")
 
+
     @classmethod
-    def auto_telemetry(cls):
+    def send_telemetry(cls):
+        dao = TelemetryTrnDao()
+        result = dao.get_by_logtime(datetime.now(TZ) - timedelta(hours=24))
+        if result:
+            cdao = ConfigDao()
+            c=cdao.get_active()
+            tlm={
+                "cluster_id": c['cluster_id'],
+                "net_recv":result[0]['net_recv'],
+                "net_send": result[0]['net_send'],
+                "req_total": result[0]['req_total'],
+                "latency": result[0]['latency']
+            }
+
+            response = requests.post(
+                f"{TELEMETRY_URL}/api/usage/", data=tlm
+            )
+            if response.status_code in [200, 201]:
+                logger.info(response.status_code)
+
+    @classmethod
+    def collect_telemetry(cls):
         dao = TransactionDao()
         tl_dao = TelemetryTrnDao()
-        dt_start = tl_dao.get_offset()
-        collected_telemery = dao.get_trn_telemetry(dt_start)
-        for ct in collected_telemery:
-            tl_dao.persist(ct)
-
+        trn_telemetry = dao.get_trn_telemetry(datetime.now(TZ))
+        if trn_telemetry:
+            for ct in trn_telemetry:
+                tl_dao.persist(ct)
+        else:
+            tl_dao.persist({
+            'net_recv':0,
+            'net_send':0,
+            'req_total':0,
+            'latency':0.0,
+            'logtime':datetime.now(TZ),
+            'server_id':get_server_id()
+            })
     @classmethod
     def auto_replicate_config(cls):
         manager = EngineManager()

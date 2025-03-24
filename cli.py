@@ -5,7 +5,7 @@ import traceback
 
 import bcrypt
 
-from api.common_utils import logger
+from api.common_utils import logger, gen_random_string
 from api.model.config_model import ConfigDao
 from api.model.feed_model import FeedDao
 from api.model.oauth_model import UserDao
@@ -24,6 +24,7 @@ def initialize_db():
     ca = SSLTool.gen_ca("Internal-CA", crt_org="NProxy")
     config_dao.persist(
         {
+            "cluster_id":f"{gen_random_string(64)}",
             "maxmind_key": "",
             "iblocklist_username": "",
             "iblocklist_pin": "",

@@ -29,6 +29,7 @@ import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatGridListModule} from '@angular/material/grid-list';
+import {OAuthService} from "../../services/oauth.service";
 
 @Component({
     selector: 'app-sensor-form',
@@ -80,7 +81,8 @@ export class SensorFormComponent implements OnInit {
         private router: Router,
         private sensorService: SensorService,
         private ruleCatService: RuleCategoryService,
-        private daoService: DictionaryService
+        private daoService: DictionaryService,
+        protected oauth: OAuthService
     ) {
         this.breakpoint = (window.innerWidth <= 600) ? 2 : 8;
         this.isAddMode = false;
@@ -89,6 +91,9 @@ export class SensorFormComponent implements OnInit {
 
     ngOnInit(): void {
         this.isAddMode = !this.route.snapshot.params['id'];
+        if (!this.oauth.isRole('superuser')) {
+            this.form.disable();
+        }
         if (!this.isAddMode) {
             this.sensorService.getById(this.route.snapshot.params['id']).subscribe(data => {
                 this.form.get('_id')?.setValue(data._id);

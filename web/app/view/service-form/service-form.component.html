@@ -77,7 +77,7 @@
                                                     <mat-chip-row *ngFor="let p of form.value.jails"
                                                                   (removed)="onRemoveJail(p)">
                                                         {{ p.name }}
-                                                        <button matChipRemove>
+                                                        <button matChipRemove *ngIf="form.enabled">
                                                             <mat-icon>cancel</mat-icon>
                                                         </button>
                                                     </mat-chip-row>
@@ -156,7 +156,7 @@
                                         <mat-card-subtitle>Service Port Bindings</mat-card-subtitle>
                                         <div style="flex: auto">
                                             <button style="float: right" mat-icon-button color="primary"
-                                                    (click)="onAddBind()">
+                                                    *ngIf="form.enabled" (click)="onAddBind()">
                                                 <mat-icon>add</mat-icon>
                                             </button>
                                         </div>
@@ -200,7 +200,7 @@
                                                                 Edit
                                                             </button>
                                                             <button mat-menu-item type="button"
-                                                                    (click)="onBindRemove(i)">
+                                                                    *ngIf="form.enabled" (click)="onBindRemove(i)">
                                                                 <mat-icon>delete</mat-icon>
                                                                 Delete
                                                             </button>
@@ -246,7 +246,7 @@
                                                         <mat-label>Protocol</mat-label>
                                                         <input matInput formControlName="text">
                                                         <button color="primary" matSuffix mat-icon-button
-                                                                (click)="onAddProto()">
+                                                                *ngIf="form.enabled" (click)="onAddProto()">
                                                             <mat-icon>add</mat-icon>
                                                         </button>
                                                     </mat-form-field>
@@ -280,7 +280,7 @@
                                     <mat-card-subtitle>Headers</mat-card-subtitle>
                                     <div style="flex: auto">
                                         <button style="float: right" mat-icon-button color="primary"
-                                                (click)="onAddHeader()">
+                                                *ngIf="form.enabled" (click)="onAddHeader()">
                                             <mat-icon>add</mat-icon>
                                         </button>
                                     </div>
@@ -304,7 +304,8 @@
                                             <th mat-header-cell *matHeaderCellDef></th>
                                             <td mat-cell *matCellDef="let element;let i = index;">
                                                 <div class="table-cell-actions">
-                                                    <button mat-button type="button" [matMenuTriggerFor]="menu">
+                                                    <button mat-button type="button" [matMenuTriggerFor]="menu"
+                                                            *ngIf="form.enabled">
                                                         <mat-icon>more_vert</mat-icon>
                                                     </button>
                                                     <mat-menu #menu="matMenu" xPosition="before"
@@ -334,7 +335,7 @@
                                     <mat-card-subtitle>Routes</mat-card-subtitle>
                                     <div style="flex: auto">
                                         <button style="float: right" mat-icon-button color="primary"
-                                                (click)="onAddRoute()">
+                                                *ngIf="form.enabled" (click)="onAddRoute()">
                                             <mat-icon>add</mat-icon>
                                         </button>
                                     </div>
@@ -377,7 +378,8 @@
                                             </td>
                                             <td class="table-cell-actions">
                                                 <div class="toggle-container">
-                                                    <button mat-button type="button" [matMenuTriggerFor]="menu">
+                                                    <button mat-button type="button" [matMenuTriggerFor]="menu"
+                                                            *ngIf="form.enabled">
                                                         <mat-icon>more_vert</mat-icon>
                                                     </button>
                                                     <mat-menu #menu="matMenu" xPosition="before"
@@ -401,8 +403,8 @@
                         </div>
                         <div class="mat-mdc-card-actions">
                             <button mat-raised-button matStepperPrevious>Back</button>
-                            <button (click)="onSubmit()" mat-raised-button color="primary"
-                                    *ngIf="oauth.isRole('superuser')">
+                            <button mat-raised-button color="primary"
+                                    *ngIf="form.enabled" (click)="onSubmit()">
                                 <mat-icon>save</mat-icon>
                                 {{ 'actions.save' | translate }}
                             </button>

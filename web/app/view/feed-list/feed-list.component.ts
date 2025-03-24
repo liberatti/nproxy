@@ -26,6 +26,7 @@ import {FeedService} from 'app/services/feed.service';
 import {MatChipsModule} from '@angular/material/chips';
 import {Feed} from "../../models/feed";
 import {DateFormatPipe} from "../../pipes/date_format.pipe";
+import {OAuthService} from "../../services/oauth.service";
 
 
 @Component({
@@ -50,7 +51,8 @@ export class FeedListComponent implements OnInit {
     constructor(
         private notificationService: NotificationService,
         private dictService: FeedService,
-        private confirmDialog: MatDialog
+        private confirmDialog: MatDialog,
+        protected oauth: OAuthService,
     ) {
         this.feedDS = new MatTableDataSource<Feed>;
     }
@@ -70,13 +72,6 @@ export class FeedListComponent implements OnInit {
         this.feedPA.page = event.pageIndex + 1;
         this.feedPA.per_page = event.pageSize;
         this.updateGridTable();
-    }
-
-    onSave() {
-        this.dictService.get(this.feedPA).subscribe(data => {
-            this.feedDS.data = data.data;
-            this.feedPA.total_elements = data.metadata.total_elements;
-        });
     }
 
     onRemove(dto: Feed) {

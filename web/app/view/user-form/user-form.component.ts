@@ -22,7 +22,7 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {TranslateModule} from '@ngx-translate/core';
 import {MatChipsModule} from '@angular/material/chips';
 import {ScrollingModule} from "@angular/cdk/scrolling";
-import {UserService} from "../../services/oauth.service";
+import {OAuthService, UserService} from "../../services/oauth.service";
 
 @Component({
     selector: 'app-user-form',
@@ -62,12 +62,16 @@ export class UserFormComponent implements OnInit {
         private route: ActivatedRoute,
         private router: Router,
         private feedService: UserService,
+        protected oauth: OAuthService
     ) {
         this.isAddMode = false;
     }
 
     ngOnInit(): void {
         this.isAddMode = !this.route.snapshot.params['id'];
+        if (!this.oauth.isRole('superuser')) {
+            this.form.disable();
+        }
         if (!this.isAddMode) {
             this.feedService.getById(this.route.snapshot.params['id']).subscribe(data => {
                 this.form.get('_id')?.setValue(data._id);

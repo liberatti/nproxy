@@ -25,6 +25,7 @@ import {NotificationService} from 'app/services/notification.service';
 import {DateFormatPipe} from "../../pipes/date_format.pipe";
 import {JailRuleFormDialogComponent} from "../../components/jail-rule-form-dialog/jail-rule-form-dialog.component";
 import {MatDialog} from "@angular/material/dialog";
+import {OAuthService} from "../../services/oauth.service";
 
 @Component({
     selector: 'app-jail-form',
@@ -68,6 +69,7 @@ export class JailFormComponent implements OnInit {
         private router: Router,
         private jailService: JailService,
         private confirmDialog: MatDialog,
+        protected oauth: OAuthService,
     ) {
         this.ruleDS = new MatTableDataSource<JailRule>;
         this.isAddMode = false;
@@ -75,6 +77,9 @@ export class JailFormComponent implements OnInit {
 
     ngOnInit(): void {
         this.isAddMode = !this.route.snapshot.params['id'];
+        if (!this.oauth.isRole('superuser')) {
+            this.form.disable();
+        }
         if (!this.isAddMode) {
             this.jailService.getById(this.route.snapshot.params['id']).subscribe(data => {
                 this.form.get('_id')?.setValue(data._id);

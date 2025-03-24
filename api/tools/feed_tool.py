@@ -39,7 +39,7 @@ class JailTool:
         return False
 
     @classmethod
-    def process_jails(cls):
+    def calc_process_jails(cls):
         dt = replace_tz(datetime.now())
         dao = JailDao()
         trn_dao = TransactionDao()

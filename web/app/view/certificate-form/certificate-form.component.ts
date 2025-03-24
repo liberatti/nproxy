@@ -1,28 +1,28 @@
-import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-import { FormGroup, Validators, FormControl, AbstractControl, ReactiveFormsModule } from '@angular/forms';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatDialog } from '@angular/material/dialog';
-import { Certificate, CertificateProviderType } from 'app/models/certificate';
-import { NotificationService } from 'app/services/notification.service';
-import { CommonModule } from '@angular/common';
-import { MatMomentDateModule } from '@angular/material-moment-adapter';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatListModule } from '@angular/material/list';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatPaginatorModule } from '@angular/material/paginator';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatSortModule } from '@angular/material/sort';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { TranslateModule } from '@ngx-translate/core';
-import { CertificateService } from 'app/services/certificate.service';
+import {Component, OnInit} from '@angular/core';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
+import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {MatTableDataSource, MatTableModule} from '@angular/material/table';
+import {Certificate, CertificateProviderType} from 'app/models/certificate';
+import {NotificationService} from 'app/services/notification.service';
+import {CommonModule} from '@angular/common';
+import {MatMomentDateModule} from '@angular/material-moment-adapter';
+import {MatButtonModule} from '@angular/material/button';
+import {MatCardModule} from '@angular/material/card';
+import {MatChipsModule} from '@angular/material/chips';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatIconModule} from '@angular/material/icon';
+import {MatInputModule} from '@angular/material/input';
+import {MatListModule} from '@angular/material/list';
+import {MatMenuModule} from '@angular/material/menu';
+import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatProgressBarModule} from '@angular/material/progress-bar';
+import {MatSelectModule} from '@angular/material/select';
+import {MatSidenavModule} from '@angular/material/sidenav';
+import {MatSortModule} from '@angular/material/sort';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {TranslateModule} from '@ngx-translate/core';
+import {CertificateService} from 'app/services/certificate.service';
+import {OAuthService} from "../../services/oauth.service";
 
 @Component({
     selector: 'app-certificate-form',
@@ -41,13 +41,8 @@ import { CertificateService } from 'app/services/certificate.service';
 export class CertificateFormComponent implements OnInit {
     isAddMode: boolean;
     submitted = false;
-    displayedColumns: string[] = ['name', 'sans', 'action'];
     dataSource: MatTableDataSource<Certificate>;
     _supportedProviders = Object.keys(CertificateProviderType);
-
-    sansForm = new FormGroup({
-        cn: new FormControl<string>('')
-    });
 
     form = new FormGroup({
         _id: new FormControl<string>(''),
@@ -71,7 +66,7 @@ export class CertificateFormComponent implements OnInit {
         private route: ActivatedRoute,
         private router: Router,
         private certificateService: CertificateService,
-        private confirmDialog: MatDialog
+        protected oauth: OAuthService,
     ) {
         this.dataSource = new MatTableDataSource<Certificate>;
         this.isAddMode = false;
@@ -79,6 +74,9 @@ export class CertificateFormComponent implements OnInit {
 
     ngOnInit(): void {
         this.isAddMode = !this.route.snapshot.params['id'];
+        if (!this.oauth.isRole('superuser')) {
+            this.form.disable();
+        }
         if (!this.isAddMode) {
             this.certificateService.getById(this.route.snapshot.params['id']).subscribe(data => {
                 this.form.get('_id')?.setValue(data._id);
@@ -92,6 +90,7 @@ export class CertificateFormComponent implements OnInit {
             });
         }
     }
+
     onSubmit() {
         this.submitted = true;
         if (this.form.status === "INVALID") {
@@ -112,18 +111,5 @@ export class CertificateFormComponent implements OnInit {
                 this.router.navigate(['/certificate']);
             });
         }
-    }
-
-    onRemove(selectedIndex: number) {
-        const data = this.dataSource.data;
-        data.splice(selectedIndex, 1);
-        this.dataSource.data = data;
-    }
-
-    get f(): { [key: string]: AbstractControl } {
-        return this.form.controls;
-    }
-    compareFn(object1: any, object2: any) {
-        return object1 && object2 && object1._id === object2._id;
     }
 }

@@ -8,7 +8,7 @@ from api.model.mongo_base_model import MongoDAO
 from api.model.sensor_model import SensorSchema, SensorDao
 from api.model.service_model import ServiceSchema, ServiceDao
 from api.model.upstream_model import UpstreamSchema, UpstreamDao
-from config import DATETIME_FMT, TZ
+from config import DATETIME_FMT, TZ, TELEMETRY_INTERVAL
 
 
 class TransactionHeaderSchema(Schema):
@@ -215,14 +215,15 @@ class TransactionDao(MongoDAO):
         )
         return rs.modified_count > 0
 
-    def get_trn_telemetry(self, dt_start):
-        query = [
+    def get_node_bandwidth(self,server_id):
+        query= [
             {
                 "$match": {
                     "logtime": {
-                        "$gte": dt_start
-                    }
-                }
+                        "$gte": (datetime.now(TZ) - timedelta(minutes=1))
+                    },
+                    "server_id": server_id
+                },
             },
             {
                 "$group": {
@@ -232,35 +233,51 @@ class TransactionDao(MongoDAO):
                         "day": {"$dayOfMonth": "$logtime"},
                         "hour": {"$hour": "$logtime"},
                         "minute": {"$minute": "$logtime"},
-                        "server_id": "$server_id",
-                        "service_id": "$service_id",
+                    },
+                    "net_recv": {"$sum": "$http.request.bytes"},
+                    "net_send": {"$sum": "$http.response.bytes"},
+                    "req_total": {"$sum": 1}
+                }
+            },
+            {"$limit": 1}
+        ]
+        logger.debug(query)
+        rs = self.collection.aggregate(query)
+        return list(rs)
+
+    def get_trn_telemetry(self, dt_start):
+        query = [
+            {
+                "$match": {
+                    "logtime": {
+                        "$gt": dt_start - timedelta(minutes=TELEMETRY_INTERVAL)
+                    }
+                }
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "server_id": "$server_id"
                     },
                     "net_recv": { "$sum": "$http.request.bytes" },
                     "net_send": { "$sum": "$http.response.bytes" },
-                    "req_total": { "$sum": 1 }
+                    "req_total": { "$sum": 1 },
+                    'latency': { "$avg": "$http.duration"}
                 }
             }
         ]
         logger.debug(query)
         rs = self.collection.aggregate(query)
         records=list(rs)
-
-        service_dao = ServiceDao()
-
         if records:
             for s in records:
                 dtj = s.pop("_id")
-                dt = datetime(
-                    dtj["year"], dtj["month"], dtj["day"], dtj["hour"], dtj["minute"]
-                ).astimezone(tz=TZ)
                 s.update(
                     {
-                        "logtime": dt,
+                        "logtime": dt_start,
                         "server_id": dtj['server_id'],
-                        "service": service_dao.get_descr_by_id(dtj['service_id'])
                     }
                 )
-                logger.debug(s)
         return records
 
     def get_tpm(self, dt_start, dt_end, filters):

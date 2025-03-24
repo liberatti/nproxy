@@ -24,7 +24,7 @@ import {DefaultPageMeta} from 'app/models/shared';
 import {NotificationService} from 'app/services/notification.service';
 import {MatChipsModule} from '@angular/material/chips';
 import {User} from "../../models/oauth";
-import {UserService} from "../../services/oauth.service";
+import {OAuthService, UserService} from "../../services/oauth.service";
 
 
 @Component({
@@ -49,7 +49,8 @@ export class UserListComponent implements OnInit {
     constructor(
         private notificationService: NotificationService,
         private dictService: UserService,
-        private confirmDialog: MatDialog
+        private confirmDialog: MatDialog,
+        protected oauth: OAuthService,
     ) {
         this.userDS = new MatTableDataSource<User>;
     }

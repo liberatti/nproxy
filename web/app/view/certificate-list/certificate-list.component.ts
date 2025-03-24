@@ -1,31 +1,32 @@
-import { Component, OnInit } from '@angular/core';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatDialog } from '@angular/material/dialog';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import {Component, OnInit} from '@angular/core';
+import {MatTableDataSource, MatTableModule} from '@angular/material/table';
+import {MatPaginatorModule, PageEvent} from '@angular/material/paginator';
+import {MatDialog} from '@angular/material/dialog';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import moment from 'moment';
-import { DefaultPageMeta, PageMeta } from 'app/models/shared';
-import { ConfirmDialogComponent } from 'app/components/confirm-dialog/confirm-dialog.component';
-import { Certificate } from 'app/models/certificate';
-import { CertificateService } from 'app/services/certificate.service';
-import { NotificationService } from 'app/services/notification.service';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
-import { MatMomentDateModule } from '@angular/material-moment-adapter';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatListModule } from '@angular/material/list';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatSortModule } from '@angular/material/sort';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { RouterModule } from '@angular/router';
+import {DefaultPageMeta, PageMeta} from 'app/models/shared';
+import {ConfirmDialogComponent} from 'app/components/confirm-dialog/confirm-dialog.component';
+import {Certificate} from 'app/models/certificate';
+import {CertificateService} from 'app/services/certificate.service';
+import {NotificationService} from 'app/services/notification.service';
+import {CommonModule} from '@angular/common';
+import {ReactiveFormsModule} from '@angular/forms';
+import {MatMomentDateModule} from '@angular/material-moment-adapter';
+import {MatButtonModule} from '@angular/material/button';
+import {MatCardModule} from '@angular/material/card';
+import {MatChipsModule} from '@angular/material/chips';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatIconModule} from '@angular/material/icon';
+import {MatInputModule} from '@angular/material/input';
+import {MatListModule} from '@angular/material/list';
+import {MatMenuModule} from '@angular/material/menu';
+import {MatProgressBarModule} from '@angular/material/progress-bar';
+import {MatSelectModule} from '@angular/material/select';
+import {MatSidenavModule} from '@angular/material/sidenav';
+import {MatSortModule} from '@angular/material/sort';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {RouterModule} from '@angular/router';
+import {OAuthService} from "../../services/oauth.service";
 
 @Component({
     selector: 'app-certificate-list',
@@ -51,7 +52,8 @@ export class CertificateListComponent implements OnInit {
         private notificationService: NotificationService,
         private certificateService: CertificateService,
         private confirmDialog: MatDialog,
-        private translateService: TranslateService
+        private translateService: TranslateService,
+        protected oauth: OAuthService,
     ) {
         this.certificateDS = new MatTableDataSource<Certificate>;
         this.certificatePA = new DefaultPageMeta()
@@ -88,7 +90,7 @@ export class CertificateListComponent implements OnInit {
 
     onRemove(dto: Certificate) {
         const dialogRef = this.confirmDialog.open(ConfirmDialogComponent, {
-            data: { title: "Confirm Certificate removal ", message: "Remove " + dto.name },
+            data: {title: "Confirm Certificate removal ", message: "Remove " + dto.name},
         });
 
         dialogRef.afterClosed().subscribe(result => {

@@ -24,6 +24,7 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {TranslateModule} from '@ngx-translate/core';
 import {MatChipsModule} from '@angular/material/chips';
 import {ScrollingModule} from "@angular/cdk/scrolling";
+import {OAuthService} from "../../services/oauth.service";
 
 @Component({
     selector: 'app-dictionary-form',
@@ -73,7 +74,8 @@ export class DictionaryFormComponent implements OnInit {
         private route: ActivatedRoute,
         private router: Router,
         private DictionaryService: DictionaryService,
-        private confirmDialog: MatDialog
+        private confirmDialog: MatDialog,
+        protected oauth: OAuthService,
     ) {
         this.isAddMode = false;
         this.isReadOnlyMode = false;
@@ -95,6 +97,9 @@ export class DictionaryFormComponent implements OnInit {
 
     ngOnInit(): void {
         this.isAddMode = !this.route.snapshot.params['id'];
+        if (!this.oauth.isRole('superuser')) {
+            this.form.disable();
+        }
         if (!this.isAddMode) {
             this.DictionaryService.getById(this.route.snapshot.params['id']).subscribe(data => {
                 this.form.get('_id')?.setValue(data._id);

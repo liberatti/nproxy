@@ -10,6 +10,7 @@ from api.common_utils import (
 from api.common_utils import socketio
 from api.model.config_model import ChangeDao, ConfigDao
 from api.model.telemetry_model import TelemetryTrnDao
+from api.model.transaction_model import TransactionDao
 from api.model.upstream_model import NodeStatusDao
 from api.tools.acme_tool import AcmeTool
 from api.tools.cluster_tool import ClusterTool
@@ -59,11 +60,10 @@ def backup():
 # @has_any_authority(["viewer", "superuser"])
 def get_node_status():
     dao = NodeStatusDao()
-    tel_dao = TelemetryTrnDao()
+    trn_dao = TransactionDao()
     result = dao.get_all()
 
     cut_date = datetime.now() - timedelta(minutes=1)
-
     if result["metadata"]["total_elements"] > 0:
         for n in result['data']:
             n.update({"online": ('last_check' in n and cut_date < n['last_check'])})
@@ -78,7 +78,7 @@ def get_node_status():
             else:
                 n.update({"healthy": False})
 
-            telemetry = tel_dao.get_node_bandwidth(n['name'])
+            telemetry = trn_dao.get_node_bandwidth(n['name'])
             if telemetry:
                 n.update(
                     {
