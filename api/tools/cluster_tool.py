@@ -78,12 +78,21 @@ class ClusterTool:
                 "req_total": result[0]["req_total"],
                 "latency": result[0]["latency"],
             }
-
-            response = requests.post(
-                f"{TELEMETRY_URL}/api/usage", data=tlm, headers=API_HEADERS
-            )
-            if response.status_code in [200, 201]:
-                logger.info(response.status_code)
+            try:
+                response = requests.post(
+                    f"{TELEMETRY_URL}/api/usage",
+                    data=tlm,
+                    headers=API_HEADERS,
+                    timeout=10,
+                )
+                if response.status_code in [200, 201]:
+                    logger.info(response.status_code)
+                else:
+                    logger.warn(
+                        f"Failed with code {response.status_code}, disable with TELEMETRY_ENABLE=false"
+                    )
+            except Exception as e:
+                logger.error(f"Failed to send telemetry {e}")
 
     @classmethod
     def collect_telemetry(cls):
@@ -268,6 +277,7 @@ class ClusterTool:
 
     @classmethod
     def apply_config(cls, reconfigure=False):
+        logger.info(f"Start on {get_server_id()}")
         try:
             manager = EngineManager()
             if reconfigure:

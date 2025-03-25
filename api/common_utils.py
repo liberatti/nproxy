@@ -253,7 +253,7 @@ console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
 config_db = pymongo.MongoClient(
-    MONGO_URI, maxPoolSize=None, socketTimeoutMS=120000, connectTimeoutMS=120000
+    MONGO_URI, maxPoolSize=300, socketTimeoutMS=30000, connectTimeoutMS=30000
 )
 
 

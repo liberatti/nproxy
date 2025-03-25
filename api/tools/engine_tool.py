@@ -674,7 +674,7 @@ class EngineManager:
                     sb.append(f"   set $upstream_id '{route['upstream']['_id']}';")
 
                     if "static" in ups["type"]:
-                        logger.info(
+                        logger.debug(
                             f"Deploy static {len(ups['content'])} to {APP_BASE}/html/{ups['name']}"
                         )
                         unpack_zip(ups["content"], f"{APP_BASE}/html/{ups['name']}")
