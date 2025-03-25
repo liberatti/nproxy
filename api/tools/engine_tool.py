@@ -531,18 +531,19 @@ class EngineManager:
     def _create_blacklist(self, prefix_name, sensor):
         ruleset_path = f"{APP_BASE}/modsec/conf"
         b_list = []
-        w_list = self.__build_whitelist(sensor)
+        # w_list = self.__build_whitelist(sensor)
         for b in sensor["block"]:
             for d in self.CONFIG["dictionaries"]:
                 if d["_id"] == b["_id"]:
-                    for bad_addr in d["content"]:
-                        if SecurityFeedTool.is_ip_network(bad_addr):
-                            for bi_addr in SecurityFeedTool.expand_network(bad_addr):
-                                if bi_addr not in w_list:
-                                    b_list.append(bi_addr)
-                        else:
-                            if bad_addr not in w_list:
-                                b_list.append(bad_addr)
+                    b_list.extend(d["content"])  # TODO whitelist performance critical
+                    # for bad_addr in d["content"]:
+                    #    if SecurityFeedTool.is_ip_network(bad_addr):
+                    #        for bi_addr in SecurityFeedTool.expand_network(bad_addr):
+                    #            if bi_addr not in w_list:
+                    #                b_list.append(bi_addr)
+                    #    else:
+                    #        if bad_addr not in w_list:
+                    #            b_list.append(bad_addr)
                     break
 
         r13 = SecRule().load(
