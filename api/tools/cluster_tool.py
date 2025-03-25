@@ -71,7 +71,7 @@ class ClusterTool:
             }
 
             response = requests.post(
-                f"{TELEMETRY_URL}/api/usage/", data=tlm
+                f"{TELEMETRY_URL}/api/usage", data=tlm
             )
             if response.status_code in [200, 201]:
                 logger.info(response.status_code)
