@@ -31,14 +31,19 @@ from api.model.config_model import ConfigDao
 from api.tools.acme_tool import AcmeTool
 from api.tools.archive_tool import LogArchiverTool
 from api.tools.cluster_tool import ClusterTool
-from api.tools.feed_tool import RuleSetTool, JailTool
-from api.tools.feed_tool import SecurityFeedTool
+from api.tools.feed_tool import RuleSetTool, JailTool, SecurityFeedTool
 from cli import install
-from config import APP_BASE, NODE_ROLE, MAINTENANCE_WINDOW, TELEMETRY_ENABLE, TELEMETRY_INTERVAL
+from config import (
+    APP_BASE,
+    NODE_ROLE,
+    MAINTENANCE_WINDOW,
+    TELEMETRY_ENABLE,
+    TELEMETRY_INTERVAL,
+)
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "/tmp"
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Limite de 16MB
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # Limite de 16MB
 
 bp = Blueprint("gw", __name__, template_folder="templates")
 
@@ -48,6 +53,7 @@ cors.init_app(app)
 ma.init_app(app)
 socketio.init_app(app)
 api = Api(app)
+
 
 @app.errorhandler(404)
 def not_found_error(error):
@@ -70,7 +76,7 @@ def handle_exception(error):
 
 @bp.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
 
 @bp.route("/<path:path>")
@@ -78,15 +84,17 @@ def catch_all(path):
     static_files_dir = "./static"
     _path = path.lower().strip()
     if path in ["", "/", None]:
-        return render_template('index.html')
+        return render_template("index.html")
     elif _path.endswith(".css"):
         return send_from_directory(static_files_dir, path, mimetype="text/css")
     elif _path.endswith(".js"):
-        return send_from_directory(static_files_dir, path, mimetype="application/javascript")
+        return send_from_directory(
+            static_files_dir, path, mimetype="application/javascript"
+        )
     elif "." in _path:
         return send_from_directory(static_files_dir, path)
     else:
-        return render_template('index.html')
+        return render_template("index.html")
 
 
 app.register_blueprint(bp)
@@ -112,6 +120,7 @@ routes = [
 for route, url_prefix in routes:
     app.register_blueprint(route, url_prefix=url_prefix)
 
+
 def _scheduler():
     while True:
         try:
@@ -134,7 +143,7 @@ with app.app_context():
             install()
             config = dao.get_active()
         if "cluster_id" not in config:
-            dao.update_by_id(config['_id'],{"cluster_id": f"{gen_random_string(64)}"})
+            dao.update_by_id(config["_id"], {"cluster_id": f"{gen_random_string(64)}"})
 
         schedule.every().day.at(MAINTENANCE_WINDOW).do(RuleSetTool.update)
         schedule.every().day.at(MAINTENANCE_WINDOW).do(SecurityFeedTool().update)
@@ -145,7 +154,9 @@ with app.app_context():
         if boolean(TELEMETRY_ENABLE):
             app.logger.info(f"Telemetry is enabled, thanks for helping our community.")
             schedule.every().day.at(MAINTENANCE_WINDOW).do(ClusterTool.send_telemetry)
-            schedule.every(int(TELEMETRY_INTERVAL)).minutes.do(ClusterTool.collect_telemetry)
+            schedule.every(int(TELEMETRY_INTERVAL)).minutes.do(
+                ClusterTool.collect_telemetry
+            )
     else:
         schedule.every(10).seconds.do(ClusterTool.auto_replicate_config)
     schedule.every(10).seconds.do(ClusterTool().node_monitor)
@@ -154,9 +165,6 @@ with app.app_context():
         ClusterTool.apply_config(reconfigure=True)
         if "main" in NODE_ROLE:
             AcmeTool.auto_renew()
-            if boolean(TELEMETRY_ENABLE):
-                ClusterTool.collect_telemetry()
-                ClusterTool.send_telemetry()
     except Exception as e:
         app.logger.error(f"Failed to apply configuration: {e}")
         app.logger.error(traceback.format_exc())
