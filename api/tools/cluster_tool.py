@@ -81,7 +81,7 @@ class ClusterTool:
             try:
                 response = requests.post(
                     f"{TELEMETRY_URL}/api/usage",
-                    data=tlm,
+                    json=tlm,
                     headers=API_HEADERS,
                     timeout=10,
                 )
