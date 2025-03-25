@@ -179,9 +179,9 @@ class EngineManager:
                             if s["_id"] == route["sensor"]["_id"]:
                                 sensor = copy.deepcopy(s)
                                 break
-                        self._create_whitelist(
-                            f"{service['name']}-{route['name']}", sensor
-                        )
+                        #                        self._create_whitelist(
+                        #                            f"{service['name']}-{route['name']}", sensor
+                        #                        )
                         self._create_blacklist(
                             f"{service['name']}-{route['name']}", sensor
                         )
@@ -479,8 +479,7 @@ class EngineManager:
             return f"  error_log {log_path}/error_log-{log_id}.log;"
         return f"# LOG {log_type} NOT SUPPORTED"
 
-    def _create_whitelist(self, prefix_name, sensor):
-        ruleset_path = f"{APP_BASE}/modsec/conf"
+    def __build_whitelist(self, sensor):
         w_list = []
         for w in sensor["permit"]:
             for d in self.CONFIG["dictionaries"]:
@@ -490,38 +489,60 @@ class EngineManager:
                             w_list.extend(SecurityFeedTool.expand_network(c))
                         else:
                             w_list.append(c)
-                    break
+        return w_list
 
-        r14 = SecRule().load(
-            {
-                "schema_type": "SecRule",
-                "code": 14,
-                "phase": 1,
-                "action": "pass",
-                "logging": "log",
-                "logdata": "'%{MATCHED_VAR}'",
-                "audit_log": "noauditlog",
-                "scope": ["REMOTE_ADDR"],
-                "condition": f"@ipMatchFromFile {prefix_name}-wl.data",
-                "msg": "'IP is whitelisted'",
-                "files": [{"name": f"{prefix_name}-wl.data", "content": w_list}],
-                # "ctl": ["ruleEngine=off"],
-            }
-        )
-        try:
-            return RuleSetParser.as_seclang(r14, ruleset_path)
-        except Exception as e:
-            logger.error("Failed to parse rule: %s %s", r14, e)
-            stack_trace = traceback.format_exc()
-            logger.error(stack_trace)
+    #
+    #    def _create_whitelist(self, prefix_name, sensor):
+    #        ruleset_path = f"{APP_BASE}/modsec/conf"
+    #        w_list = []
+    #        for w in sensor["permit"]:
+    #            for d in self.CONFIG["dictionaries"]:
+    #                if d["_id"] == w["_id"]:
+    #                    for c in d["content"]:
+    #                        if SecurityFeedTool.is_ip_network(c):
+    #                            w_list.extend(SecurityFeedTool.expand_network(c))
+    #                        else:
+    #                            w_list.append(c)
+    #                    break
+
+    #        r14 = SecRule().load(
+    #            {
+    #                "schema_type": "SecRule",
+    #                "code": 14,
+    #                "phase": 1,
+    #                "action": "pass",
+    #                "logging": "log",
+    #                "logdata": "'%{MATCHED_VAR}'",
+    #                "audit_log": "noauditlog",
+    #                "scope": ["REMOTE_ADDR"],
+    #                "condition": f"@ipMatchFromFile {prefix_name}-wl.data",
+    #                "msg": "'IP is whitelisted'",
+    #                "files": [{"name": f"{prefix_name}-wl.data", "content": w_list}],
+    #                # "ctl": ["ruleEngine=off"],
+    #            }
+    #        )
+    #        try:
+    #            return RuleSetParser.as_seclang(r14, ruleset_path)
+    #        except Exception as e:
+    #            logger.error("Failed to parse rule: %s %s", r14, e)
+    #            stack_trace = traceback.format_exc()
+    #            logger.error(stack_trace)
 
     def _create_blacklist(self, prefix_name, sensor):
         ruleset_path = f"{APP_BASE}/modsec/conf"
         b_list = []
+        w_list = self.__build_whitelist(sensor)
         for b in sensor["block"]:
             for d in self.CONFIG["dictionaries"]:
                 if d["_id"] == b["_id"]:
-                    b_list.extend(d["content"])
+                    for bad_addr in d["content"]:
+                        if SecurityFeedTool.is_ip_network(bad_addr):
+                            for bi_addr in SecurityFeedTool.expand_network(bad_addr):
+                                if bi_addr not in w_list:
+                                    b_list.append(bi_addr)
+                        else:
+                            if bad_addr not in w_list:
+                                b_list.append(bad_addr)
                     break
 
         r13 = SecRule().load(
@@ -567,9 +588,9 @@ class EngineManager:
                         sensor = copy.deepcopy(s)
                         break
 
-                psb.append(
-                    self._create_whitelist(f"{service['name']}-{route['name']}", sensor)
-                )
+                #                psb.append(
+                #                    self._create_whitelist(f"{service['name']}-{route['name']}", sensor)
+                #                )
                 psb.append(
                     self._create_blacklist(f"{service['name']}-{route['name']}", sensor)
                 )
