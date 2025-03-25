@@ -31,7 +31,7 @@
                                     <mat-label>Blocklist</mat-label>
                                     <mat-select [compareWith]="compareFn"
                                                 (selectionChange)="onAddDictionary($event,'b')">
-                                        <input (keyup)="getDictionaries($event)"/>
+                                        =
                                         <mat-option *ngFor="let c of filterActiveDictionary(_dictionaries)" [value]="c">
                                             {{ c.name }}
                                         </mat-option>
@@ -52,7 +52,6 @@
                                     <mat-label>Allowlist</mat-label>
                                     <mat-select [compareWith]="compareFn"
                                                 (selectionChange)="onAddDictionary($event,'p')">
-                                        <input (keyup)="getDictionaries($event)"/>
                                         <mat-option *ngFor="let c of filterActiveDictionary(_dictionaries)" [value]="c">
                                             {{ c.name }}
                                         </mat-option>

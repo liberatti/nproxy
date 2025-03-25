@@ -31,10 +31,10 @@ from config import APP_BASE, TZ
 class JailTool:
 
     @classmethod
-    def __is_jail_active(cls,services,jail):
+    def __is_jail_active(cls, services, jail):
         for s in services:
-            for j in s['jails']:
-                if j['_id'] in jail ['_id']:
+            for j in s["jails"]:
+                if j["_id"] in jail["_id"]:
                     return True
         return False
 
@@ -45,49 +45,62 @@ class JailTool:
         trn_dao = TransactionDao()
         srv_dao = ServiceDao()
 
-        services = srv_dao.get_all()['data']
+        services = srv_dao.get_all()["data"]
         for j in dao.get_by_type("dynamic"):
-            cs={}
+            cs = {}
 
-            bl=[]
-            for c in j['content']:
-                if (dt - replace_tz( c["banned_on"])).total_seconds() / 60 < j['bantime']:
+            bl = []
+            for c in j["content"]:
+                if (dt - replace_tz(c["banned_on"])).total_seconds() / 60 < j[
+                    "bantime"
+                ]:
                     bl.append(c)
 
-            transactions = trn_dao.get_last_n_minutes(j['interval'])
+            transactions = trn_dao.get_last_n_minutes(j["interval"])
             for t in transactions:
-                if not cls.__is_jail_active(services,j):
+                if not cls.__is_jail_active(services, j):
                     pass
-                source_ip=t['source']['ip']
+                source_ip = t["source"]["ip"]
                 if source_ip not in cs:  # register source ip
                     cs[source_ip] = 0
 
-                for rule in j['rules']:
-                    if 'src.header' in rule['field']:
-                        for h in t['http']['request']['headers']:
-                            if re.search(rule['regex'], h['name']+h['content']):
-                                cs[source_ip]+=1
-                    if 'src.request_line' in rule['field']:
-                        if re.search(rule['regex'], t['http']['request']['request_line']):
+                for rule in j["rules"]:
+                    if "src.header" in rule["field"]:
+                        for h in t["http"]["request"]["headers"]:
+                            if re.search(rule["regex"], h["name"] + h["content"]):
+                                cs[source_ip] += 1
+                    if "src.request_line" in rule["field"]:
+                        if re.search(
+                            rule["regex"], t["http"]["request"]["request_line"]
+                        ):
                             cs[source_ip] += 1
-                    if 'action' in rule['field']:
-                        if re.search(rule['regex'], t['action']):
+                    if "action" in rule["field"]:
+                        if re.search(rule["regex"], t["action"]):
                             cs[source_ip] += 1
-                    if 'status_code' in rule['field']:
-                        if re.search(rule['regex'], t['http']['response']['status_code']):
+                    if "status_code" in rule["field"]:
+                        if re.search(
+                            rule["regex"], t["http"]["response"]["status_code"]
+                        ):
                             cs[source_ip] += 1
             for ip, score in cs.items():
-                if score >= j['occurrence'] and not any(entry["ipaddr"] == ip for entry in bl):
-                    bl.append({"ipaddr":ip,"banned_on":dt})
+                if score >= j["occurrence"] and not any(
+                    entry["ipaddr"] == ip for entry in bl
+                ):
+                    bl.append({"ipaddr": ip, "banned_on": dt})
 
-            dao.update_by_id(j['_id'],{"content":bl})
+            dao.update_by_id(j["_id"], {"content": bl})
+
 
 class RuleSetTool:
     @classmethod
     def _download_crs(cls, feed_config):
-        if not os.path.exists(f"{APP_BASE}/data/{feed_config['slug']}-{feed_config['version']}"):
-            logger.info(f"Download CRS {feed_config['version']} from {feed_config['source']}")
-            response = requests.get(feed_config['source'])
+        if not os.path.exists(
+            f"{APP_BASE}/data/{feed_config['slug']}-{feed_config['version']}"
+        ):
+            logger.info(
+                f"Download CRS {feed_config['version']} from {feed_config['source']}"
+            )
+            response = requests.get(feed_config["source"])
             if response.status_code == 200:
                 zip_content = io.BytesIO(response.content)
                 os.makedirs(f"{APP_BASE}/data", exist_ok=True)
@@ -102,12 +115,12 @@ class RuleSetTool:
         dao_cat = RuleCategoryDao()
         sensor = dao.get_by_name("Default")
         if sensor:
-            sensor_id = sensor['_id']
+            sensor_id = sensor["_id"]
         else:
             exclusions = []
             for c in dao_cat.get_by_phases([3, 5]):
                 if "exclusions" in c:
-                    exclusions.extend(c['exclusions'])
+                    exclusions.extend(c["exclusions"])
 
             sensor_id = dao.persist(
                 {
@@ -116,7 +129,7 @@ class RuleSetTool:
                     "permit": [],
                     "block": [],
                     "exclusions": exclusions,
-                    "categories": []
+                    "categories": [],
                 }
             )
 
@@ -128,12 +141,14 @@ class RuleSetTool:
     @classmethod
     def update(cls):
         feed_dao = FeedDao()
-        for feed in feed_dao.get_by_type('ruleset'):
+        for feed in feed_dao.get_by_type("ruleset"):
             cls._download_crs(feed)
             total_rules = 0
             serializer = None
-            if "crs" in feed['provider']:
-                serializer = RuleSetParser(f"{APP_BASE}/data/{feed['slug']}-{feed['version']}/rules")
+            if "crs" in feed["provider"]:
+                serializer = RuleSetParser(
+                    f"{APP_BASE}/data/{feed['slug']}-{feed['version']}/rules"
+                )
 
             dao_rule = RuleDao()
             dao_rule.delete_all()
@@ -143,19 +158,19 @@ class RuleSetTool:
 
             try:
                 categories = []
-                for cat in feed['mapping']:
+                for cat in feed["mapping"]:
                     c = RuleCategorySchema().load(cat)
                     if "file" in cat:
-                        c.update({
-                            "rules": serializer.read_file_as_seclang(cat["file"])
-                        })
+                        c.update(
+                            {"rules": serializer.read_file_as_seclang(cat["file"])}
+                        )
                     else:
                         rules = []
-                        for r in cat['rules']:
+                        for r in cat["rules"]:
                             rules.append(RuleSetParser.load(r))
                         c.update({"rules": rules})
                     categories.append(c)
-                    total_rules += len(c['rules'])
+                    total_rules += len(c["rules"])
                 for cat in categories:
                     dao.persist(cat)
                 logger.info(f"Indexed {total_rules} rules from {feed['slug']}")
@@ -174,12 +189,15 @@ class SecurityFeedTool:
         feed_dao = FeedDao()
         dict_dao = DictionaryDao()
 
-        for feed in feed_dao.get_by_type('network'):
+        for feed in feed_dao.get_by_type("network"):
             try:
                 source_url = feed["source"]
-                if feed['restricted']:
-                    if 'iblocklist' in feed['provider']:
-                        if "iblocklist_username" in conf and len(conf["iblocklist_username"]) > 0:
+                if feed["restricted"]:
+                    if "iblocklist" in feed["provider"]:
+                        if (
+                            "iblocklist_username" in conf
+                            and len(conf["iblocklist_username"]) > 0
+                        ):
                             source_url = f"{source_url}&username={conf['iblocklist_username']}&pin={conf['iblocklist_pin']}"
                         else:
                             logger.info(f"Feed {feed['name']} skipped, no credentials")
@@ -188,34 +206,36 @@ class SecurityFeedTool:
                 resp = requests.get(source_url)
                 if resp and resp.status_code == 200:
                     lines = []
-                    if "cdir_text" in feed['format']:
+                    if "cdir_text" in feed["format"]:
                         lines = resp.text.splitlines()
-                    if "cdir_gz" in feed['format']:
+                    if "cdir_gz" in feed["format"]:
                         with gzip.GzipFile(fileobj=io.BytesIO(resp.content)) as gz:
                             for l in gz:
-                                lines.append(l.decode('utf-8').strip())
+                                lines.append(l.decode("utf-8").strip())
 
                     content = []
                     for line in lines:
                         if line.strip() and "#" not in line:
                             if cls.is_ip_network(line):
                                 content.append(line)
-                    d = dict_dao.get_by_slug(feed['slug'])
+                    d = dict_dao.get_by_slug(feed["slug"])
                     if d:
-                        dict_dao.update_by_id(d['_id'], {
-                            "content": content
-                        })
+                        dict_dao.update_by_id(d["_id"], {"content": content})
                     else:
-                        dict_dao.persist({
-                            "name": feed['name'],
-                            "slug": feed['slug'],
-                            "type": feed['type'],
-                            "description": feed['description'],
-                            "scope": "system",
-                            "content": content
-                        })
-                    feed_dao.update_by_id(feed['_id'], {"updated_on": datetime.now(TZ)})
-                    logger.info(f"Update Security IP feeds {feed['name']} with {len(content)} records")
+                        dict_dao.persist(
+                            {
+                                "name": feed["name"],
+                                "slug": feed["slug"],
+                                "type": feed["type"],
+                                "description": feed["description"],
+                                "scope": "system",
+                                "content": content,
+                            }
+                        )
+                    feed_dao.update_by_id(feed["_id"], {"updated_on": datetime.now(TZ)})
+                    logger.info(
+                        f"Update Security IP feeds {feed['name']} with {len(content)} records"
+                    )
             except Exception as e:
                 logger.error(f"Failed to load {feed['slug']}: %s", e)
                 logger.error(traceback.format_exc())
@@ -240,7 +260,7 @@ class SecurityFeedTool:
     @classmethod
     def compress_ip(cls, ip):
         if cls.is_ipv4(ip):
-            return '.'.join(str(int(o)) for o in ip.split('.'))
+            return ".".join(str(int(o)) for o in ip.split("."))
         return str(ipaddress.ip_address(ip).compressed)
 
     @classmethod
@@ -283,13 +303,12 @@ class SecurityFeedTool:
                             "country_code": row[3],
                             "as_description": row[4],
                             "source": "ip2asn",
-                            "version": 4 if cls.is_ipv4(row[0]) else 6
+                            "version": 4 if cls.is_ipv4(row[0]) else 6,
                         }
 
                         if r["range_start"] and r["range_end"]:
                             prefix = cls.calc_prefix_from_range(
-                                r['range_start'],
-                                r['range_end']
+                                r["range_start"], r["range_end"]
                             )
                             r.update(
                                 {
@@ -339,11 +358,13 @@ class SecurityFeedTool:
                     "country": ip_asn["country_code"],
                 }
             )
-        for db in ['ASN', 'City']:
+        for db in ["ASN", "City"]:
             if os.path.exists(f"{APP_BASE}/data/GeoLite2-{db}.mmdb"):
-                with geoip2.database.Reader(f"{APP_BASE}/data/GeoLite2-{db}.mmdb") as reader:
+                with geoip2.database.Reader(
+                    f"{APP_BASE}/data/GeoLite2-{db}.mmdb"
+                ) as reader:
                     try:
-                        if 'ASN' in db:
+                        if "ASN" in db:
                             response_asn = reader.asn(ip)
                             ip_info.update(
                                 {
@@ -351,7 +372,7 @@ class SecurityFeedTool:
                                     "organization": response_asn.autonomous_system_organization,
                                 }
                             )
-                        if 'City' in db:
+                        if "City" in db:
                             response_city = reader.city(ip)
                             ip_info.update(
                                 {
@@ -360,7 +381,7 @@ class SecurityFeedTool:
                                     "longitude": response_city.location.longitude,
                                 }
                             )
-                    except Exception :
+                    except Exception:
                         pass
         return ip_info
 
@@ -401,3 +422,8 @@ class SecurityFeedTool:
             if not any(n.subnet_of(un) for un in uq_nets):
                 uq_nets.append(n)
         return [str(r) for r in uq_nets]
+
+    @classmethod
+    def expand_network(cls, masked_ip):
+        network = ipaddress.IPv4Network(masked_ip, strict=False)
+        return [str(ip) for ip in network.hosts()]

@@ -18,17 +18,27 @@ from functools import wraps
 import jwt
 import pymongo
 from bson import ObjectId
-from flask import Response, jsonify
-from flask import request
+from flask import Response, jsonify, request
 from flask_marshmallow import Marshmallow
 from flask_socketio import SocketIO
 from jwt import ExpiredSignatureError
 from marshmallow import Schema, fields
 
-from config import JWT_AUD, JWT_EXPIRE, NODE_KEY, NODE_ROLE, SECURITY_ENABLED, MONGO_URI, JWT_SECRET_KEY, TZ
+from config import (
+    JWT_AUD,
+    JWT_EXPIRE,
+    NODE_KEY,
+    NODE_ROLE,
+    SECURITY_ENABLED,
+    MONGO_URI,
+    JWT_SECRET_KEY,
+    TZ,
+    APP_VERSION,
+)
 
 ma = Marshmallow()
-socketio = SocketIO(cors_allowed_origins='*', async_mode='eventlet')
+socketio = SocketIO(cors_allowed_origins="*", async_mode="eventlet")
+API_HEADERS = {"User-Agent": f"Nproxy/{APP_VERSION}", "x-cluster-key": NODE_KEY}
 
 
 def clear_directory(directory_path):
@@ -43,12 +53,13 @@ def clear_directory(directory_path):
         except Exception as e:
             logger.error(e)
 
+
 def unpack_zip(content, target_dir="/var/www"):
     os.mkdir(target_dir)
     zip_file_path = os.path.join(target_dir, "unpack.zip")
-    with open(zip_file_path, 'wb') as zip_file:
+    with open(zip_file_path, "wb") as zip_file:
         zip_file.write(content)
-    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+    with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
         zip_ref.extractall(target_dir)
     os.remove(zip_file_path)
 
@@ -71,6 +82,7 @@ def print_request(request):
         logger.info(f"Header: {header}={value}")
     for key, value in request.args.items():
         logger.info(f"QueryData: {key}={value}")
+
 
 def deep_date_str(obj):
     _obj = deepcopy(obj)
@@ -106,8 +118,8 @@ def get_pagination():
     _pagination = None
     if "size" in request.args and "page" in request.args:
         _pagination = {
-            'per_page': int(request.args.get("size")),
-            'page': int(request.args.get("page"))
+            "per_page": int(request.args.get("size")),
+            "page": int(request.args.get("page")),
         }
     return _pagination
 
@@ -116,41 +128,42 @@ def json_serial(obj):
     if isinstance(obj, datetime):
         return obj.isoformat()
     if isinstance(obj, bytes):
-        return base64.b64encode(obj).decode('utf-8')
+        return base64.b64encode(obj).decode("utf-8")
     if isinstance(obj, ObjectId):
         return str(obj)
     raise TypeError(f"non-serializable type: {type(obj)}")
 
+
 def jwt_get():
-    token = request.headers.get('Authorization')
+    token = request.headers.get("Authorization")
     return token.split(" ")[1] if " " in token else token
 
 
 def jwt_get_refresh():
-    return request.headers.get('Refresh-Token')
+    return request.headers.get("Refresh-Token")
 
 
 def jwt_decode(token):
-    return jwt.decode(token, JWT_SECRET_KEY, algorithms=['HS256'], audience=JWT_AUD)
+    return jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"], audience=JWT_AUD)
 
 
 def jwt_create_access_token(sub, profile=None, authorities=None):
     now = datetime.now(TZ)
     payload = {
-        'exp': int((now + timedelta(seconds=JWT_EXPIRE)).timestamp()),
-        'iat': int(now.timestamp()),
-        'sub': sub,
-        'profile': profile,
-        'authorities': authorities,
-        "aud": JWT_AUD
+        "exp": int((now + timedelta(seconds=JWT_EXPIRE)).timestamp()),
+        "iat": int(now.timestamp()),
+        "sub": sub,
+        "profile": profile,
+        "authorities": authorities,
+        "aud": JWT_AUD,
     }
-    return jwt.encode(payload, JWT_SECRET_KEY, algorithm='HS256')
+    return jwt.encode(payload, JWT_SECRET_KEY, algorithm="HS256")
 
 
 def jwt_create_refresh_token(sub):
-    now = (datetime.now(TZ) + timedelta(hours=24))
-    payload = {'exp': int(now.timestamp()), 'sub': sub, "aud": JWT_AUD}
-    return jwt.encode(payload, JWT_SECRET_KEY, algorithm='HS256')
+    now = datetime.now(TZ) + timedelta(hours=24)
+    payload = {"exp": int(now.timestamp()), "sub": sub, "aud": JWT_AUD}
+    return jwt.encode(payload, JWT_SECRET_KEY, algorithm="HS256")
 
 
 def gen_random_string(length=16):
@@ -169,15 +182,13 @@ def has_any_authority(_authorities):
                 payload = jwt_decode(token)
                 if any(a in payload.get("authorities", []) for a in _authorities):
                     return fn(*args, **kwargs)
-            except ExpiredSignatureError :
+            except ExpiredSignatureError:
                 return ResponseBuilder.error_401(
-                    msg="Expired authorization",
-                    details=traceback.format_exc()
+                    msg="Expired authorization", details=traceback.format_exc()
                 )
             except Exception as e2:
                 return ResponseBuilder.error_401(
-                    msg=str(e2),
-                    details=traceback.format_exc()
+                    msg=str(e2), details=traceback.format_exc()
                 )
             return ResponseBuilder.error_403(message="Invalid authorization")
 
@@ -201,12 +212,14 @@ def has_integration_key():
 
     return wrapper
 
+
 def replace_tz(not_valid_before):
     if not_valid_before.tzinfo is None:
         crt_not_valid_before = not_valid_before.replace(tzinfo=TZ)
     else:
         crt_not_valid_before = not_valid_before
     return crt_not_valid_before.astimezone(TZ)
+
 
 class CustomLogger(logging.Logger):
     def info(self, msg, *args, **kwargs):
@@ -240,10 +253,7 @@ console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
 config_db = pymongo.MongoClient(
-    MONGO_URI,
-    maxPoolSize=None,
-    socketTimeoutMS=120000,
-    connectTimeoutMS=120000
+    MONGO_URI, maxPoolSize=None, socketTimeoutMS=120000, connectTimeoutMS=120000
 )
 
 
@@ -263,14 +273,14 @@ class ResponseBuilder:
                     "message": "No results found. Check url again",
                     "code": 404,
                     "url": request.url,
-                    "method": request.method
+                    "method": request.method,
                 }
             ),
             200,
         )
 
     @classmethod
-    def error(cls, msg="Bad Request", details="",code=400):
+    def error(cls, msg="Bad Request", details="", code=400):
         return (
             jsonify(
                 {
@@ -278,7 +288,7 @@ class ResponseBuilder:
                     "code": code,
                     "details": details,
                     "url": request.url,
-                    "method": request.method
+                    "method": request.method,
                 }
             ),
             code,
@@ -293,7 +303,7 @@ class ResponseBuilder:
                     "code": 401,
                     "details": details,
                     "url": request.url,
-                    "method": request.method
+                    "method": request.method,
                 }
             ),
             401,
@@ -307,7 +317,7 @@ class ResponseBuilder:
                     "message": message,
                     "code": 403,
                     "url": request.url,
-                    "method": request.method
+                    "method": request.method,
                 }
             ),
             403,
@@ -322,7 +332,7 @@ class ResponseBuilder:
                     "details": details,
                     "code": code,
                     "url": request.url,
-                    "method": request.method
+                    "method": request.method,
                 }
             ),
             500,
@@ -331,24 +341,14 @@ class ResponseBuilder:
     @classmethod
     def data_removed(cls, desc):
         return (
-            jsonify(
-                {
-                    "message": f"Record {desc} removed",
-                    "code": 200
-                }
-            ),
+            jsonify({"message": f"Record {desc} removed", "code": 200}),
             200,
         )
 
     @classmethod
     def ok(cls, desc):
         return (
-            jsonify(
-                {
-                    "message": desc,
-                    "code": 200
-                }
-            ),
+            jsonify({"message": desc, "code": 200}),
             200,
         )
 
@@ -361,7 +361,7 @@ class ResponseBuilder:
                     "details": err.messages,
                     "code": 400,
                     "url": request.url,
-                    "method": request.method
+                    "method": request.method,
                     # "valid_data": err.valid_data,
                 }
             ),

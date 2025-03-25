@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import psutil
 import requests
 
-from api.common_utils import logger, get_server_id
+from api.common_utils import logger, get_server_id, API_HEADERS
 from api.model.config_model import ConfigDao
 from api.model.telemetry_model import TelemetryTrnDao
 from api.model.transaction_model import TransactionDao
@@ -16,7 +16,13 @@ from api.model.upstream_model import UpstreamDao, NodeStatusDao
 from api.tools.engine_tool import EngineManager
 from api.tools.feed_tool import SecurityFeedTool
 from api.tools.service_watcher import ServiceWatcher
-from config import APP_BASE, ENGINE_VERSION, NODE_ROLE, TELEMETRY_INTERVAL, TZ, TELEMETRY_URL
+from config import (
+    APP_BASE,
+    ENGINE_VERSION,
+    NODE_ROLE,
+    TZ,
+    TELEMETRY_URL,
+)
 
 
 class ClusterTool:
@@ -39,14 +45,18 @@ class ClusterTool:
             manager = EngineManager()
             if manager.CONFIG:
                 if not cls.CONFIG or manager.CONFIG["scn"] not in cls.CONFIG["scn"]:
-                    logger.info(f"Flush feeds {cls.CONFIG['scn']} -> {manager.CONFIG['scn']}")
-                    cls.CONFIG.update({
-                        "scn":manager.CONFIG["scn"],
-                        "certificates":  manager.CONFIG["certificates"],
-                        "dictionaries":  manager.CONFIG["dictionaries"],
-                        "categories":  manager.CONFIG["categories"],
-                        "jails":  manager.CONFIG["jails"]
-                    })
+                    logger.info(
+                        f"Flush feeds {cls.CONFIG['scn']} -> {manager.CONFIG['scn']}"
+                    )
+                    cls.CONFIG.update(
+                        {
+                            "scn": manager.CONFIG["scn"],
+                            "certificates": manager.CONFIG["certificates"],
+                            "dictionaries": manager.CONFIG["dictionaries"],
+                            "categories": manager.CONFIG["categories"],
+                            "jails": manager.CONFIG["jails"],
+                        }
+                    )
                     manager.flush_feeds()
                     cls.restart()
 
@@ -54,24 +64,23 @@ class ClusterTool:
             stack_trace = traceback.format_exc()
             logger.error(f"Error executing command: {stack_trace}")
 
-
     @classmethod
     def send_telemetry(cls):
         dao = TelemetryTrnDao()
         result = dao.get_by_logtime(datetime.now(TZ) - timedelta(hours=24))
         if result:
             cdao = ConfigDao()
-            c=cdao.get_active()
-            tlm={
-                "cluster_id": c['cluster_id'],
-                "net_recv":result[0]['net_recv'],
-                "net_send": result[0]['net_send'],
-                "req_total": result[0]['req_total'],
-                "latency": result[0]['latency']
+            c = cdao.get_active()
+            tlm = {
+                "cluster_id": c["cluster_id"],
+                "net_recv": result[0]["net_recv"],
+                "net_send": result[0]["net_send"],
+                "req_total": result[0]["req_total"],
+                "latency": result[0]["latency"],
             }
 
             response = requests.post(
-                f"{TELEMETRY_URL}/api/usage", data=tlm
+                f"{TELEMETRY_URL}/api/usage", data=tlm, headers=API_HEADERS
             )
             if response.status_code in [200, 201]:
                 logger.info(response.status_code)
@@ -85,14 +94,17 @@ class ClusterTool:
             for ct in trn_telemetry:
                 tl_dao.persist(ct)
         else:
-            tl_dao.persist({
-            'net_recv':0,
-            'net_send':0,
-            'req_total':0,
-            'latency':0.0,
-            'logtime':datetime.now(TZ),
-            'server_id':get_server_id()
-            })
+            tl_dao.persist(
+                {
+                    "net_recv": 0,
+                    "net_send": 0,
+                    "req_total": 0,
+                    "latency": 0.0,
+                    "logtime": datetime.now(TZ),
+                    "server_id": get_server_id(),
+                }
+            )
+
     @classmethod
     def auto_replicate_config(cls):
         manager = EngineManager()
@@ -100,37 +112,44 @@ class ClusterTool:
             if not cls.CONFIG or manager.CONFIG["scn"] not in cls.CONFIG["scn"]:
                 r_st = manager.flush_config()
                 if r_st:
-                    logger.info(f"Replicate {cls.CONFIG['scn']} -> {manager.CONFIG['scn']}")
+                    logger.info(
+                        f"Replicate {cls.CONFIG['scn']} -> {manager.CONFIG['scn']}"
+                    )
                     cls.CONFIG = manager.CONFIG
                     cls.restart(fully=True)
 
     @classmethod
     def __eval_upstream(cls, upstream, ngx_status):
-        status = {
-            "_id": upstream["_id"],
-            "name": upstream["name"],
-            'targets': []
-        }
+        status = {"_id": upstream["_id"], "name": upstream["name"], "targets": []}
         for t in upstream["targets"]:
-            target = {'healthy': False}
+            target = {"healthy": False}
             try:
                 target.update({"endpoint": f"{t['host']}:{t['port']}"})
-                if not SecurityFeedTool.is_ip_addr(t['host']):
-                    target.update({"endpoint": f"{SecurityFeedTool.resolve(t['host'])}:{t['port']}"})
+                if not SecurityFeedTool.is_ip_addr(t["host"]):
+                    target.update(
+                        {
+                            "endpoint": f"{SecurityFeedTool.resolve(t['host'])}:{t['port']}"
+                        }
+                    )
                 for s in ngx_status["servers"]["server"]:
-                    if s["name"] == target['endpoint'] and s["upstream"] == upstream['name']:
-                        target.update({'healthy': ('UP' in s["status"].upper())})
-                        if not target['healthy']:
+                    if (
+                        s["name"] == target["endpoint"]
+                        and s["upstream"] == upstream["name"]
+                    ):
+                        target.update({"healthy": ("UP" in s["status"].upper())})
+                        if not target["healthy"]:
                             logger.warn(
-                                f"Endpoint {upstream['name']}->{target['endpoint']} healthy {target['healthy']} on {get_server_id()}")
+                                f"Endpoint {upstream['name']}->{target['endpoint']} healthy {target['healthy']} on {get_server_id()}"
+                            )
                         logger.debug(
-                            f" {s['name']} == {target['endpoint']} and  {s['upstream']}=={upstream['name']} = {s['status'].upper()}")
+                            f" {s['name']} == {target['endpoint']} and  {s['upstream']}=={upstream['name']} = {s['status'].upper()}"
+                        )
             except Exception:
                 stack_trace = traceback.format_exc()
                 logger.error(stack_trace)
 
             target.update({"endpoint": f"{t['host']}:{t['port']}"})
-            status['targets'].append(target)
+            status["targets"].append(target)
         return status
 
     @classmethod
@@ -143,11 +162,17 @@ class ClusterTool:
                 node_st = {"name": get_server_id(), "upstreams": []}
                 pk = dao_st.persist(node_st)
                 node_st.update({"_id": pk})
-            node_st.update({"version": ENGINE_VERSION, "role": NODE_ROLE,"last_check": datetime.now()})
+            node_st.update(
+                {
+                    "version": ENGINE_VERSION,
+                    "role": NODE_ROLE,
+                    "last_check": datetime.now(),
+                }
+            )
 
             if cls.CONFIG:
-                node_st.update({"scn": cls.CONFIG['scn']})
-            upstreams = model.get_all_by_type('backend')
+                node_st.update({"scn": cls.CONFIG["scn"]})
+            upstreams = model.get_all_by_type("backend")
             if len(upstreams) > 0:
                 response = requests.get("http://127.0.0.1:9000/ngx_up_status")
                 if response.status_code == 200:
@@ -157,8 +182,10 @@ class ClusterTool:
                         ups = cls.__eval_upstream(u, ngx_status)
                         node_st["upstreams"].append(ups)
                 else:
-                    logger.error(f"Monitor error [{response.status_code}] {response.text}")
-            dao_st.update_by_id(node_st['_id'], node_st)
+                    logger.error(
+                        f"Monitor error [{response.status_code}] {response.text}"
+                    )
+            dao_st.update_by_id(node_st["_id"], node_st)
             return node_st
         except Exception as e:
             # stack_trace = traceback.format_exc()
@@ -210,21 +237,24 @@ class ClusterTool:
             result = subprocess.Popen(
                 f"sudo {EngineManager.nginx} -s reload",
                 shell=True,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
             )
             if not cls.is_running():
                 logger.info(f"Nginx reload failed, start required")
                 result = subprocess.Popen(
                     f"sudo {EngineManager.nginx}",
                     shell=True,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
                 )
         else:
             logger.info(f"Nginx is not running, start required")
             result = subprocess.Popen(
                 f"sudo {EngineManager.nginx}",
                 shell=True,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
             )
 
         stdout, stderr = result.communicate()
@@ -245,10 +275,10 @@ class ClusterTool:
                 restart_result = cls.restart(fully=True)
             else:
                 restart_result = cls.restart()
-            if restart_result['succeed']:
+            if restart_result["succeed"]:
                 cls.CONFIG = manager.CONFIG
                 logger.error(f"Engine active with scn {cls.CONFIG['scn']}")
-                with open(f"{APP_BASE}/run/activated.config", 'wb') as f:
+                with open(f"{APP_BASE}/run/activated.config", "wb") as f:
                     pickle.dump(cls.CONFIG, f)  # SAVE START_CONFIG
             else:
                 logger.error(f"Engine failed, {restart_result['message']}")
@@ -256,4 +286,4 @@ class ClusterTool:
         except Exception as e:
             stack_trace = traceback.format_exc()
             logger.error(f"Error executing command: {stack_trace}")
-            return {"succeed": False, "message": str(e), 'details': stack_trace}
+            return {"succeed": False, "message": str(e), "details": stack_trace}
