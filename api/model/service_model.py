@@ -110,9 +110,9 @@ class ServiceDao(MongoDAO):
         super()._unload(vo)
 
         if "jails" in vo:
-            jail_ids=[]
+            jail_ids = []
             for jail in vo.pop("jails"):
-                if '_id' in jail:
+                if "_id" in jail:
                     jail_ids.append(ObjectId(jail["_id"]))
             vo.update({"jail_ids": jail_ids})
         else:
@@ -133,7 +133,7 @@ class ServiceDao(MongoDAO):
                         fs_ids.append(ObjectId(b["_id"]))
                     route.update({"filter_ids": fs_ids})
 
-                if "upstream" in route['type']:
+                if "upstream" in route["type"]:
                     upstream = route.pop("upstream")
                     route.update({"upstream_id": ObjectId(upstream["_id"])})
 
@@ -147,7 +147,7 @@ class ServiceDao(MongoDAO):
         if "jail_ids" in vo:
             jail_ids = vo.pop("jail_ids")
             dao = JailDao()
-            jails =[]
+            jails = []
             for ji in jail_ids:
                 jails.append(dao.get_descr_by_id(ji))
             vo.update({"jails": jails})
@@ -171,21 +171,15 @@ class ServiceDao(MongoDAO):
                 if "upstream" in route["type"]:
                     upstream_id = route.pop("upstream_id")
                     ups_dao = UpstreamDao()
-                    route.update(
-                        {"upstream": ups_dao.get_descr_by_id(upstream_id)}
-                    )
+                    route.update({"upstream": ups_dao.get_descr_by_id(upstream_id)})
 
                 if "sensor_id" in route:
                     sensor_id = route.pop("sensor_id")
                     sen_dao = SensorDao()
-                    route.update(
-                        {"sensor": sen_dao.get_descr_by_id(sensor_id)}
-                    )
+                    route.update({"sensor": sen_dao.get_descr_by_id(sensor_id)})
 
     def get_by_sans(self, sans, active=None):
-        query = {
-            'sans': {'$in': sans}
-        }
+        query = {"sans": {"$in": sans}}
         if active is not None:
             query["$and"].append({"active": {"$eq": active}})
 
@@ -204,7 +198,7 @@ class ServiceDao(MongoDAO):
         return rows
 
     def getall_by_certificate_id(self, certificate_id):
-        query = {"certificate_id": ObjectId(certificate_id),"active":True}
+        query = {"certificate_id": ObjectId(certificate_id), "active": True}
         logger.debug(query)
         rows = list(self.collection.find(query))
         for e in rows:

@@ -13,7 +13,6 @@ from api.common_utils import ma, socketio, ResponseBuilder, gen_random_string
 from api.controller.certificate_controller import routes as certificate_routes
 from api.controller.challenge_controller import routes as acme_routes
 from api.controller.cluster_controller import routes as cluster_routes
-from api.controller.dictionary_controller import routes as dictionary_routes
 from api.controller.feed_controller import routes as feed_routes
 from api.controller.health_controller import routes as health_routes
 from api.controller.jail_controller import routes as jail_routes
@@ -103,7 +102,6 @@ routes = [
     (upstream_routes, "/api/upstream"),
     (rule_cat_routes, "/api/rulecat"),
     (rule_sec_routes, "/api/rulesec"),
-    (dictionary_routes, "/api/dictionary"),
     (feed_routes, "/api/feed"),
     (certificate_routes, "/api/certificate"),
     (sensor_routes, "/api/sensor"),
@@ -165,9 +163,6 @@ with app.app_context():
         ClusterTool.apply_config(reconfigure=True)
         if "main" in NODE_ROLE:
             AcmeTool.auto_renew()
-            if boolean(TELEMETRY_ENABLE):
-                ClusterTool.collect_telemetry()
-                ClusterTool.send_telemetry()
     except Exception as e:
         app.logger.error(f"Failed to apply configuration: {e}")
         app.logger.error(traceback.format_exc())

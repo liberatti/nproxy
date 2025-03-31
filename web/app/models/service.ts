@@ -58,6 +58,7 @@ export interface RouteFilter {
     ldap_bind_dn: string;
     ldap_bind_password: string;
     ldap_group_dn: string;
+    geo_block_list: string;
 }
 
 export interface Route {

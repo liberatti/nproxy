@@ -64,7 +64,6 @@ end
 
 local success, err_l = authenticate(username, password)
 if not success then
-    ngx.log(ngx.DEBUG, "LDAP Filter failed: " .. err_l)
     ngx.status = 403
     ngx.say(cjson.encode({ error = "Access forbidden", message = err_l }))
     ngx.exit(403)

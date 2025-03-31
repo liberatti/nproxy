@@ -1,21 +1,30 @@
 from flask import Blueprint, request
 from marshmallow import ValidationError
 
-from api.common_utils import ResponseBuilder, has_any_authority, get_pagination
-from api.common_utils import socketio
+from api.common_utils import (
+    ResponseBuilder,
+    has_any_authority,
+    get_pagination,
+    socketio,
+)
 from api.model.config_model import ChangeDao
 from api.model.feed_model import FeedDao
 
 routes = Blueprint("feed", __name__)
 
+
 @routes.after_request
 def after(response):
-    if request.method in ["PUT", "POST", "DELETE"] and  response.status_code in [200,201]:
+    if request.method in ["PUT", "POST", "DELETE"] and response.status_code in [
+        200,
+        201,
+    ]:
         dao = ChangeDao()
         if not dao.get_by_name("feed"):
             dao.persist({"name": "feed"})
-        socketio.emit('tracking_evt')
+        socketio.emit("tracking_evt")
     return response
+
 
 @routes.route("/<feed_id>", methods=["GET"])
 @has_any_authority(["viewer", "superuser"])
@@ -54,12 +63,12 @@ def search():
 
 @routes.route("/<feed_id>", methods=["PUT"])
 @has_any_authority(["superuser"])
-def update(feed_id):
+def update(feed_id):  # TODO create rbl generation based on feed
     dao = FeedDao()
     try:
         feed_dict = dao.json_load(request.json)
-        result = dao.update_by_id(feed_id, feed_dict)
-        return ResponseBuilder.data(result, dao.schema)
+        dao.update_by_id(feed_id, feed_dict)
+        return ResponseBuilder.data(feed_dict, dao.schema)
     except ValidationError as err:
         return ResponseBuilder.error_parse(err)
 

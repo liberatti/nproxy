@@ -4,9 +4,14 @@ import re
 from marshmallow import ValidationError
 
 from api.common_utils import logger
-from api.model.dictionary_model import DataObjectSchema
-from api.model.seclang_model import SecAction, SecBaseSchema, \
-    SecComponentSignature, SecMarker, SecRule
+from api.model.seclang_model import (
+    SecAction,
+    SecBaseSchema,
+    SecComponentSignature,
+    SecMarker,
+    SecRule,
+    DataObjectSchema,
+)
 
 
 # noinspection PyMethodMayBeStatic,PyListCreation
@@ -52,9 +57,7 @@ class RuleSetParser:
         return m
 
     def _parse_marker(self, line) -> SecMarker:
-        m = SecMarker().load(
-            {"schema_type": "SecMarker", "text": line.split('"')[1]}
-        )
+        m = SecMarker().load({"schema_type": "SecMarker", "text": line.split('"')[1]})
         self.line_index += 1
         return m
 
@@ -112,17 +115,17 @@ class RuleSetParser:
                 "schema_type": "SecRule",
                 "t": [],
                 "ctl": [],
-                "scope": self._parse_scope(line[fi: line.index(" ", fi + 1)]),
+                "scope": self._parse_scope(line[fi : line.index(" ", fi + 1)]),
                 "tags": [],
                 "setvar": [],
                 "expirevar": [],
                 "files": [],
                 "chain_starter": False,
-                "chain": []
+                "chain": [],
             }
         )
 
-        rule_data = line[line.index(" ", fi + 1):]
+        rule_data = line[line.index(" ", fi + 1) :]
         regex = re.compile('"(.*?)(?<!\\\\)"(?:\\s+"(.*)")?')
 
         matcher = regex.search(rule_data)
@@ -201,7 +204,7 @@ class RuleSetParser:
                     if val:
                         data_lines = []
                         with open(
-                                f"{self.base_path}/{val}", "r", encoding=self.charset
+                            f"{self.base_path}/{val}", "r", encoding=self.charset
                         ) as file:
                             for line in file:
                                 if not line.startswith("#"):
@@ -275,11 +278,11 @@ class RuleSetParser:
                 elif key == "SecRule":
                     r = self._parse_rule(line)
                     if chain_starter:
-                        ruleset[-1]['chain'].append(r)
+                        ruleset[-1]["chain"].append(r)
                     else:
                         r["comment"] = comment
                         ruleset.append(r)
-                    chain_starter = r['chain_starter']
+                    chain_starter = r["chain_starter"]
                 else:
                     logger.error(f"parseFile Unknown key [{key}] from {line}")
         logger.debug(f"{ruleset_name} {self.c_line}/{len(self.lines)}/{len(ruleset)}")
@@ -295,13 +298,13 @@ class RuleSetParser:
             return f"SecMarker \"{o['text']}\""
 
         if o["schema_type"] == "SecRule":
-            sb = ['SecRule ']
+            sb = ["SecRule "]
             sb.append(f"|".join(o["scope"]) + " ")
             sb.append(f"\"{o['condition']}\" ")
 
             sbr = []
-            if 'files' in o and ruleset_path:
-                for f in o['files']:
+            if "files" in o and ruleset_path:
+                for f in o["files"]:
                     with open(f"{ruleset_path}/{f['name']}", "w") as file_data:
                         file_data.write("\n".join(f["content"]))
             if "code" in o:
@@ -316,9 +319,9 @@ class RuleSetParser:
                 sbr.append(f"{o['action']}")
             if "multiMatch" in o:
                 sbr.append(f"multiMatch:{o['multi_match']}")
-            if 'chain_starter' in o and o["chain_starter"]:
+            if "chain_starter" in o and o["chain_starter"]:
                 sbr.append(f"chain")
-            if "capture" in o and o['capture']:
+            if "capture" in o and o["capture"]:
                 sbr.append(f"capture")
             if "logging" in o:
                 sbr.append(f"{o['logging']}")
@@ -342,7 +345,7 @@ class RuleSetParser:
             if "setvar" in o:
                 for setvar in o["setvar"]:
                     sbr.append(f"setvar:{setvar}")
-            sec_rule = ','.join(sbr)
+            sec_rule = ",".join(sbr)
             sb.append(f'"{sec_rule}"')
 
             if "chain" in o:
@@ -352,7 +355,7 @@ class RuleSetParser:
             return rule
 
         if o["schema_type"] == "SecAction":
-            sb = ['SecAction ']
+            sb = ["SecAction "]
             sba = []
             if "code" in o:
                 sba.append(f"id:{o['code']}")
@@ -362,7 +365,7 @@ class RuleSetParser:
                 sba.append(f"ver:{o['version']}")
             if "action" in o:
                 sba.append(f"{o['action']}")
-            if 'logging' in o:
+            if "logging" in o:
                 sba.append(f"{o['logging']}")
             if "audit_log" in o:
                 sba.append(f"{o['audit_log']}")
@@ -376,39 +379,39 @@ class RuleSetParser:
                 for t in o["initcol"]:
                     sba.append(f"initcol:{t}")
             sec_action = ",".join(sba)
-            sb.append(f"\"{sec_action}\"")
+            sb.append(f'"{sec_action}"')
             action = "".join(sb)
             return action
 
     @classmethod
     def load(cls, o):
-        schema_type = SecBaseSchema.schema_class(o['schema_type'])
+        schema_type = SecBaseSchema.schema_class(o["schema_type"])
         schema = schema_type()
         return schema.load(o)
 
     @classmethod
     def dumps(cls, cat):
-        rules = cat.pop('rules')
+        rules = cat.pop("rules")
         json_data = json.dumps(cat)
         json_data = json_data[:-1]
         json_data += ',"rules":['
         for r in rules:
-            r_type = r['schema_type']
+            r_type = r["schema_type"]
             schema_type = SecBaseSchema.schema_class(r_type)
             schema = schema_type()
-            if r_type == 'SecRule':
-                chain = r.pop('chain')
+            if r_type == "SecRule":
+                chain = r.pop("chain")
                 json_data += schema.dumps(r)
                 json_data = json_data[:-1]
                 if chain:
                     json_data += ',"chain":['
                     for c in chain:
-                        json_data += schema.dumps(c) + ','
+                        json_data += schema.dumps(c) + ","
                     json_data = json_data[:-1] + "]"
-                json_data += '},'
+                json_data += "},"
             else:
-                json_data += schema.dumps(r) + ','
+                json_data += schema.dumps(r) + ","
         json_data = json_data[:-1]
-        json_data += ']'
-        json_data += '}'
+        json_data += "]"
+        json_data += "}"
         return json_data

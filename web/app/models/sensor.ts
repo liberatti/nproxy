@@ -1,4 +1,4 @@
-import {Dictionary} from "./dictionary";
+import {Feed} from "./feed";
 
 export interface RuleCategory {
     _id: string;
@@ -25,8 +25,8 @@ export interface Sensor {
     _id: string;
     name: string;
     description: string;
-    block: Array<Dictionary>;
-    permit: Array<Dictionary>;
+    block: Array<Feed>;
+    permit: Array<Feed>;
     categories: Array<string>;
     exclusions: Array<number>;
 }

@@ -42,7 +42,7 @@ import {OAuthService} from "../../services/oauth.service";
 export class RouteFilterFormComponent implements OnInit {
     isAddMode: boolean;
     submitted = false;
-    _types: string[] = ['SSL_CLIENT_AUTH', 'LDAP_BASIC_AUTH']
+    _types: string[] = ['SSL_CLIENT_AUTH', 'LDAP_BASIC_AUTH', 'GEOIP_BLOCK']
 
     form = new FormGroup({
         _id: new FormControl<string>(''),
@@ -58,7 +58,7 @@ export class RouteFilterFormComponent implements OnInit {
         ldap_host: new FormControl<string>(''),
         ldap_base_dn: new FormControl<string>(''),
         ldap_bind_dn: new FormControl<string>(''),
-        ldap_bind_password: new FormControl<string>('')
+        ldap_bind_password: new FormControl<string>(''),
     });
 
     constructor(

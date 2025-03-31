@@ -15,7 +15,7 @@ from cryptography.x509.oid import NameOID
 from api.common_utils import logger, replace_tz
 from api.model.acme_model import ChallengeDao
 from api.model.config_model import ConfigDao
-from config import APP_BASE, KEY_SIZE,  TZ
+from config import APP_BASE, KEY_SIZE, TZ
 
 
 class SSLTool:
@@ -85,7 +85,7 @@ class SSLTool:
         }
 
     @classmethod
-    def create_certificate(cls, domain, sans=None,  ca=None):
+    def create_certificate(cls, domain, sans=None, ca=None):
         if not ca:
             ca = cls.gen_ca("Internal", crt_org="Tooka-Internal")
         curr_date = datetime.now().astimezone(TZ)
@@ -94,7 +94,7 @@ class SSLTool:
         if sans:
             san_list = [x509.DNSName(c) for c in list(set(sans))]
         else:
-            san_list =[]
+            san_list = []
 
         logger.info(f"Create certificate for {domain} with {sans}")
 
@@ -141,7 +141,7 @@ class SSLTool:
         for c in crt.subject.get_attributes_for_oid(x509.NameOID.COMMON_NAME):
             subjects.append(c.value)
         for c in crt.extensions.get_extension_for_class(
-                x509.SubjectAlternativeName
+            x509.SubjectAlternativeName
         ).value:
             subjects.append(c.value)
 
@@ -168,7 +168,7 @@ class SSLLetsEncryptTool:
                 with open(key_file, "r") as fk:
                     key = jose.JWK.json_loads(fk.read())
                     return {"key": key, "registry": registry}
-        except Exception :
+        except Exception:
             key = jose.JWKRSA(key=SSLTool.generate_private_key())
             net = client.ClientNetwork(key)
             directory = messages.Directory.from_json(
@@ -188,8 +188,8 @@ class SSLLetsEncryptTool:
             return {"key": key, "registry": registry}
 
     @classmethod
-    def create_certificate(cls, domain,sans=None, email="fake@tooka.com.br"):
-        domain_list=[domain]
+    def create_certificate(cls, domain, sans=None, email="fake@tooka.com.br"):
+        domain_list = [domain]
         if sans:
             domain_list.extend(sans)
         logger.info(f"Create certificate for {domain_list}")
@@ -235,7 +235,7 @@ class SSLLetsEncryptTool:
                 }
                 certificate_dict.update(SSLTool.extract_info_from_crt(crt))
                 return certificate_dict
-            except Exception :
+            except Exception:
                 logger.error(f"{order} retry in 10 seconds")
                 time.sleep(10)
         return None

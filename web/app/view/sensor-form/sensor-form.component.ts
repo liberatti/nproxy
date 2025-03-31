@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router, RouterModule} from '@angular/router';
-import {AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatTableDataSource, MatTableModule} from '@angular/material/table';
 import {CommonModule} from '@angular/common';
 import {MatMomentDateModule} from '@angular/material-moment-adapter';
@@ -19,9 +19,7 @@ import {MatSidenavModule} from '@angular/material/sidenav';
 import {MatSortModule} from '@angular/material/sort';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {TranslateModule} from '@ngx-translate/core';
-import {Dictionary} from 'app/models/dictionary';
 import {RuleCategory, SecRule, Sensor} from 'app/models/sensor';
-import {DictionaryService} from 'app/services/dictionary.service';
 import {RuleCategoryService, SensorService} from 'app/services/sensor.service';
 import {NotificationService} from 'app/services/notification.service';
 import {DefaultPageMeta, PageMeta} from 'app/models/shared';
@@ -30,6 +28,9 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatGridListModule} from '@angular/material/grid-list';
 import {OAuthService} from "../../services/oauth.service";
+import {Feed} from "../../models/feed";
+import {FeedService} from "../../services/feed.service";
+import {FilterSelectedModelPipe} from "../../pipes/filter_selected_model.pipe";
 
 @Component({
     selector: 'app-sensor-form',
@@ -41,7 +42,7 @@ import {OAuthService} from "../../services/oauth.service";
         MatListModule, MatCardModule, MatProgressBarModule, MatInputModule,
         MatTableModule, MatMenuModule, MatSortModule, MatTabsModule, MatGridListModule,
         MatTooltipModule, MatSelectModule, MatPaginatorModule, MatSlideToggleModule, MatCheckboxModule,
-        MatFormFieldModule, MatChipsModule],
+        MatFormFieldModule, MatChipsModule, FilterSelectedModelPipe],
     templateUrl: './sensor-form.component.html'
 })
 
@@ -50,15 +51,10 @@ export class SensorFormComponent implements OnInit {
     submitted = false;
     breakpoint: number;
     _categories: RuleCategory[] = [];
-    _dictionaries: Dictionary[] = [];
-    _rules: SecRule[] = [];
+    _rbl_feeds: Feed[] = [];
     ruleDC: string[] = ['code', 'severity', 'msg', 'actionSummary', 'action'];
     ruleDS: MatTableDataSource<SecRule>;
     ruleCH: number[] = [];
-
-    catForm = new FormGroup({
-        category: new FormControl<RuleCategory>(<RuleCategory>{})
-    });
 
     form = new FormGroup({
         _id: new FormControl<string>(''),
@@ -71,8 +67,8 @@ export class SensorFormComponent implements OnInit {
         description: new FormControl<string>(''),
         categories: new FormControl<Array<string>>([]),
         exclusions: new FormControl<Array<number>>([]),
-        block: new FormControl<Array<Dictionary>>([]),
-        permit: new FormControl<Array<Dictionary>>([]),
+        block: new FormControl<Array<Feed>>([]),
+        permit: new FormControl<Array<Feed>>([]),
     });
 
     constructor(
@@ -81,7 +77,7 @@ export class SensorFormComponent implements OnInit {
         private router: Router,
         private sensorService: SensorService,
         private ruleCatService: RuleCategoryService,
-        private daoService: DictionaryService,
+        private feedService: FeedService,
         protected oauth: OAuthService
     ) {
         this.breakpoint = (window.innerWidth <= 600) ? 2 : 8;
@@ -105,8 +101,8 @@ export class SensorFormComponent implements OnInit {
                 this.form.get('permit')?.setValue(data.permit);
             });
         }
-        this.getDictionaries(null);
         this.getCategories(null);
+        this.getFeeds(null);
     }
 
     onSave(preview: boolean) {
@@ -119,12 +115,12 @@ export class SensorFormComponent implements OnInit {
 
         if (formData.block) {
             for (let i = 0; i < formData.block.length; i++) {
-                formData.block[i] = {_id: formData.block[i]._id} as Dictionary;
+                formData.block[i] = {_id: formData.block[i]._id} as Feed;
             }
         }
         if (formData.permit) {
             for (let i = 0; i < formData.permit.length; i++) {
-                formData.permit[i] = {_id: formData.permit[i]._id} as Dictionary;
+                formData.permit[i] = {_id: formData.permit[i]._id} as Feed;
             }
         }
         if (this.isAddMode) {
@@ -171,75 +167,49 @@ export class SensorFormComponent implements OnInit {
         }
     }
 
-    getDictionaries(event: any) {
+    getFeeds(event: any) {
         if (event === null) {
-            this.daoService.get(new DefaultPageMeta()).subscribe(data => {
-                this._dictionaries = data.data;
+            this.feedService.get(new DefaultPageMeta()).subscribe(data => {
+                this._rbl_feeds = data.data.filter(item => item['type'] === 'network');
             });
         } else
-            this.daoService.getByName(event.target.value, <PageMeta>{per_page: 100, page: 0}).subscribe(data => {
-                this._dictionaries = data.data;
+            this.feedService.getByName(event.target.value, <PageMeta>{per_page: 100, page: 0}).subscribe(data => {
+                this._rbl_feeds = data.data;
             });
     }
 
-    onAddDictionary(event: any, type: string): void {
-        let data = event.value as Dictionary;
-        switch (type) {
-            case "p": {
-                if (this.form.value.permit != null) {
-                    this.form.value.permit.push(data);
-                }
-                break;
-            }
-            case "b": {
-                if (this.form.value.block != null) {
-                    this.form.value.block.push(data);
-                }
-                break;
+    onAddBlock(event: any): void {
+        let data = event.value as Feed;
+        if (this.form.value.block != null) {
+            this.form.value.block.push(data);
+        }
+    }
+
+    onAddPermit(event: any): void {
+        let data = event.value as Feed;
+        if (this.form.value.permit != null) {
+            this.form.value.permit.push(data);
+        }
+    }
+
+    onRemovePermit(keyword: any): void {
+        if (this.form.value.permit != null) {
+            let index = this.form.value.permit.indexOf(keyword);
+            if (index >= 0) {
+                this.form.value.permit.splice(index, 1);
             }
         }
     }
 
-    onRemoveDictionary(keyword: any, type: string): void {
-        switch (type) {
-            case "p": {
-                if (this.form.value.permit != null) {
-                    let index = this.form.value.permit.indexOf(keyword);
-                    if (index >= 0) {
-                        this.form.value.permit.splice(index, 1);
-                    }
-                }
-                break;
-            }
-            case "b": {
-                if (this.form.value.block != null) {
-                    let index = this.form.value.block.indexOf(keyword);
-                    if (index >= 0) {
-                        this.form.value.block.splice(index, 1);
-                    }
-                }
-                break;
+    onRemoveBlock(keyword: any): void {
+        if (this.form.value.block != null) {
+            let index = this.form.value.block.indexOf(keyword);
+            if (index >= 0) {
+                this.form.value.block.splice(index, 1);
             }
         }
-
-
     }
 
-    filterActiveDictionary(dic: Array<Dictionary>): Array<Dictionary> {
-        const formData = this.form.value as Sensor;
-        formData.block = formData.block || [];
-        formData.permit = formData.permit || [];
-        const selectedDictionaries: Array<Dictionary> = [];
-        for (let index = 0; index < dic.length; index++) {
-            const c = dic[index];
-            const isInBlock = formData.block.some(item => item._id === c._id);
-            const isInPermit = formData.permit.some(item => item._id === c._id);
-            if (!isInBlock && !isInPermit) {
-                selectedDictionaries.push(c);
-            }
-        }
-        return selectedDictionaries;
-    }
 
     getCategories(event: any) {
         let phases = [3, 5]
@@ -260,18 +230,6 @@ export class SensorFormComponent implements OnInit {
         }
     }
 
-    filterActive(cat: Array<RuleCategory>): Array<RuleCategory> {
-        const formData = this.form.value as Sensor;
-        let cats = [];
-        for (let index = 0; index < cat.length; index++) {
-            const c = cat[index];
-            if (!formData.categories.includes(c.name)) {
-                cats.push(c);
-            }
-        }
-        return cats;
-    }
-
     onSelectCategory(cat_name: string): void {
         this.ruleCatService.getBySingleName(cat_name).subscribe(data => {
             let rules = [];
@@ -280,7 +238,6 @@ export class SensorFormComponent implements OnInit {
                 if (rule.action === "block") {
                     rules.push(rule);
                 }
-
             }
             this.ruleDS.data = rules;
             this.ruleCH = [];
@@ -313,15 +270,14 @@ export class SensorFormComponent implements OnInit {
         this.form.get('exclusions')?.reset(exclusions);
     }
 
-    onRuleGroupCheck() {
-        this.form.get('exclusions')?.reset([]);
+    filterActive(arr1: Array<any>, arr2: Array<any> | null | undefined): Array<any> {
+        if (arr1 && arr2)
+            return arr1.filter(itemA => !arr2.some(itemB => itemB == itemA['name']));
+        return arr1;
     }
+
 
     compareFn(object1: any, object2: any) {
         return object1 && object2 && object1._id === object2._id;
-    }
-
-    get f(): { [key: string]: AbstractControl } {
-        return this.form.controls;
     }
 }

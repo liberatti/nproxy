@@ -13,7 +13,9 @@ class FeedSchema(Schema):
     slug = fields.String()
     provider = fields.String()
     version = fields.String()
-    type = fields.String()  # network, ruleset
+    type = fields.String()  # network, ruleset, network_static
+    content = fields.List(fields.String())
+    action = fields.String()  # pass,deny
     scope = fields.String()  # system, user
     source = fields.String()
     description = fields.String()

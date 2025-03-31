@@ -30,16 +30,16 @@
                                 <mat-form-field class="full-width">
                                     <mat-label>Blocklist</mat-label>
                                     <mat-select [compareWith]="compareFn"
-                                                (selectionChange)="onAddDictionary($event,'b')">
-                                        =
-                                        <mat-option *ngFor="let c of filterActiveDictionary(_dictionaries)" [value]="c">
+                                                (selectionChange)="onAddBlock($event)">
+                                        <mat-option *ngFor="let c of  _rbl_feeds|filterSelectedModel:form.value.block"
+                                                    [value]="c">
                                             {{ c.name }}
                                         </mat-option>
                                     </mat-select>
                                 </mat-form-field>
                                 <mat-chip-listbox class="full-width" [multiple]="false" [selectable]="true">
                                     <mat-chip-option *ngFor="let p of form.value.block; let i = index"
-                                                     class="small-chip" (removed)="onRemoveDictionary(p,'b')">
+                                                     class="small-chip" (removed)="onRemoveBlock(p)">
                                         {{ p.name }}
                                         <button matChipRemove>
                                             <mat-icon>cancel</mat-icon>
@@ -51,15 +51,17 @@
                                 <mat-form-field class="full-width">
                                     <mat-label>Allowlist</mat-label>
                                     <mat-select [compareWith]="compareFn"
-                                                (selectionChange)="onAddDictionary($event,'p')">
-                                        <mat-option *ngFor="let c of filterActiveDictionary(_dictionaries)" [value]="c">
+                                                (selectionChange)="onAddPermit($event)">
+                                        <mat-option
+                                                *ngFor="let c of  _rbl_feeds|filterSelectedModel:form.value.permit"
+                                                [value]="c">
                                             {{ c.name }}
                                         </mat-option>
                                     </mat-select>
                                 </mat-form-field>
                                 <mat-chip-listbox class="full-width" [multiple]="false" [selectable]="true">
                                     <mat-chip-option *ngFor="let p of form.value.permit; let i = index"
-                                                     class="small-chip" (removed)="onRemoveDictionary(p,'p')">
+                                                     class="small-chip" (removed)="onRemovePermit(p)">
                                         {{ p.name }}
                                         <button matChipRemove>
                                             <mat-icon>cancel</mat-icon>
@@ -73,8 +75,9 @@
                         <mat-form-field class="full-width  mt-2">
                             <mat-label>Category</mat-label>
                             <mat-select [compareWith]="compareFn" (selectionChange)="onAddCategory($event)">
-                                <input (keyup)="getCategories($event)"/>
-                                <mat-option *ngFor="let c of filterActive(_categories)" [value]="c">
+                                <mat-option
+                                        *ngFor="let c of filterActive(_categories,form.value.categories)"
+                                        [value]="c">
                                     {{ c.name }}
                                 </mat-option>
                             </mat-select>

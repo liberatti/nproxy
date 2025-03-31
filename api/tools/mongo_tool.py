@@ -3,7 +3,7 @@ import shutil
 import zipfile
 
 from api.model.certificate_model import CertificateDao
-from api.model.dictionary_model import DictionaryDao
+from api.model.feed_model import FeedDao
 from api.model.geoip_model import GeoIpDao
 from api.model.oauth_model import UserDao
 from api.model.seclang_model import RuleCategoryDao, RuleDao
@@ -27,9 +27,11 @@ class MongoTool:
         SensorDao().data_export(f"{APP_BASE}/backup")
         UpstreamDao().data_export(f"{APP_BASE}/backup")
         ServiceDao().data_export(f"{APP_BASE}/backup")
-        DictionaryDao().data_export(f"{APP_BASE}/backup")
+        FeedDao().data_export(f"{APP_BASE}/backup")
 
-        with zipfile.ZipFile(f"{APP_BASE}/backup.zip", "w", zipfile.ZIP_DEFLATED) as z_ipf:
+        with zipfile.ZipFile(
+            f"{APP_BASE}/backup.zip", "w", zipfile.ZIP_DEFLATED
+        ) as z_ipf:
             for root, _, files in os.walk(f"{APP_BASE}/backup"):
                 for file in files:
                     file_path = os.path.join(root, file)
@@ -52,6 +54,6 @@ class MongoTool:
         SensorDao().data_import(f"{APP_BASE}/backup")
         UpstreamDao().data_import(f"{APP_BASE}/backup")
         ServiceDao().data_import(f"{APP_BASE}/backup")
-        DictionaryDao().data_import(f"{APP_BASE}/backup")
+        FeedDao().data_import(f"{APP_BASE}/backup")
         os.remove(zip_path)
         shutil.rmtree(f"{APP_BASE}/backup")

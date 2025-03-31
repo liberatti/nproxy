@@ -57,7 +57,10 @@ class ServiceWatcher:
 
         merge = threading.Thread(
             target=LogParserTool.merge_transactions,
-            args=(cache, self.service['name'],),
+            args=(
+                cache,
+                self.service["name"],
+            ),
             daemon=False,
         )
         self.w_threads.append(merge)

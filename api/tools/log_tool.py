@@ -45,8 +45,8 @@ class LogParserTool:
                 for audit in cache.audit_log:
                     for log in cache.access_log:
                         if (
-                                log["server_id"] == audit["server_id"]
-                                and log["unique_id"] == audit["unique_id"]
+                            log["server_id"] == audit["server_id"]
+                            and log["unique_id"] == audit["unique_id"]
                         ):
                             merged = deep_merge(log, audit)
                             merged.update({"archived": False})
@@ -191,10 +191,13 @@ class LogParserTool:
                                     "severity": d["severity"],
                                 }
                             )
-                        if  msg['rule_code'] in ['949110','959100']: # Internal messages
+                        if msg["rule_code"] in [
+                            "949110",
+                            "959100",
+                        ]:  # Internal messages
                             match = re.search(r"Total Score: (\d+)", msg["text"])
-                            record.update({"score":int(match.group(1))})
-                        elif msg['rule_code'] in ['98','99']:
+                            record.update({"score": int(match.group(1))})
+                        elif msg["rule_code"] in ["98", "99"]:
                             record.update({"score": int(msg["text"])})
                         else:
                             messages.append(msg)
@@ -212,19 +215,18 @@ class LogParserTool:
         try:
             dto = json.loads(line)
             record = {
-                "logtime": datetime.strptime(dto["time"], st_format).astimezone(
-                    TZ
-                ),
+                "logtime": datetime.strptime(dto["time"], st_format).astimezone(TZ),
                 "unique_id": dto["uniqueid"],
                 "server_id": server_id,
                 "service": {"_id": dto["service_id"]},
                 "action": cls.resolve_status_code(dto["status"]),
                 "limit_req_status": dto["limit_req_status"],
+                "geo_block": dto["geo_block"],
                 "user_agent": cls.parse_agent(dto["user_agent"]),
                 "source": {
                     "ip": dto["remote_addr"],
                     "port": dto["remote_port"],
-                    "geo": SecurityFeedTool.info(dto["remote_addr"]),
+                    "geo": SecurityFeedTool.geo_info(dto["remote_addr"]),
                 },
                 "destination": {"ip": "", "port": dto["server_port"]},
                 "http": {

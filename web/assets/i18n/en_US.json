@@ -56,11 +56,6 @@
       "title": "Certificate",
       "subtitle": "List of all certificate"
     },
-    "dictionary": {
-      "link": "Dictionary",
-      "title": "Dictionary",
-      "subtitle": "List of all dictionaries"
-    },
     "feed": {
       "link": "Security Feed",
       "title": "Security Feed",

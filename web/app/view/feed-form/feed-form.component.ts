@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router, RouterModule} from '@angular/router';
-import {AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Feed} from 'app/models/feed';
 import {NotificationService} from 'app/services/notification.service';
 import {FeedService} from 'app/services/feed.service';
@@ -41,7 +41,17 @@ import {OAuthService} from "../../services/oauth.service";
 export class FeedFormComponent implements OnInit {
     isAddMode: boolean;
     submitted = false;
-    _supportedTypes = ['network', 'ruleset'];
+    _supportedTypes = ['network', 'ruleset', 'network_static'];
+    _actions = ['deny', 'pass']
+    ipv4Pattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/(3[0-2]|[12]?[0-9])$/;
+    ipv6Pattern = /([0-9a-fA-F]{1,4}:){7}([0-9a-fA-F]{1,4})\/(12[0-8]|1[0-1][0-9]|[1-9]?[0-9])/;
+
+    contentForm = new FormGroup({
+        text: new FormControl<string>('', [
+            Validators.required,
+            this.ipv4OrIpv6Validator.bind(this)
+        ])
+    });
 
     form = new FormGroup({
         _id: new FormControl<string>(''),
@@ -51,6 +61,7 @@ export class FeedFormComponent implements OnInit {
                 Validators.minLength(4),
             ],
         }),
+        action: new FormControl<string>('deny'),
         content: new FormControl<Array<string>>([]),
         scope: new FormControl<string>('user'),
         type: new FormControl<string>(''),
@@ -82,10 +93,12 @@ export class FeedFormComponent implements OnInit {
             this.feedService.getById(this.route.snapshot.params['id']).subscribe(data => {
                 this.form.get('_id')?.setValue(data._id);
                 this.form.get('name')?.setValue(data.name);
+                this.form.get('action')?.setValue(data.action);
                 this.form.get('scope')?.setValue(data.scope);
                 this.form.get('type')?.setValue(data.type);
                 this.form.get('description')?.setValue(data.description);
                 this.form.get('slug')?.setValue(data.slug);
+                this.form.get('content')?.setValue(data.content);
                 this.form.get('provider')?.setValue(data.provider);
                 this.form.get('version')?.setValue(data.version);
                 this.form.get('source')?.setValue(data.source);
@@ -117,11 +130,41 @@ export class FeedFormComponent implements OnInit {
         }
     }
 
-    get f(): { [key: string]: AbstractControl } {
-        return this.form.controls;
+    onAddContent(): void {
+        if (this.contentForm.status === "INVALID") {
+            return;
+        }
+        const formData = this.contentForm.value.text as string;
+        if (this.form.value.content != null) {
+            this.form.value.content?.push(formData);
+        }
+        this.contentForm.reset();
     }
 
-    compareFn(object1: any, object2: any) {
-        return object1 && object2 && object1._id === object2._id;
+    onRemoveContent(keyword: any): void {
+        if (this.form.value.content != null) {
+            let index = this.form.value.content.indexOf(keyword);
+            if (index >= 0) {
+                this.form.value.content.splice(index, 1);
+            }
+        }
+    }
+
+    ipv4OrIpv6Validator(control: FormControl): { [key: string]: boolean } | null {
+        const value = control.value;
+
+        // Verifica se o valor corresponde ao padrão IPv4 ou IPv6
+        const isIpv4 = this.ipv4Pattern.test(value);
+        const isIpv6 = this.ipv6Pattern.test(value);
+
+        if (isIpv4 || isIpv6) {
+            return null; // válido
+        }
+
+        return {'invalidAddress': true}; // inválido
+    }
+
+    trackByFn(index: number, item: any): number {
+        return index;
     }
 }

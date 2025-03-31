@@ -4,15 +4,21 @@
 
 ## Features
 
-This project aims to create a secure and efficient environment for API exposure, essential for organizations looking to deliver reliable services in the digital age.
+This project aims to create a secure and efficient environment for API exposure, essential for organizations looking to
+deliver reliable services in the digital age.
 
-- **Efficient Reverse Proxy:** Utilizes **OpenResty** as a reverse proxy to manage incoming and outgoing API traffic, ensuring high performance and scalability.
-- **Advanced Security:** Incorporates **ModSecurity** for detection and prevention of common threats at the application layer, including SQL injections, cross-site scripting (XSS), and other common attacks.
-- **Detailed Logging:** Maintains detailed logs of all transactions, facilitating audit and event analysis for proactive identification of potential threats or anomalous behavior.
-- **Load Balancing:** Offers load balancing capabilities to evenly distribute requests among backend servers, improving resilience and operational efficiency.
-- **Operational Simplicity:** Uses **OpenResty** to provide a lightweight, easily configurable, and maintainable solution, reducing operational overhead.
-- **Scalability:** The modular architecture facilitates horizontal scalability, allowing expansion as demand for services increases.
-
+- **Efficient Reverse Proxy:** Utilizes **OpenResty** as a reverse proxy to manage incoming and outgoing API traffic,
+  ensuring high performance and scalability.
+- **Advanced Security:** Incorporates **ModSecurity** for detection and prevention of common threats at the application
+  layer, including SQL injections, cross-site scripting (XSS), and other common attacks.
+- **Detailed Logging:** Maintains detailed logs of all transactions, facilitating audit and event analysis for proactive
+  identification of potential threats or anomalous behavior.
+- **Load Balancing:** Offers load balancing capabilities to evenly distribute requests among backend servers, improving
+  resilience and operational efficiency.
+- **Operational Simplicity:** Uses **OpenResty** to provide a lightweight, easily configurable, and maintainable
+  solution, reducing operational overhead.
+- **Scalability:** The modular architecture facilitates horizontal scalability, allowing expansion as demand for
+  services increases.
 
 ## NProxy Distribution Formats
 
@@ -21,6 +27,7 @@ This project aims to create a secure and efficient environment for API exposure,
 Pull the NProxy container image from the registry and run it in your containerized environment.
 
 #### Docker environment
+
 ```docker
 docker run -it \
  -e MONGO_HOST="<mongo ipaddr>"\
@@ -36,6 +43,7 @@ docker run -it \
  -p 443:443 \
 liberatti/nproxy:latest
 ```
+
 #### Docker compose
 
 [Download Docker Compose Minimal](https://nproxy.tooka.com.br/docker-compose-minimal.yml)
@@ -46,12 +54,14 @@ docker compose -f docker-compose-minimal.yml up -d
 
 **Managment interface: ** [http://localhost:5000](http://localhost:5000)
 
-**Default Account:** admin@local **Password:** admin   
+**Default Account:** admin@local **Password:** admin
 
 ## Test security
 
 ### Gotestwaf
-GoTestWAF is a tool for API and OWASP attack simulation that supports a wide range of API protocols including REST, GraphQL, gRPC, SOAP, XMLRPC, and others.
+
+GoTestWAF is a tool for API and OWASP attack simulation that supports a wide range of API protocols including REST,
+GraphQL, gRPC, SOAP, XMLRPC, and others.
 [Know more](https://github.com/wallarm/gotestwaf)
 
 ```docker
@@ -60,19 +70,18 @@ docker run --rm -v ${PWD}/reports:/app/reports \
 ```
 
 ## ID Reservations
-- 1-99,999; reserved for local (internal) use. Use as you see fit but do not use this range for rules that are distributed to others.
-  - 10 - Sensor config
-  - 12 - Method is not allowed by route
-  - 13 - Blacklist config
-  - 14 - Whitelist config
-  - 15 - Jail config
-  - 50 - ModSecurity internal error
-  - 51 - Multipart parser detected a possible unmatched boundary
-  - 52 - requestBodyProcessor=XML
-  - 53 - requestBodyProcessor=JSON
-  - 55 - Failed to parse request body. JSON
-  - 98 - Collect score (phase 2)
-  - 99 - Collect score (phase 4)
+
+- 1-99,999; reserved for local (internal) use. Use as you see fit but do not use this range for rules that are
+  distributed to others.
+    - 10 - Sensor config
+    - 12 - Method is not allowed by route
+    - 13 - Blacklist config
+    - 15 - Jail config
+    - 50 - ModSecurity internal error
+    - 51 - Multipart parser detected a possible unmatched boundary
+    - 52 - requestBodyProcessor=XML
+    - 53 - requestBodyProcessor=JSON
+    - 55 - Failed to parse request body. JSON
 - 100,000–199,999; reserved for rules published by Oracle.
 - 200,000–299,999; reserved for rules published Comodo.
 - 300,000-399,999; reserved for rules published at gotroot.com.
@@ -91,6 +100,12 @@ docker run --rm -v ${PWD}/reports:/app/reports \
 - 4,100,000-4,199,999; reserved in use by Fastly
 - 4,200,000 and above; unused (available for reservation)
 
+## Telemetry Notice
+
+To enhance our services, we have implemented telemetry that tracks the total traffic over the last 24 hours of usage. We
+want to assure you that no sensitive or personal data is collected during this process. The data gathered helps us
+identify areas for improvement and deliver a better experience for our users.
+
 ## License
 
 This project is licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
@@ -98,9 +113,15 @@ This project is licensed under the [Apache License 2.0](https://www.apache.org/l
 ## Related Projects
 
 ### OpenResty
-OpenResty® is a full-fledged web platform that integrates our enhanced version of the Nginx core, our enhanced version of LuaJIT, many carefully written Lua libraries, lots of high quality 3rd-party Nginx modules, and most of their external dependencies. It is designed to help developers easily build scalable web applications, web services, and dynamic web gateways.
+
+OpenResty® is a full-fledged web platform that integrates our enhanced version of the Nginx core, our enhanced version
+of LuaJIT, many carefully written Lua libraries, lots of high quality 3rd-party Nginx modules, and most of their
+external dependencies. It is designed to help developers easily build scalable web applications, web services, and
+dynamic web gateways.
 [Know more](https://openresty.org/en/)
 
 ### ModSecurity
-ModSecurity is an open-source web application firewall (WAF) that operates as a module for the Apache, Nginx, and IIS web servers. It provides protection against various web security threats and attacks. Learn more about the 
+
+ModSecurity is an open-source web application firewall (WAF) that operates as a module for the Apache, Nginx, and IIS
+web servers. It provides protection against various web security threats and attacks. Learn more about the
 [Know more](https://www.modsecurity.org/).

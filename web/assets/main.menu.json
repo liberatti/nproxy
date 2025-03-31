@@ -34,11 +34,6 @@
         "icon": "browser_updated"
       },
       {
-        "label": "view.dictionary.link",
-        "route": "/dict",
-        "icon": "batch_prediction"
-      },
-      {
         "label": "view.jail.link",
         "route": "/jail",
         "icon": "contactless"

@@ -16,10 +16,14 @@ class MongoDAO:
         self.collection_name = collection_name
         self.collection = self.database[collection_name]
         if schema:
-            page_class = type('pagination', (Schema,), {
-                'metadata': fields.Nested("PageMetaSchema", many=False),
-                'data': fields.Nested(schema, many=True)
-            })
+            page_class = type(
+                "pagination",
+                (Schema,),
+                {
+                    "metadata": fields.Nested("PageMetaSchema", many=False),
+                    "data": fields.Nested(schema, many=True),
+                },
+            )
             self.pageSchema = page_class()
             self.schema = schema()
 
@@ -50,14 +54,10 @@ class MongoDAO:
             _meta = rs.get("pagination")
             if not _meta or len(_meta) == 0:
                 _meta = [{"total": 0}]
-            pagination.update({'total_elements': _meta[0].get("total", 0)})
+            pagination.update({"total_elements": _meta[0].get("total", 0)})
         else:
             te = len(rows)
-            pagination = {
-                'total_elements': te,
-                'page': 1,
-                'per_page': te
-            }
+            pagination = {"total_elements": te, "page": 1, "per_page": te}
 
         for r in rows:
             self._load(r)
@@ -75,8 +75,12 @@ class MongoDAO:
                 {
                     "$facet": {
                         "data": [
-                            {"$skip": ((pagination['page'] - 1) * pagination['per_page'])},
-                            {"$limit": pagination['per_page']},
+                            {
+                                "$skip": (
+                                    (pagination["page"] - 1) * pagination["per_page"]
+                                )
+                            },
+                            {"$limit": pagination["per_page"]},
                         ],
                         "pagination": [{"$count": "total"}],
                     }
@@ -86,9 +90,7 @@ class MongoDAO:
             query.append({"$facet": {"data": []}})
 
         if filters:
-            query.insert(0, {
-                "$match": dict()
-            })
+            query.insert(0, {"$match": dict()})
             for f in filters:
                 query[0]["$match"].update(f)
 
@@ -147,13 +149,15 @@ class MongoDAO:
     def data_export(self, folder):
         dset = list(self.collection.find())
         logger.info(f"Export {len(dset)} to {folder}/{self.collection_name}.data")
-        with open(f"{folder}/{self.collection_name}.data", 'wb') as f:
+        with open(f"{folder}/{self.collection_name}.data", "wb") as f:
             pickle.dump(dset, f)
 
     def data_import(self, folder):
-        with open(f"{folder}/{self.collection_name}.data", 'rb') as f:
+        with open(f"{folder}/{self.collection_name}.data", "rb") as f:
             dset = pickle.load(f)
             self.collection.delete_many({})
-            if len(dset)>0:
-                logger.info(f"Import {len(dset)} to {folder}/{self.collection_name}.data")
+            if len(dset) > 0:
+                logger.info(
+                    f"Import {len(dset)} to {folder}/{self.collection_name}.data"
+                )
                 self.collection.insert_many(dset)

@@ -16,10 +16,10 @@ from marshmallow import ValidationError
 
 from api.common_utils import logger, replace_tz
 from api.model.config_model import ConfigDao
-from api.model.dictionary_model import DictionaryDao
 from api.model.feed_model import FeedDao
 from api.model.geoip_model import GeoIpDao
 from api.model.jail_model import JailDao
+from api.model.rbl_model import RBLDao
 from api.model.seclang_model import RuleCategoryDao, RuleCategorySchema, RuleDao
 from api.model.sensor_model import SensorDao
 from api.model.service_model import ServiceDao
@@ -187,58 +187,60 @@ class SecurityFeedTool:
         dao = ConfigDao()
         conf = dao.get_active()
         feed_dao = FeedDao()
-        dict_dao = DictionaryDao()
-
         for feed in feed_dao.get_by_type("network"):
-            try:
-                source_url = feed["source"]
-                if feed["restricted"]:
-                    if "iblocklist" in feed["provider"]:
-                        if (
-                            "iblocklist_username" in conf
-                            and len(conf["iblocklist_username"]) > 0
-                        ):
-                            source_url = f"{source_url}&username={conf['iblocklist_username']}&pin={conf['iblocklist_pin']}"
-                        else:
-                            logger.info(f"Feed {feed['name']} skipped, no credentials")
-                            continue
+            if "source" in feed and len(feed["source"]) > 1:
+                try:
+                    source_url = feed["source"]
+                    rbl_dao = RBLDao()
+                    if feed["restricted"]:
+                        if "iblocklist" in feed["provider"]:
+                            if (
+                                "iblocklist_username" in conf
+                                and len(conf["iblocklist_username"]) > 0
+                            ):
+                                source_url = f"{source_url}&username={conf['iblocklist_username']}&pin={conf['iblocklist_pin']}"
+                            else:
+                                logger.info(
+                                    f"Feed {feed['name']} skipped, no credentials"
+                                )
+                                continue
 
-                resp = requests.get(source_url)
-                if resp and resp.status_code == 200:
-                    lines = []
-                    if "cdir_text" in feed["format"]:
-                        lines = resp.text.splitlines()
-                    if "cdir_gz" in feed["format"]:
-                        with gzip.GzipFile(fileobj=io.BytesIO(resp.content)) as gz:
-                            for l in gz:
-                                lines.append(l.decode("utf-8").strip())
+                    resp = requests.get(source_url)
+                    if resp and resp.status_code == 200:
+                        lines = []
+                        if "cdir_text" in feed["format"]:
+                            lines = resp.text.splitlines()
+                        if "cdir_gz" in feed["format"]:
+                            with gzip.GzipFile(fileobj=io.BytesIO(resp.content)) as gz:
+                                for l in gz:
+                                    lines.append(l.decode("utf-8").strip())
+                        rbl_dao.delete_by_provider("feed", feed["_id"])
+                        fc = 0
+                        for line in lines:
+                            if line.strip() and "#" not in line:
+                                if cls.is_ip_network(line):
+                                    rbl = dict(cls.get_range_from_network(line))
+                                    ip_v = 4 if cls.is_ipv4(line.split("/")[0]) else 6
+                                    rbl.update(
+                                        {
+                                            "version": ip_v,
+                                            "provider_type": "feed",
+                                            "provider_id": feed["_id"],
+                                            "action": feed["action"],
+                                        }
+                                    )
+                                    rbl_dao.persist(rbl)
+                                    fc += 1
 
-                    content = []
-                    for line in lines:
-                        if line.strip() and "#" not in line:
-                            if cls.is_ip_network(line):
-                                content.append(line)
-                    d = dict_dao.get_by_slug(feed["slug"])
-                    if d:
-                        dict_dao.update_by_id(d["_id"], {"content": content})
-                    else:
-                        dict_dao.persist(
-                            {
-                                "name": feed["name"],
-                                "slug": feed["slug"],
-                                "type": feed["type"],
-                                "description": feed["description"],
-                                "scope": "system",
-                                "content": content,
-                            }
+                        feed_dao.update_by_id(
+                            feed["_id"], {"updated_on": datetime.now(TZ)}
                         )
-                    feed_dao.update_by_id(feed["_id"], {"updated_on": datetime.now(TZ)})
-                    logger.info(
-                        f"Update Security IP feeds {feed['name']} with {len(content)} records"
-                    )
-            except Exception as e:
-                logger.error(f"Failed to load {feed['slug']}: %s", e)
-                logger.error(traceback.format_exc())
+                        logger.info(
+                            f"Update Security IP feeds {feed['name']} with {fc} records"
+                        )
+                except Exception as e:
+                    logger.error(f"Failed to load {feed['slug']}: %s", e)
+                    logger.error(traceback.format_exc())
         cls.download_ip2asn()
         if "maxmind_key" in conf and len(conf["maxmind_key"]) > 0:
             cls.download_mmdb(conf["maxmind_key"], "GeoLite2-ASN")
@@ -246,7 +248,7 @@ class SecurityFeedTool:
 
     @classmethod
     def is_ipv4(cls, ip):
-        ipv4_pattern = r"^(\d{1,3}\.){3}\d{1,3}$"
+        ipv4_pattern = r"^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
         return bool(re.match(ipv4_pattern, ip))
 
     @classmethod
@@ -267,6 +269,14 @@ class SecurityFeedTool:
     def calc_prefix_from_netmask(cls, ip_ini, mascara_str):
         net = ipaddress.ip_network(f"{ip_ini}/{mascara_str}", strict=False)
         return net.prefixlen
+
+    @classmethod
+    def get_range_from_network(cls, net):
+        rede = ipaddress.IPv4Network(net, strict=False)
+        return {
+            "range_start": cls.expand_ip(str(rede.network_address)),
+            "range_end": cls.expand_ip(str(rede.broadcast_address)),
+        }
 
     @classmethod
     def calc_prefix_from_range(cls, ip_ini, ip_end):
@@ -343,7 +353,7 @@ class SecurityFeedTool:
         logger.info(f"[update] Download {edition_id}")
 
     @classmethod
-    def info(cls, ip):
+    def geo_info(cls, ip):
         ip = cls.expand_ip(ip)
         ip_info = {"addr": ip}
         model = GeoIpDao()

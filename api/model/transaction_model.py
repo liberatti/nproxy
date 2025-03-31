@@ -99,7 +99,7 @@ class TransactionAuditMsgSchema(Schema):
     class Meta:
         unknown = EXCLUDE
 
-    rule_code =fields.String(required=False)
+    rule_code = fields.String(required=False)
     text = fields.String(required=False)
     details = fields.Nested(TransactionAuditMsgDetailsSchema, many=True)
 
@@ -124,6 +124,7 @@ class TransactionSchema(Schema):
     server_id = fields.String(required=False)
     action = fields.String(required=False)
     limit_req_status = fields.String(required=False)
+    geo_block = fields.String(required=False)
     user_agent = fields.Nested(TransactionUserAgentSchema)
     source = fields.Nested(TransactionSourceSchema)
     destination = fields.Nested(TransactionDestinationSchema)
@@ -135,6 +136,7 @@ class TransactionSchema(Schema):
     upstream = fields.Nested(UpstreamSchema)
     service = fields.Nested(ServiceSchema)
     score = fields.Integer(required=False)
+
 
 class DashboardServiceRequests(Schema):
     class Meta:
@@ -191,11 +193,7 @@ class TransactionDao(MongoDAO):
                 vo.update({"service_id": ObjectId(service["_id"])})
 
     def purge_before_date(self, purge_date):
-        query = {
-            "logtime": {
-                "$lte": purge_date
-            }
-        }
+        query = {"logtime": {"$lte": purge_date}}
         rs = self.collection.delete_many(query)
         logger.debug(query)
         return rs.deleted_count
@@ -215,14 +213,12 @@ class TransactionDao(MongoDAO):
         )
         return rs.modified_count > 0
 
-    def get_node_bandwidth(self,server_id):
-        query= [
+    def get_node_bandwidth(self, server_id):
+        query = [
             {
                 "$match": {
-                    "logtime": {
-                        "$gte": (datetime.now(TZ) - timedelta(minutes=1))
-                    },
-                    "server_id": server_id
+                    "logtime": {"$gte": (datetime.now(TZ) - timedelta(minutes=1))},
+                    "server_id": server_id,
                 },
             },
             {
@@ -236,10 +232,10 @@ class TransactionDao(MongoDAO):
                     },
                     "net_recv": {"$sum": "$http.request.bytes"},
                     "net_send": {"$sum": "$http.response.bytes"},
-                    "req_total": {"$sum": 1}
+                    "req_total": {"$sum": 1},
                 }
             },
-            {"$limit": 1}
+            {"$limit": 1},
         ]
         logger.debug(query)
         rs = self.collection.aggregate(query)
@@ -249,33 +245,29 @@ class TransactionDao(MongoDAO):
         query = [
             {
                 "$match": {
-                    "logtime": {
-                        "$gt": dt_start - timedelta(minutes=TELEMETRY_INTERVAL)
-                    }
+                    "logtime": {"$gt": dt_start - timedelta(minutes=TELEMETRY_INTERVAL)}
                 }
             },
             {
                 "$group": {
-                    "_id": {
-                        "server_id": "$server_id"
-                    },
-                    "net_recv": { "$sum": "$http.request.bytes" },
-                    "net_send": { "$sum": "$http.response.bytes" },
-                    "req_total": { "$sum": 1 },
-                    'latency': { "$avg": "$http.duration"}
+                    "_id": {"server_id": "$server_id"},
+                    "net_recv": {"$sum": "$http.request.bytes"},
+                    "net_send": {"$sum": "$http.response.bytes"},
+                    "req_total": {"$sum": 1},
+                    "latency": {"$avg": "$http.duration"},
                 }
-            }
+            },
         ]
         logger.debug(query)
         rs = self.collection.aggregate(query)
-        records=list(rs)
+        records = list(rs)
         if records:
             for s in records:
                 dtj = s.pop("_id")
                 s.update(
                     {
                         "logtime": dt_start,
-                        "server_id": dtj['server_id'],
+                        "server_id": dtj["server_id"],
                     }
                 )
         return records
@@ -311,45 +303,34 @@ class TransactionDao(MongoDAO):
         rs = self.collection.aggregate(query)
         return list(rs)
 
-    def get_last_n_minutes(self,minutes):
-        dt_start = (
-            replace_tz((datetime.now() - timedelta(minutes=minutes)))
-        )
-        query = {
-            "logtime": {
-                "$gte": dt_start
-            }
-        }
+    def get_last_n_minutes(self, minutes):
+        dt_start = replace_tz((datetime.now() - timedelta(minutes=minutes)))
+        query = {"logtime": {"$gte": dt_start}}
         logger.debug(query)
         rows = list(self.collection.find(query))
         for e in rows:
             self._load(e)
         return rows
 
-    def get_all(
-            self, pagination=None, dt_start=None, dt_end=None, filters=None
-    ):
+    def get_all(self, pagination=None, dt_start=None, dt_end=None, filters=None):
         query = [
-            {
-                "$match": {
-
-                }
-            },
+            {"$match": {}},
             {"$sort": {"logtime": -1}},
         ]
         if dt_start and dt_end:
-            query[0]["$match"].update({"logtime": {
-                "$gte": dt_start,
-                "$lte": dt_end
-            }})
+            query[0]["$match"].update({"logtime": {"$gte": dt_start, "$lte": dt_end}})
 
         if pagination:
             query.append(
                 {
                     "$facet": {
                         "data": [
-                            {"$skip": ((pagination['page'] - 1) * pagination['per_page'])},
-                            {"$limit": pagination['per_page']},
+                            {
+                                "$skip": (
+                                    (pagination["page"] - 1) * pagination["per_page"]
+                                )
+                            },
+                            {"$limit": pagination["per_page"]},
                         ],
                         "pagination": [{"$count": "total"}],
                     }

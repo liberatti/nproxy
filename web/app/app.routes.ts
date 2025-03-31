@@ -2,8 +2,6 @@ import {Routes} from '@angular/router';
 import {AdminLayoutComponent} from './layouts/admin-layout/admin-layout.component';
 import {SignInComponent} from './view/sign-in/sign-in.component';
 import {PublicLayoutComponent} from './layouts/public-layout/public-layout.component';
-import {DictionaryListComponent} from './view/dictionary-list/dictionary-list.component';
-import {DictionaryFormComponent} from './view/dictionary-form/dictionary-form.component';
 import {CertificateListComponent} from './view/certificate-list/certificate-list.component';
 import {CertificateFormComponent} from './view/certificate-form/certificate-form.component';
 import {UpstreamListComponent} from './view/upstream-list/upstream-list.component';
@@ -47,15 +45,6 @@ export const routes: Routes = [
             {path: '', component: ServiceListComponent},
             {path: 'add', component: ServiceFormComponent},
             {path: 'edit/:id', component: ServiceFormComponent},
-        ]
-    },
-    {
-        path: 'dict',
-        component: AdminLayoutComponent,
-        children: [
-            {path: '', component: DictionaryListComponent},
-            {path: 'add', component: DictionaryFormComponent},
-            {path: 'edit/:id', component: DictionaryFormComponent},
         ]
     },
     {

@@ -1,8 +1,7 @@
 from bson import ObjectId
 from marshmallow import EXCLUDE, Schema, fields
 
-from api.model.dictionary_model import DataObjectSchema
-from api.model.dictionary_model import DictionaryDao
+from api.model.feed_model import FeedDao, FeedSchema
 from api.model.mongo_base_model import MongoDAO
 
 
@@ -15,8 +14,9 @@ class SensorSchema(Schema):
     description = fields.String()
     categories = fields.List(fields.String())
     exclusions = fields.List(fields.Integer())
-    permit = fields.Nested(DataObjectSchema, many=True)
-    block = fields.Nested(DataObjectSchema, many=True)
+    permit = fields.Nested(FeedSchema, many=True)
+    block = fields.Nested(FeedSchema, many=True)
+    geo_block_list = fields.String()
 
 
 class SensorDao(MongoDAO):
@@ -28,14 +28,14 @@ class SensorDao(MongoDAO):
             super()._load(vo)
             if "block_ids" in vo:
                 block = []
-                dao = DictionaryDao()
+                dao = FeedDao()
                 for b in vo.pop("block_ids"):
                     block.append(dao.get_descr_by_id(str(b)))
                 vo.update({"block": block})
 
             if "permit_ids" in vo:
                 permit = []
-                dao = DictionaryDao()
+                dao = FeedDao()
                 for b in vo.pop("permit_ids"):
                     permit.append(dao.get_descr_by_id(str(b)))
                 vo.update({"permit": permit})

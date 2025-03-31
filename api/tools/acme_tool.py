@@ -32,10 +32,10 @@ class AcmeTool:
         sans = []
         for s in services:
             if not cn:
-                cn = s['sans'][0]
-                sans = s['sans'][1:]
+                cn = s["sans"][0]
+                sans = s["sans"][1:]
             else:
-                sans.extend(s['sans'])
+                sans.extend(s["sans"])
 
         self_crt = SSLTool.create_certificate(cn, sans=list(set(sans)))
         self_chain = []
@@ -64,10 +64,10 @@ class AcmeTool:
             sans = []
             for s in services:
                 if cn:
-                    sans.extend(s['sans'])
+                    sans.extend(s["sans"])
                 else:
-                    cn = s['sans'][0]
-                    sans = s['sans'][1:]
+                    cn = s["sans"][0]
+                    sans = s["sans"][1:]
 
             result = SSLLetsEncryptTool.create_certificate(
                 cn, sans=sans, email="fake@tooka.com.br"
@@ -80,20 +80,14 @@ class AcmeTool:
                 certificate.update(
                     {
                         "chain": chain,
-                        "certificate": SSLTool.crt_to_pem(
-                            result["certificate"]
-                        ),
-                        "private_key": SSLTool.private_to_pem(
-                            result["private_key"]
-                        ),
+                        "certificate": SSLTool.crt_to_pem(result["certificate"]),
+                        "private_key": SSLTool.private_to_pem(result["private_key"]),
                         "status": "VALID",
                         "force_renew": False,
                     }
                 )
 
-                certificate.update(
-                    SSLTool.extract_info_from_crt(result["certificate"])
-                )
+                certificate.update(SSLTool.extract_info_from_crt(result["certificate"]))
                 CertificateDao().update_by_id(certificate["_id"], certificate)
         except ACMEerrors.ValidationError as e:
             for rs in e.failed_authzrs:
@@ -107,20 +101,22 @@ class AcmeTool:
             dao_service = ServiceDao()
             services = dao_service.get_all()
             crt_count = 0
-            if 'data' in services:
-                for service in services['data']:
-                    if 'certificate' in service:
-                        renew_date = datetime.now() - timedelta(days=cls.__CERTIFICATE_RENEW)
+            if "data" in services:
+                for service in services["data"]:
+                    if "certificate" in service:
+                        renew_date = datetime.now() - timedelta(
+                            days=cls.__CERTIFICATE_RENEW
+                        )
                         renew_date = replace_tz(renew_date)
-                        certificate = service['certificate']
+                        certificate = service["certificate"]
                         if (
-                                certificate["force_renew"] == True
-                                or replace_tz(certificate["not_after"]) < renew_date
+                            certificate["force_renew"] == True
+                            or replace_tz(certificate["not_after"]) < renew_date
                         ):
                             try:
-                                if 'MANAGED' in certificate['provider']:
+                                if "MANAGED" in certificate["provider"]:
                                     cls.renew_lets(certificate)
-                                if 'SELF' in certificate['provider']:
+                                if "SELF" in certificate["provider"]:
                                     cls.renew_self(certificate)
                                 crt_count += 1
                             except Exception as e:
