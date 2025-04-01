@@ -18,7 +18,7 @@ from functools import wraps
 import jwt
 import pymongo
 from bson import ObjectId
-from flask import Response, jsonify, request
+from flask import jsonify, request
 from flask_marshmallow import Marshmallow
 from flask_socketio import SocketIO
 from jwt import ExpiredSignatureError
@@ -71,16 +71,16 @@ def get_server_id():
     return server_
 
 
-def print_request(request):
-    logger.info(f"Request: [{request.method}] {request.url} ({request.content_type})")
-    for key, value in request.form.items():
+def print_request(req):
+    logger.info(f"Request: [{req.method}] {req.url} ({req.content_type})")
+    for key, value in req.form.items():
         logger.info(f"FormData: {key}={value}")
-    logger.info(f"Files upload: {request.files.keys()}")
-    for filename, file in request.files.items():
+    logger.info(f"Files upload: {req.files.keys()}")
+    for filename, file in req.files.items():
         logger.info(f"FileData: {filename} ({file.content_type}) {file.read(100)}..")
-    for header, value in request.headers.items():
+    for header, value in req.headers.items():
         logger.info(f"Header: {header}={value}")
-    for key, value in request.args.items():
+    for key, value in req.args.items():
         logger.info(f"QueryData: {key}={value}")
 
 
@@ -258,12 +258,6 @@ config_db = pymongo.MongoClient(
 
 
 class ResponseBuilder:
-
-    @classmethod
-    def raw(cls, o, headers=None):
-        if headers is None:
-            headers = []
-        return [Response(o, headers=headers), 201]
 
     @classmethod
     def error_404(cls):

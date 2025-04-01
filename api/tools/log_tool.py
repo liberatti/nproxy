@@ -222,6 +222,7 @@ class LogParserTool:
                 "action": cls.resolve_status_code(dto["status"]),
                 "limit_req_status": dto["limit_req_status"],
                 "geo_block": dto["geo_block"],
+                "rbl_block": dto["rbl_block"],
                 "user_agent": cls.parse_agent(dto["user_agent"]),
                 "source": {
                     "ip": dto["remote_addr"],

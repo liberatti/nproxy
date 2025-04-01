@@ -123,8 +123,8 @@ def _scheduler():
     while True:
         try:
             schedule.run_pending()
-        except Exception as e:
-            app.logger.error(f"Error running scheduled task: {e}")
+        except Exception as ex:
+            app.logger.error(f"Error running scheduled task: {ex}")
         time.sleep(1)
 
 

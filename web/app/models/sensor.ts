@@ -27,6 +27,7 @@ export interface Sensor {
     description: string;
     block: Array<Feed>;
     permit: Array<Feed>;
+    geo_block_list: string[];
     categories: Array<string>;
     exclusions: Array<number>;
 }

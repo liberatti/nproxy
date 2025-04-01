@@ -22,7 +22,7 @@ import {TranslateModule} from '@ngx-translate/core';
 import {RuleCategory, SecRule, Sensor} from 'app/models/sensor';
 import {RuleCategoryService, SensorService} from 'app/services/sensor.service';
 import {NotificationService} from 'app/services/notification.service';
-import {DefaultPageMeta, PageMeta} from 'app/models/shared';
+import {DefaultPageMeta} from 'app/models/shared';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatTabsModule} from '@angular/material/tabs';
@@ -30,19 +30,17 @@ import {MatGridListModule} from '@angular/material/grid-list';
 import {OAuthService} from "../../services/oauth.service";
 import {Feed} from "../../models/feed";
 import {FeedService} from "../../services/feed.service";
-import {FilterSelectedModelPipe} from "../../pipes/filter_selected_model.pipe";
 
 @Component({
     selector: 'app-sensor-form',
     standalone: true,
     imports: [RouterModule, CommonModule,
         ReactiveFormsModule, TranslateModule,
-        MatMomentDateModule,
-        MatSidenavModule, MatIconModule, MatButtonModule,
+        MatMomentDateModule, MatSidenavModule, MatIconModule, MatButtonModule,
         MatListModule, MatCardModule, MatProgressBarModule, MatInputModule,
         MatTableModule, MatMenuModule, MatSortModule, MatTabsModule, MatGridListModule,
         MatTooltipModule, MatSelectModule, MatPaginatorModule, MatSlideToggleModule, MatCheckboxModule,
-        MatFormFieldModule, MatChipsModule, FilterSelectedModelPipe],
+        MatFormFieldModule, MatChipsModule],
     templateUrl: './sensor-form.component.html'
 })
 
@@ -52,6 +50,12 @@ export class SensorFormComponent implements OnInit {
     breakpoint: number;
     _categories: RuleCategory[] = [];
     _rbl_feeds: Feed[] = [];
+    _geo_countries: string[] = [
+        "US", "CA", "BR", "IN", "GB", "AU", "DE", "FR", "IT", "ES",
+        "JP", "CN", "MX", "RU", "ZA", "KR", "NG", "AR", "SE", "NO",
+        "DK", "FI", "PL", "CH", "NL", "BE", "SG", "AE", "MY", "TH",
+        "PH", "NG", "KR", "None"
+    ];
     ruleDC: string[] = ['code', 'severity', 'msg', 'actionSummary', 'action'];
     ruleDS: MatTableDataSource<SecRule>;
     ruleCH: number[] = [];
@@ -69,6 +73,7 @@ export class SensorFormComponent implements OnInit {
         exclusions: new FormControl<Array<number>>([]),
         block: new FormControl<Array<Feed>>([]),
         permit: new FormControl<Array<Feed>>([]),
+        geo_block_list: new FormControl<string[]>([]),
     });
 
     constructor(
@@ -78,7 +83,7 @@ export class SensorFormComponent implements OnInit {
         private sensorService: SensorService,
         private ruleCatService: RuleCategoryService,
         private feedService: FeedService,
-        protected oauth: OAuthService
+        protected oauth: OAuthService,
     ) {
         this.breakpoint = (window.innerWidth <= 600) ? 2 : 8;
         this.isAddMode = false;
@@ -99,13 +104,19 @@ export class SensorFormComponent implements OnInit {
                 this.form.get('exclusions')?.setValue(data.exclusions);
                 this.form.get('block')?.setValue(data.block);
                 this.form.get('permit')?.setValue(data.permit);
+                if (data.geo_block_list)
+                    this.form.get('geo_block_list')?.setValue(data.geo_block_list);
+                else {
+                    this.form.get('geo_block_list')?.setValue([]);
+
+                }
             });
         }
         this.getCategories(null);
         this.getFeeds(null);
     }
 
-    onSave(preview: boolean) {
+    onSave() {
         this.submitted = true;
         if (this.form.status === "INVALID") {
             return;
@@ -170,12 +181,9 @@ export class SensorFormComponent implements OnInit {
     getFeeds(event: any) {
         if (event === null) {
             this.feedService.get(new DefaultPageMeta()).subscribe(data => {
-                this._rbl_feeds = data.data.filter(item => item['type'] === 'network');
+                this._rbl_feeds = data.data.filter(item => item['type'] === 'network_static' || item['type'] === 'network');
             });
-        } else
-            this.feedService.getByName(event.target.value, <PageMeta>{per_page: 100, page: 0}).subscribe(data => {
-                this._rbl_feeds = data.data;
-            });
+        }
     }
 
     onAddBlock(event: any): void {
@@ -199,6 +207,7 @@ export class SensorFormComponent implements OnInit {
                 this.form.value.permit.splice(index, 1);
             }
         }
+        this.form.markAsTouched()
     }
 
     onRemoveBlock(keyword: any): void {
@@ -210,6 +219,22 @@ export class SensorFormComponent implements OnInit {
         }
     }
 
+
+    onAddGeo(event: any): void {
+        let data = event.value as string;
+        if (this.form.value.geo_block_list != null) {
+            this.form.value.geo_block_list.push(data);
+        }
+    }
+
+    onRemoveGeo(keyword: any): void {
+        if (this.form.value.geo_block_list != null) {
+            let index = this.form.value.geo_block_list.indexOf(keyword);
+            if (index >= 0) {
+                this.form.value.geo_block_list.splice(index, 1);
+            }
+        }
+    }
 
     getCategories(event: any) {
         let phases = [3, 5]
@@ -270,14 +295,30 @@ export class SensorFormComponent implements OnInit {
         this.form.get('exclusions')?.reset(exclusions);
     }
 
-    filterActive(arr1: Array<any>, arr2: Array<any> | null | undefined): Array<any> {
+    filterActiveCategory(arr1: Array<any>, arr2: Array<any> | null | undefined): Array<any> {
         if (arr1 && arr2)
             return arr1.filter(itemA => !arr2.some(itemB => itemB == itemA['name']));
         return arr1;
     }
 
+    filterActiveGeo(geo: string[]): string[] {
+        const sensor = this.form.value as Sensor;
+        if (sensor.geo_block_list)
+            return geo.filter(code => !sensor.geo_block_list.includes(code));
+        return geo;
+    }
+
+    filterActiveFeed(feeds: Array<Feed>): Array<Feed> {
+        let arrUsed = [] as Feed[];
+        const sensor = this.form.value as Sensor;
+        arrUsed.push(...sensor.block);
+        arrUsed.push(...sensor.permit);
+        return feeds.filter(a =>
+            !arrUsed.some(b => b['_id'] === a['_id'])
+        );
+    }
 
     compareFn(object1: any, object2: any) {
-        return object1 && object2 && object1._id === object2._id;
+        return object1._id === object2._id;
     }
 }

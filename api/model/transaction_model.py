@@ -52,8 +52,8 @@ class TransactionGeoSchema(Schema):
         unknown = EXCLUDE
 
     addr = fields.String(required=False)
-    range_start = fields.String(required=False)
-    range_end = fields.String(required=False)
+    net_start = fields.String(required=False)
+    net_end = fields.String(required=False)
     ans_number = fields.String(required=False)
     organization = fields.String(required=False)
     country = fields.String(required=False)
@@ -125,6 +125,7 @@ class TransactionSchema(Schema):
     action = fields.String(required=False)
     limit_req_status = fields.String(required=False)
     geo_block = fields.String(required=False)
+    rbl_block = fields.String(required=False)
     user_agent = fields.Nested(TransactionUserAgentSchema)
     source = fields.Nested(TransactionSourceSchema)
     destination = fields.Nested(TransactionDestinationSchema)

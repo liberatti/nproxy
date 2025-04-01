@@ -13,3 +13,8 @@ export interface Feed {
     update_interval: string;
     updated_on: Date;
 }
+
+export interface GeoCountry {
+    code: string;
+    name: string;
+}

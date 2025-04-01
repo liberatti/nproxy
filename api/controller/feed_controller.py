@@ -9,6 +9,8 @@ from api.common_utils import (
 )
 from api.model.config_model import ChangeDao
 from api.model.feed_model import FeedDao
+from api.model.rbl_model import RBLDao
+from api.tools.network_tool import NetworkTool
 
 routes = Blueprint("feed", __name__)
 
@@ -45,6 +47,8 @@ def save():
         feed_dict = dao.json_load(request.json)
         pk = dao.persist(feed_dict)
         feed = dao.get_by_id(pk)
+        if "network_static" in feed_dict["type"]:
+            __rebuild_feed(feed_dict)
         return ResponseBuilder.data(feed, dao.schema)
     except ValidationError as err:
         return ResponseBuilder.error_parse(err)
@@ -63,10 +67,12 @@ def search():
 
 @routes.route("/<feed_id>", methods=["PUT"])
 @has_any_authority(["superuser"])
-def update(feed_id):  # TODO create rbl generation based on feed
+def update(feed_id):
     dao = FeedDao()
     try:
         feed_dict = dao.json_load(request.json)
+        if "network_static" in feed_dict["type"]:
+            __rebuild_feed(feed_dict)
         dao.update_by_id(feed_id, feed_dict)
         return ResponseBuilder.data(feed_dict, dao.schema)
     except ValidationError as err:
@@ -82,3 +88,19 @@ def delete(feed_id):
         return ResponseBuilder.data_removed(feed_id)
     else:
         return ResponseBuilder.error_404()
+
+
+def __rebuild_feed(feed_dict):
+    rbl_dao = RBLDao()
+    rbl_dao.delete_by_provider("feed", feed_dict["_id"])
+    for c in feed_dict["content"]:
+        rbl = dict(NetworkTool.range_from_network(c))
+        rbl.update(
+            {
+                "version": 4,
+                "provider_type": "feed",
+                "provider_id": feed_dict["_id"],
+                "action": feed_dict["action"],
+            }
+        )
+        rbl_dao.persist(rbl)

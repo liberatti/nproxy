@@ -16,7 +16,7 @@ class SensorSchema(Schema):
     exclusions = fields.List(fields.Integer())
     permit = fields.Nested(FeedSchema, many=True)
     block = fields.Nested(FeedSchema, many=True)
-    geo_block_list = fields.String()
+    geo_block_list = fields.List(fields.String())
 
 
 class SensorDao(MongoDAO):

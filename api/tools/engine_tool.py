@@ -25,14 +25,13 @@ from api.model.seclang_model import RuleCategoryDao, SecAction, SecRule
 from api.model.sensor_model import SensorDao
 from api.model.service_model import ServiceDao
 from api.model.upstream_model import UpstreamDao
-from api.tools.feed_tool import SecurityFeedTool
 from api.tools.ruleset_tool import RuleSetParser
 from config import APP_BASE, CLUSTER_ENDPOINT, ENGINE_BASE, NODE_ROLE, NODE_KEY
 
 
 # noinspection PyMethodMayBeStatic
 class EngineManager:
-    __LOG_FORMAT = '{"time":"$time_local","service_id":"$service_id","route_name":"$route_name","upstream_id":"$upstream_id","target_addr":"$upstream_addr","sensor_id":"$sensor_id","uniqueid":"$request_id","host":"$http_host","remote_addr":"$remote_addr","remote_port":$remote_port,"server_port":$server_port,"request_line":"$request","method":"$request_method","status":$status,"bytes_in":$request_length,"bytes_out":$body_bytes_sent,"duration":$request_time,"uht":"$upstream_header_time","urt":"$upstream_response_time","referer":"$http_referer","user_agent":"$http_user_agent","limit_req_status":"$limit_req_status","geo_block":"$geo_block"}'
+    __LOG_FORMAT = '{"time":"$time_local","service_id":"$service_id","route_name":"$route_name","upstream_id":"$upstream_id","target_addr":"$upstream_addr","sensor_id":"$sensor_id","uniqueid":"$request_id","host":"$http_host","remote_addr":"$remote_addr","remote_port":$remote_port,"server_port":$server_port,"request_line":"$request","method":"$request_method","status":$status,"bytes_in":$request_length,"bytes_out":$body_bytes_sent,"duration":$request_time,"uht":"$upstream_header_time","urt":"$upstream_response_time","referer":"$http_referer","user_agent":"$http_user_agent","limit_req_status":"$limit_req_status","geo_block":"$geo_block","rbl_block":"$rbl_block"}'
     CONFIG = None
 
     nginx = f"{ENGINE_BASE}/sbin/nginx"
@@ -169,23 +168,6 @@ class EngineManager:
             with open(f"{APP_BASE}/keystore/{c['name']}.key", "w") as f:
                 f.write(c["private_key"])
 
-    def build_dictionaries(self):
-        for service in self.CONFIG["services"]:
-            if "active" in service and service["active"]:
-                for route in service["routes"]:
-                    if "sensor" in route:
-                        sensor = None
-                        for s in self.CONFIG["sensors"]:
-                            if s["_id"] == route["sensor"]["_id"]:
-                                sensor = copy.deepcopy(s)
-                                break
-                        #                        self._create_whitelist(
-                        #                            f"{service['name']}-{route['name']}", sensor
-                        #                        )
-                        # self._create_blacklist(
-                        #    f"{service['name']}-{route['name']}", sensor
-                        # )
-
     def build_jails(self):
         ruleset_path = f"{APP_BASE}/modsec/conf"
         for s in self.CONFIG["services"]:
@@ -197,7 +179,6 @@ class EngineManager:
                                 file_data.write(c["ipaddr"] + "\n")
 
     def flush_feeds(self):
-        self.build_dictionaries()
         self.build_jails()
         self.build_keystore()
         self.build_crs()
@@ -234,8 +215,8 @@ class EngineManager:
 
         sb.append("http {")
         sb.append(f" lua_shared_dict geoip_cache 10m;")
-        # for s in self.CONFIG["sensors"]:
-        #    sb.append(f" lua_shared_dict {s['name']}_bl_cache 10m;")
+        for s in self.CONFIG["sensors"]:
+            sb.append(f" lua_shared_dict si_{s['_id']}_cache 10m;")
         sb.append(f" client_body_temp_path {APP_BASE}/temp/client_body;")
         sb.append(f" fastcgi_temp_path {APP_BASE}/temp/fastcgi;")
         sb.append(f" proxy_temp_path {APP_BASE}/temp/proxy;")
@@ -317,6 +298,8 @@ class EngineManager:
         sb.append(f"  set $route_name '-';")
         sb.append(f"  set $sensor_id '-';")
         sb.append(f"  set $geo_block '-';")
+        sb.append(f"  set $rbl_block '-';")
+
         sb.append(f"  client_max_body_size {service['body_limit']}m;")
         if "compression" in service and service["compression"]:
             sb.append(self.add_compress())
@@ -480,55 +463,6 @@ class EngineManager:
             return f"  error_log {log_path}/error_log-{log_id}.log;"
         return f"# LOG {log_type} NOT SUPPORTED"
 
-    def __build_whitelist(self, sensor):
-        w_list = []
-        for w in sensor["permit"]:
-            for d in self.CONFIG["dictionaries"]:
-                if d["_id"] == w["_id"]:
-                    for c in d["content"]:
-                        if "/" in c:
-                            w_list.extend(SecurityFeedTool.expand_network(c))
-                        else:
-                            w_list.append(c)
-                    break
-        return set(w_list)
-
-    #
-    #    def _create_whitelist(self, prefix_name, sensor):
-    #        ruleset_path = f"{APP_BASE}/modsec/conf"
-    #        w_list = []
-    #        for w in sensor["permit"]:
-    #            for d in self.CONFIG["dictionaries"]:
-    #                if d["_id"] == w["_id"]:
-    #                    for c in d["content"]:
-    #                        if SecurityFeedTool.is_ip_network(c):
-    #                            w_list.extend(SecurityFeedTool.expand_network(c))
-    #                        else:
-    #                            w_list.append(c)
-    #                    break
-
-    #        r14 = SecRule().load(
-    #            {
-    #                "schema_type": "SecRule",
-    #                "code": 14,
-    #                "phase": 1,
-    #                "action": "pass",
-    #                "logging": "log",
-    #                "logdata": "'%{MATCHED_VAR}'",
-    #                "audit_log": "noauditlog",
-    #                "scope": ["REMOTE_ADDR"],
-    #                "condition": f"@ipMatchFromFile {prefix_name}-wl.data",
-    #                "msg": "'IP is whitelisted'",
-    #                "files": [{"name": f"{prefix_name}-wl.data", "content": w_list}],
-    #                # "ctl": ["ruleEngine=off"],
-    #            }
-    #        )
-    #        try:
-    #            return RuleSetParser.as_seclang(r14, ruleset_path)
-    #        except Exception as e:
-    #            logger.error("Failed to parse rule: %s %s", r14, e)
-    #            stack_trace = traceback.format_exc()
-    #            logger.error(stack_trace)
     def is_net(self, addr):
         return (
             "/32" not in addr
@@ -536,46 +470,6 @@ class EngineManager:
             and "/" in addr
             and "127.0.0.0" not in addr
         )
-
-    def _create_blacklist(self, prefix_name, sensor):
-        ruleset_path = f"{APP_BASE}/modsec/conf"
-        b_set = set()
-        w_list = self.__build_whitelist(sensor)
-
-        for b in sensor["block"]:
-            for d in self.CONFIG["dictionaries"]:
-                if d["_id"] == b["_id"]:
-                    for bad_addr in d["content"]:
-                        if self.is_net(bad_addr):
-                            logger.info(bad_addr)
-                            expanded_ips = SecurityFeedTool.expand_network(bad_addr)
-                            b_set.update(expanded_ips)
-                        else:
-                            b_set.add(bad_addr)
-                    break
-        b_set -= w_list
-
-        r13 = SecRule().load(
-            {
-                "schema_type": "SecRule",
-                "code": 13,
-                "phase": 1,
-                "action": "deny",
-                "logging": "log",
-                "logdata": "'%{MATCHED_VAR}'",
-                "audit_log": "auditlog",
-                "scope": ["REMOTE_ADDR"],
-                "condition": f"@ipMatchFromFile {prefix_name}-bl.data",
-                "msg": "'IP is blacklisted'",
-                "files": [{"name": f"{prefix_name}-bl.data", "content": list(b_set)}],
-            }
-        )
-        try:
-            return RuleSetParser.as_seclang(r13, ruleset_path)
-        except Exception as e:
-            logger.error("Failed to parse rule: %s %s", r13, e)
-            stack_trace = traceback.format_exc()
-            logger.error(stack_trace)
 
     def add_routes(self, service):
         sb = []
@@ -597,14 +491,6 @@ class EngineManager:
                     if s["_id"] == route["sensor"]["_id"]:
                         sensor = copy.deepcopy(s)
                         break
-
-                #                psb.append(
-                #                    self._create_whitelist(f"{service['name']}-{route['name']}", sensor)
-                #                )
-                # psb.append(
-                #    self._create_blacklist(f"{service['name']}-{route['name']}", sensor)
-                # )
-
                 exclusions = []
                 if "exclusions" in sensor:
                     exclusions = sensor["exclusions"]
@@ -623,12 +509,6 @@ class EngineManager:
                 for idx, exclude_sub in enumerate(exclude_sub):
                     exclude_list = " ".join(map(str, exclude_sub))
                     psb.append(f"SecRuleRemoveById {exclude_list}")
-                    # TODO join sensor (security inspection,Log Analyzer (jails),Geo Protection) using lua
-                    # sb.append(f"   set $sensor_name \"{sensor['name']}\";")
-                    # {s['name']}_bl_cache}
-                    # sb.append(
-                    #    f"   set_by_lua_file $sensor_result {APP_BASE}/lualib/share/lua/5.4/nproxy/set_by_sensor.lua;"
-                    # )
 
             with open(policy_file, "w") as f:
                 f.write("\n".join(psb))
@@ -640,18 +520,22 @@ class EngineManager:
                 else:
                     sb.append(f"  location {path}{{")
 
-                if sensor and "geo_block_list" in sensor:
-                    sb.append(
-                        f"   set $geo_api 'http://127.0.0.1:5000/api/cluster/geoip_info';"
-                    )
-                    sb.append(f"   set $geo_key {NODE_KEY};")
-                    sb.append(
-                        f"   set $geo_block_list '{'|'.join(sensor['geo_block_list'])}';"
-                    )
+                if sensor:
+                    sb.append(f"   set $sensor_id '{route['sensor']['_id']}';")
+                    sb.append(f"   set $route_name '{route['name']}';")
 
+                    sb.append(f"   set $api_url 'http://127.0.0.1:5000/api';")
+                    sb.append(f"   set $api_key {NODE_KEY};")
+                    if "geo_block_list" in sensor:
+                        sb.append(
+                            f"   set $geo_block_list '{'|'.join(sensor['geo_block_list'])}';"
+                        )
                     sb.append(
-                        f"   access_by_lua_file  {APP_BASE}/lualib/share/lua/5.4/nproxy/access_by_geo.lua;"
+                        f"   access_by_lua_file  {APP_BASE}/lualib/share/lua/5.4/nproxy/deny_by_sensor.lua;"
                     )
+                else:
+                    sb.append(f"   set $sensor_id '-';")
+
                 if "filters" in route:
                     for f in route["filters"]:
                         if "SSL_CLIENT_AUTH" in f["type"]:
@@ -676,11 +560,6 @@ class EngineManager:
                             )
 
                 sb.append(f"   modsecurity_rules_file {policy_file};")
-                if "sensor" in route:
-                    sb.append(f"   set $sensor_id '{route['sensor']['_id']}';")
-                else:
-                    sb.append(f"   set $sensor_id '-';")
-                sb.append(f"   set $route_name '{route['name']}';")
 
                 if route["type"] in ["redirect"]:
                     sb.append(

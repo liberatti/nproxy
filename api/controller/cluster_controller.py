@@ -165,20 +165,15 @@ def geoip_info(ipaddr):
         return ResponseBuilder.error_500("System not ready")
 
 
-@routes.route("/rbl_status/<ipaddr>/<sensor_id>", methods=["GET"])
+@routes.route("/rbl/blocked/<sensor_id>/<ipaddr>", methods=["GET"])
 @has_integration_key()
 def rbl_status(ipaddr, sensor_id):
     if ClusterTool.CONFIG:
-        rbl_result = None
         for s in ClusterTool.CONFIG["sensors"]:
             if s["_id"] == sensor_id:
-                ip = SecurityFeedTool.expand_ip(ipaddr)
                 model = RBLDao()
-                bl = []
-                for sb in s["block"]:
-                    bl.append(sb["_id"])
-                rbl_result = model.check_by_ip(ip, bl)
-                break
-        return ResponseBuilder.data(rbl_result)
+                rbl_result = model.check_by_ip(ipaddr, s)
+                return ResponseBuilder.data(rbl_result)
+        return ResponseBuilder.error_500("Failed cheking RBL")
     else:
         return ResponseBuilder.error_500("System not ready")

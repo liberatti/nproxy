@@ -14,7 +14,7 @@ from api.model.telemetry_model import TelemetryTrnDao
 from api.model.transaction_model import TransactionDao
 from api.model.upstream_model import UpstreamDao, NodeStatusDao
 from api.tools.engine_tool import EngineManager
-from api.tools.feed_tool import SecurityFeedTool
+from api.tools.network_tool import NetworkTool
 from api.tools.service_watcher import ServiceWatcher
 from config import (
     APP_BASE,
@@ -52,7 +52,7 @@ class ClusterTool:
                         {
                             "scn": manager.CONFIG["scn"],
                             "certificates": manager.CONFIG["certificates"],
-                            "dictionaries": manager.CONFIG["dictionaries"],
+                            "feeds": manager.CONFIG["feeds"],
                             "categories": manager.CONFIG["categories"],
                             "jails": manager.CONFIG["jails"],
                         }
@@ -134,11 +134,9 @@ class ClusterTool:
             target = {"healthy": False}
             try:
                 target.update({"endpoint": f"{t['host']}:{t['port']}"})
-                if not SecurityFeedTool.is_ip_addr(t["host"]):
+                if not NetworkTool.is_host(t["host"]):
                     target.update(
-                        {
-                            "endpoint": f"{SecurityFeedTool.resolve(t['host'])}:{t['port']}"
-                        }
+                        {"endpoint": f"{NetworkTool.hostbyname(t['host'])}:{t['port']}"}
                     )
                 for s in ngx_status["servers"]["server"]:
                     if (
