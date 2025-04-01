@@ -285,7 +285,7 @@ class ClusterTool:
                 restart_result = cls.restart()
             if restart_result["succeed"]:
                 cls.CONFIG = manager.CONFIG
-                logger.error(f"Engine active with scn {cls.CONFIG['scn']}")
+                logger.info(f"Engine active with scn {cls.CONFIG['scn']}")
                 with open(f"{APP_BASE}/run/activated.config", "wb") as f:
                     pickle.dump(cls.CONFIG, f)  # SAVE START_CONFIG
             else:

@@ -59,6 +59,10 @@ if ngx.var.geo_block_list then
             msg(500, "GeoIP blocked" .. "Error fetching GeoIP data: " .. err)
         end
     end
+    if not addr_country then
+        addr_country = "Unknown"
+        ngx.shared.geoip_cache:set(ngx.var.remote_addr, addr_country, 60)
+    end
     ngx.header["X-GeoIP-Country"] = addr_country
     if string.match(ngx.var.geo_block_list, "%f[%a]" .. addr_country .. "%f[%A]") then
         ngx.var.geo_block = "DENY"

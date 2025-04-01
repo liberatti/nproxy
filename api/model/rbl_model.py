@@ -26,11 +26,16 @@ class RBLDao(MongoDAO):
         ip_id = NetworkTool.id(ip)
 
         bl_providers = []
-        for sb in sensor["block"]:
-            bl_providers.append(sb["_id"])
+        if "block" in sensor:
+            for sb in sensor["block"]:
+                if sb:
+                    bl_providers.append(sb["_id"])
+
         per_providers = []
-        for sb in sensor["permit"]:
-            per_providers.append(sb["_id"])
+        if "permit" in sensor:
+            for sb in sensor["permit"]:
+                if sb:
+                    per_providers.append(sb["_id"])
 
         query = [
             {
