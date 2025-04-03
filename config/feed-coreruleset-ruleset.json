@@ -372,6 +372,26 @@
       "phase": 6,
       "file": "RESPONSE-980-CORRELATION.conf",
       "rules": []
+    },
+    {
+      "name": "global",
+      "phase": 6,
+      "rules": [
+        {
+          "schema_type": "SecRule",
+          "scope": [
+            "REQUEST_METHOD"
+          ],
+          "condition": "@rx ^.*$",
+          "code": 99,
+          "order": 1,
+          "phase": 5,
+          "action": "pass",
+          "logging": "nolog",
+          "audit_log": "auditlog",
+          "logdata": "'%{tx.anomaly_score}'"
+        }
+      ]
     }
   ]
 }

@@ -1,5 +1,4 @@
 import json
-import re
 import threading
 import time
 import traceback
@@ -191,15 +190,10 @@ class LogParserTool:
                                     "severity": d["severity"],
                                 }
                             )
-                        if msg["rule_code"] in [
-                            "949110",
-                            "959100",
-                        ]:  # Internal messages
-                            match = re.search(r"Total Score: (\d+)", msg["text"])
-                            record.update({"score": int(match.group(1))})
-                        elif msg["rule_code"] in ["98", "99"]:
-                            record.update({"score": int(msg["text"])})
-                        else:
+                            # Internal messages
+                            if msg["rule_code"] in ["99"]:
+                                record.update({"score": int(d["data"])})
+                        if not msg["rule_code"] in ["949110", "959100", "99"]:
                             messages.append(msg)
                     audit.update({"messages": messages})
                 record.update({"audit": audit})
@@ -221,8 +215,8 @@ class LogParserTool:
                 "service": {"_id": dto["service_id"]},
                 "action": cls.resolve_status_code(dto["status"]),
                 "limit_req_status": dto["limit_req_status"],
-                "geo_block": dto["geo_block"],
-                "rbl_block": dto["rbl_block"],
+                "geoip_status": dto["geoip_status"],
+                "rbl_status": dto["rbl_status"],
                 "user_agent": cls.parse_agent(dto["user_agent"]),
                 "source": {
                     "ip": dto["remote_addr"],

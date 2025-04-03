@@ -93,5 +93,7 @@ export interface TransactionLog {
     sensor: Sensor;
     isExpanded: boolean;
     limit_req_status: string;
+    geoip_status: string;
+    rbl_status: string;
     score: number;
 }

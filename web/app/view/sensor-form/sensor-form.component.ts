@@ -54,7 +54,7 @@ export class SensorFormComponent implements OnInit {
         "US", "CA", "BR", "IN", "GB", "AU", "DE", "FR", "IT", "ES",
         "JP", "CN", "MX", "RU", "ZA", "KR", "NG", "AR", "SE", "NO",
         "DK", "FI", "PL", "CH", "NL", "BE", "SG", "AE", "MY", "TH",
-        "PH", "NG", "KR", "None"
+        "PH", "NG", "KR", "None", "Unknown"
     ];
     ruleDC: string[] = ['code', 'severity', 'msg', 'actionSummary', 'action'];
     ruleDS: MatTableDataSource<SecRule>;

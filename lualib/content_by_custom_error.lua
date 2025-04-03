@@ -10,7 +10,6 @@ elseif ngx.status == 500 then
 end
 
 local resposta = {
-    service_id = ngx.var.service_id or "N/A",
     remote_addr = ngx.var.remote_addr,
     request_id = ngx.var.request_id,
     status = ngx.status,

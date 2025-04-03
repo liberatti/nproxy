@@ -33,10 +33,10 @@ if not addr_action then
 end
 
 if addr_action then
-    ngx.var.rbl_block = "DENY"
+    ngx.var.rbl_status = "REJECTED"
     msg(403, "RBL blocked: " .. ngx.var.remote_addr)
 else
-    ngx.var.rbl_block = "PASS"
+    ngx.var.rbl_status = "PASSED"
 end
 
 if ngx.var.geo_block_list then
@@ -65,10 +65,10 @@ if ngx.var.geo_block_list then
     end
     ngx.header["X-GeoIP-Country"] = addr_country
     if string.match(ngx.var.geo_block_list, "%f[%a]" .. addr_country .. "%f[%A]") then
-        ngx.var.geo_block = "DENY"
+        ngx.var.geoip_status = "REJECTED"
         msg(403, "GeoIP blocked: " .. ngx.var.remote_addr)
     else
-        ngx.var.geo_block = "PASS"
+        ngx.var.geoip_status = "PASSED"
     end
 end
 
