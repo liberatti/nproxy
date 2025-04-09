@@ -263,6 +263,9 @@ export class ServiceFormComponent implements OnInit {
         if (!_data.jail_enable) {
             Reflect.deleteProperty(_data, 'jail');
         }
+        if (!this.hasSslSupport()) {
+            Reflect.deleteProperty(_data, 'certificate');
+        }
 
         if (_data.routes)
             for (let i = 0; i < _data.routes.length; i++) {
