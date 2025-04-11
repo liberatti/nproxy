@@ -1,8 +1,9 @@
-name: release-flow
+name: main-flow
 on:
   push:
     branches:
       - 'v[0-9]*'
+
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -22,9 +23,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Extract version from web/package.json
+        id: get_version
+        run: |
+          VERSION=$(jq -r .version web/package.json)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
           push: true
+          sbom: true
+          provenance: true
+          labels: ${{ steps.docker_meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
-          tags: liberatti/nproxy:${{ github.ref_name }}
+          tags: liberatti/nproxy:${{ env.VERSION }},liberatti/nproxy:latest

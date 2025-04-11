@@ -1,14 +1,14 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from bson import ObjectId
 from marshmallow import EXCLUDE, Schema, fields
 
-from api.common_utils import logger
+from api.common_utils import logger, replace_tz
 from api.model.mongo_base_model import MongoDAO
 from api.model.sensor_model import SensorSchema, SensorDao
 from api.model.service_model import ServiceSchema, ServiceDao
 from api.model.upstream_model import UpstreamSchema, UpstreamDao
-from config import DATETIME_FMT, TZ
+from config import DATETIME_FMT, TZ, TELEMETRY_INTERVAL
 
 
 class TransactionHeaderSchema(Schema):
@@ -52,8 +52,8 @@ class TransactionGeoSchema(Schema):
         unknown = EXCLUDE
 
     addr = fields.String(required=False)
-    range_start = fields.String(required=False)
-    range_end = fields.String(required=False)
+    net_start = fields.String(required=False)
+    net_end = fields.String(required=False)
     ans_number = fields.String(required=False)
     organization = fields.String(required=False)
     country = fields.String(required=False)
@@ -99,7 +99,7 @@ class TransactionAuditMsgSchema(Schema):
     class Meta:
         unknown = EXCLUDE
 
-    rule_code =fields.String(required=False)
+    rule_code = fields.String(required=False)
     text = fields.String(required=False)
     details = fields.Nested(TransactionAuditMsgDetailsSchema, many=True)
 
@@ -124,6 +124,8 @@ class TransactionSchema(Schema):
     server_id = fields.String(required=False)
     action = fields.String(required=False)
     limit_req_status = fields.String(required=False)
+    geoip_status = fields.String(required=False)
+    rbl_status = fields.String(required=False)
     user_agent = fields.Nested(TransactionUserAgentSchema)
     source = fields.Nested(TransactionSourceSchema)
     destination = fields.Nested(TransactionDestinationSchema)
@@ -134,6 +136,7 @@ class TransactionSchema(Schema):
     sensor = fields.Nested(SensorSchema)
     upstream = fields.Nested(UpstreamSchema)
     service = fields.Nested(ServiceSchema)
+    score = fields.Integer(required=False)
 
 
 class DashboardServiceRequests(Schema):
@@ -191,11 +194,7 @@ class TransactionDao(MongoDAO):
                 vo.update({"service_id": ObjectId(service["_id"])})
 
     def purge_before_date(self, purge_date):
-        query = {
-            "logtime": {
-                "$lte": purge_date
-            }
-        }
+        query = {"logtime": {"$lte": purge_date}}
         rs = self.collection.delete_many(query)
         logger.debug(query)
         return rs.deleted_count
@@ -215,14 +214,13 @@ class TransactionDao(MongoDAO):
         )
         return rs.modified_count > 0
 
-    def get_trn_telemetry(self, dt_start):
+    def get_node_bandwidth(self, server_id):
         query = [
             {
                 "$match": {
-                    "logtime": {
-                        "$gte": dt_start
-                    }
-                }
+                    "logtime": {"$gte": (datetime.now(TZ) - timedelta(minutes=1))},
+                    "server_id": server_id,
+                },
             },
             {
                 "$group": {
@@ -232,35 +230,47 @@ class TransactionDao(MongoDAO):
                         "day": {"$dayOfMonth": "$logtime"},
                         "hour": {"$hour": "$logtime"},
                         "minute": {"$minute": "$logtime"},
-                        "server_id": "$server_id",
-                        "service_id": "$service_id",
                     },
-                    "net_recv": { "$sum": "$http.request.bytes" },
-                    "net_send": { "$sum": "$http.response.bytes" },
-                    "req_total": { "$sum": 1 }
+                    "net_recv": {"$sum": "$http.request.bytes"},
+                    "net_send": {"$sum": "$http.response.bytes"},
+                    "req_total": {"$sum": 1},
                 }
-            }
+            },
+            {"$limit": 1},
         ]
         logger.debug(query)
         rs = self.collection.aggregate(query)
-        records=list(rs)
+        return list(rs)
 
-        service_dao = ServiceDao()
-
+    def get_trn_telemetry(self, dt_start):
+        query = [
+            {
+                "$match": {
+                    "logtime": {"$gt": dt_start - timedelta(minutes=TELEMETRY_INTERVAL)}
+                }
+            },
+            {
+                "$group": {
+                    "_id": {"server_id": "$server_id"},
+                    "net_recv": {"$sum": "$http.request.bytes"},
+                    "net_send": {"$sum": "$http.response.bytes"},
+                    "req_total": {"$sum": 1},
+                    "latency": {"$avg": "$http.duration"},
+                }
+            },
+        ]
+        logger.debug(query)
+        rs = self.collection.aggregate(query)
+        records = list(rs)
         if records:
             for s in records:
                 dtj = s.pop("_id")
-                dt = datetime(
-                    dtj["year"], dtj["month"], dtj["day"], dtj["hour"], dtj["minute"]
-                ).astimezone(tz=TZ)
                 s.update(
                     {
-                        "logtime": dt,
-                        "server_id": dtj['server_id'],
-                        "service": service_dao.get_descr_by_id(dtj['service_id'])
+                        "logtime": dt_start,
+                        "server_id": dtj["server_id"],
                     }
                 )
-                logger.debug(s)
         return records
 
     def get_tpm(self, dt_start, dt_end, filters):
@@ -294,30 +304,37 @@ class TransactionDao(MongoDAO):
         rs = self.collection.aggregate(query)
         return list(rs)
 
-    def get_all(
-            self, pagination=None, dt_start=None, dt_end=None, filters=None
-    ):
-        query = [
-            {
-                "$match": {
+    def get_last_n_minutes(self, minutes, sensor_ids=None):
+        dt_start = replace_tz((datetime.now() - timedelta(minutes=minutes)))
+        query = {
+            "logtime": {"$gte": dt_start},
+            "sensor_id": {"$in": [ObjectId(id_str) for id_str in sensor_ids]},
+        }
+        logger.debug(query)
+        rows = list(self.collection.find(query))
+        for e in rows:
+            self._load(e)
+        return rows
 
-                }
-            },
+    def get_all(self, pagination=None, dt_start=None, dt_end=None, filters=None):
+        query = [
+            {"$match": {}},
             {"$sort": {"logtime": -1}},
         ]
         if dt_start and dt_end:
-            query[0]["$match"].update({"logtime": {
-                "$gte": dt_start,
-                "$lte": dt_end
-            }})
+            query[0]["$match"].update({"logtime": {"$gte": dt_start, "$lte": dt_end}})
 
         if pagination:
             query.append(
                 {
                     "$facet": {
                         "data": [
-                            {"$skip": ((pagination['page'] - 1) * pagination['per_page'])},
-                            {"$limit": pagination['per_page']},
+                            {
+                                "$skip": (
+                                    (pagination["page"] - 1) * pagination["per_page"]
+                                )
+                            },
+                            {"$limit": pagination["per_page"]},
                         ],
                         "pagination": [{"$count": "total"}],
                     }

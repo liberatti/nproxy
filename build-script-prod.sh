@@ -6,4 +6,4 @@ export tag=$(jq -r '.version' web/package.json)
 # docker buildx create --append --name build --platform linux/arm64 arm_node
 # ssh -l opc -L 8375:*:2375 -L 27018:*:27017 tooka.com.br
 
-docker buildx build --platform linux/arm64,linux/amd64 . -t liberatti/nproxy:latest -t liberatti/nproxy:$tag --push
+docker buildx build --platform linux/arm64,linux/amd64 . -t liberatti/nproxy:latest -t "liberatti/nproxy:$tag" --push

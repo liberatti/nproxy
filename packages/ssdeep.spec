@@ -50,5 +50,5 @@ PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/sbin"
 ldconfig -n /usr/local/lib
 
 %changelog
-* Sat Aug 19 2023 root
-- 
+* Sat Aug 19 2023 Gustavo Liberatti
+- Create

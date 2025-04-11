@@ -126,18 +126,6 @@ install -d %{buildroot}/opt/nproxy/lualib/resty
 install lib/resty/*.lua %{buildroot}/opt/nproxy/lualib/resty
 install librestysignal.so %{buildroot}/opt/nproxy/lualib/
 
-#cd /root/rpmbuild/BUILD/openresty-1.27.1.1/build/lua-redis-parser-0.13
-#install -d %{buildroot}/opt/nproxy/lualib/redis
-#install parser.so %{buildroot}/opt/nproxy/lualib/redis
-
-#cd /root/rpmbuild/BUILD/openresty-1.27.1.1/build/lua-resty-redis-0.31
-#install -d %{buildroot}/opt/nproxy/lualib/resty
-#install lib/resty/*.lua %{buildroot}/opt/nproxy/lualib/resty
-
-#cd /root/rpmbuild/BUILD/openresty-1.27.1.1/build/lua-resty-mysql-0.27
-#install -d %{buildroot}/opt/nproxy/lualib/resty
-#install lib/resty/*.lua %{buildroot}/opt/nproxy/lualib/resty
-
 cd /root/rpmbuild/BUILD/openresty-1.27.1.1/build/lua-rds-parser-0.06
 install -d %{buildroot}/opt/nproxy/lualib/rds
 install parser.so %{buildroot}/opt/nproxy/lualib/rds
@@ -220,10 +208,6 @@ install -d %{buildroot}/opt/nproxy/lualib/resty/openssl/x509/extension
 install /root/rpmbuild/BUILD/lualib/share/lua/5.1/resty/openssl/*.lua %{buildroot}/opt/nproxy/lualib/resty/openssl
 install /root/rpmbuild/BUILD/lualib/share/lua/5.1/resty/openssl/x509/*.lua %{buildroot}/opt/nproxy/lualib/resty/openssl/x509
 install /root/rpmbuild/BUILD/lualib/share/lua/5.1/resty/openssl/x509/extension/*.lua %{buildroot}/opt/nproxy/lualib/resty/openssl/x509/extension
-
-#luarocks install --tree=/root/rpmbuild/BUILD/lualib lua-cjson
-#install -d %{buildroot}/opt/nproxy/lualib/share/lua/5.1/cjson
-#install /root/rpmbuild/BUILD/lualib/share/lua/5.1/cjson/*.lua %{buildroot}/opt/nproxy/lualib/share/lua/5.1/cjson/
 
 install /root/rpmbuild/BUILD/lualib/lib64/lua/5.1/* %{buildroot}/opt/nproxy/lualib/
 

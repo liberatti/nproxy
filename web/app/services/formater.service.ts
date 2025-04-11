@@ -1,5 +1,5 @@
 import {Injectable, Injector} from '@angular/core';
-import { LocalStorageService } from './localstorage.service';
+import {LocalStorageService} from './localstorage.service';
 import moment from 'moment';
 import {API_DATA_FORMAT} from "../app.config";
 
@@ -13,14 +13,22 @@ interface Abbreviations {
 export class FormaterService {
 
     private config;
-    protected DEFAULT_API_DATA_FORMAT :string;
+    protected DEFAULT_API_DATA_FORMAT: string;
 
-    constructor( private injector: Injector,
-                 private localstorage: LocalStorageService
+    constructor(private injector: Injector,
+                private localstorage: LocalStorageService
     ) {
         this.config = this.localstorage.get("ui_config");
         this.DEFAULT_API_DATA_FORMAT = injector.get(API_DATA_FORMAT)
     }
+
+
+    filterActive(list1: any[], list2: any[] | null | undefined): any[] {
+        return list1.filter(item1 =>
+            !list2?.some(item2 => item2._id === item1._id)
+        );
+    }
+
 
     byte(bytes: number, precision: number = 2): string {
         if (isNaN(parseFloat(String(bytes))) || !isFinite(bytes)) return 'N/A';
@@ -41,9 +49,9 @@ export class FormaterService {
         if (value) {
             if (format === '') {
                 let _conf = this.localstorage.get("ui_config");
-                if (!_conf){
-                    format=this.DEFAULT_API_DATA_FORMAT;
-                }else
+                if (!_conf) {
+                    format = this.DEFAULT_API_DATA_FORMAT;
+                } else
                     format = _conf.display.datetime;
             }
             return moment(value).format(format);

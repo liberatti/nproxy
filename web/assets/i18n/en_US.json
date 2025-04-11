@@ -19,8 +19,8 @@
     "routes": "Routes"
   },
   "content": {
-    "copy": "&copy; 2024 Nproxy. All rights reserved. This solution is built on top of Nginx.",
-    "about": "This is a proxy server built on Nginx with ModSecurity for advanced protection.",
+    "copy": "&copy; 2024 Nproxy. All rights reserved. This solution is built on top of OpenResty.",
+    "about": "This is a proxy server built on OpenResty with ModSecurity for advanced protection.",
     "restore_notice": "Configuration Restore Notice: All existing data will be overwritten by the restored configuration."
   },
   "view": {
@@ -56,11 +56,6 @@
       "title": "Certificate",
       "subtitle": "List of all certificate"
     },
-    "dictionary": {
-      "link": "Dictionary",
-      "title": "Dictionary",
-      "subtitle": "List of all dictionaries"
-    },
     "feed": {
       "link": "Security Feed",
       "title": "Security Feed",
@@ -80,6 +75,11 @@
       "link": "Route Filters",
       "title": "Route Filters",
       "subtitle": "List of all route filters"
+    },
+    "user": {
+      "link": "Users",
+      "title": "Users",
+      "subtitle": "List of all users"
     },
     "config": {
       "link": "Config",

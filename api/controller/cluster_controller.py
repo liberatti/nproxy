@@ -6,32 +6,40 @@ from marshmallow import ValidationError
 
 from api.common_utils import (
     ResponseBuilder,
-    has_any_authority, print_request, has_integration_key, )
-from api.common_utils import socketio
+    has_any_authority,
+    print_request,
+    has_integration_key,
+    socketio,
+)
 from api.model.config_model import ChangeDao, ConfigDao
-from api.model.telemetry_model import TelemetryTrnDao
+from api.model.rbl_model import RBLDao
+from api.model.transaction_model import TransactionDao
 from api.model.upstream_model import NodeStatusDao
 from api.tools.acme_tool import AcmeTool
 from api.tools.cluster_tool import ClusterTool
+from api.tools.feed_tool import SecurityFeedTool
 from api.tools.mongo_tool import MongoTool
-from api.tools.security_feed_tool import SecurityFeedTool
 
 routes = Blueprint("cluster", __name__)
 
 
-@routes.before_request
-def before():
-    if request.method in ["PUT", "POST", "DELETE"]:
+@routes.after_request
+def after(response):
+    if request.method in ["PUT", "POST", "DELETE"] and response.status_code in [
+        200,
+        201,
+    ]:
         dao = ChangeDao()
         if not dao.get_by_name("config"):
             dao.persist({"name": "config"})
-        socketio.emit('tracking_evt')
+        socketio.emit("tracking_evt")
+    return response
 
 
 @routes.route("/backup", methods=["POST"])
 @has_any_authority(["superuser"])
 def restore():
-    if 'zipfile' not in request.files:
+    if "zipfile" not in request.files:
         print_request(request)
         return ResponseBuilder.error_500("Not file uploaded")
 
@@ -60,31 +68,30 @@ def backup():
 # @has_any_authority(["viewer", "superuser"])
 def get_node_status():
     dao = NodeStatusDao()
-    tel_dao = TelemetryTrnDao()
+    trn_dao = TransactionDao()
     result = dao.get_all()
 
     cut_date = datetime.now() - timedelta(minutes=1)
-
     if result["metadata"]["total_elements"] > 0:
-        for n in result['data']:
-            n.update({"online": ('last_check' in n and cut_date < n['last_check'])})
-            if len(n['upstreams']) > 0:
+        for n in result["data"]:
+            n.update({"online": ("last_check" in n and cut_date < n["last_check"])})
+            if len(n["upstreams"]) > 0:
                 n.update({"healthy": True})
-                for u in n['upstreams']:
-                    for s in u['targets']:
-                        if not s['healthy']:
-                            u.update({'healthy': False})
+                for u in n["upstreams"]:
+                    for s in u["targets"]:
+                        if not s["healthy"]:
+                            u.update({"healthy": False})
                             n.update({"healthy": False})
                             break
             else:
                 n.update({"healthy": False})
 
-            telemetry = tel_dao.get_node_bandwidth(n['name'])
+            telemetry = trn_dao.get_node_bandwidth(n["name"])
             if telemetry:
                 n.update(
                     {
-                        "net_recv": telemetry[0]['net_recv'],
-                        "net_send": telemetry[0]['net_send']
+                        "net_recv": telemetry[0]["net_recv"],
+                        "net_send": telemetry[0]["net_send"],
                     }
                 )
             else:
@@ -117,9 +124,9 @@ def save():
         return ResponseBuilder.error_parse(err)
 
 
-@routes.route("/apply_pending", methods=["GET"])
+@routes.route("/changes", methods=["GET"])
 @has_any_authority(["viewer", "superuser"])
-def apply_pending():
+def config_changes():
     dao = ChangeDao()
     result = dao.get_all()
     if result["metadata"]["total_elements"] > 0:
@@ -134,24 +141,39 @@ def apply():
     dao = ChangeDao()
     changes = dao.get_all()
     action_result = ClusterTool.apply_config(reconfigure=True)
-    if action_result['succeed']:
+    if action_result["succeed"]:
         c = AcmeTool.auto_renew()
         if c > 0:
             action_result = ClusterTool.apply_config(reconfigure=True)
-        if action_result['succeed']:
+        if action_result["succeed"]:
             for c in changes["data"]:
                 dao.delete_by_id(c["_id"])
 
-        socketio.emit('tracking_aply')
+        socketio.emit("tracking_aply")
         return ResponseBuilder.data(action_result)
     else:
-        return ResponseBuilder.error_500(action_result['message'])
+        return ResponseBuilder.error_500(action_result["message"])
 
 
-@routes.route("/ipinfo/<ipaddr>", methods=["GET"])
+@routes.route("/geoip_info/<ipaddr>", methods=["GET"])
 @has_integration_key()
-def ipinfo(ipaddr):
+def geoip_info(ipaddr):
     if ClusterTool.CONFIG:
-        return ResponseBuilder.data(SecurityFeedTool.info(ipaddr))
+        info = SecurityFeedTool.geo_info(ipaddr)
+        return ResponseBuilder.data(info)
+    else:
+        return ResponseBuilder.error_500("System not ready")
+
+
+@routes.route("/rbl/blocked/<sensor_id>/<ipaddr>", methods=["GET"])
+@has_integration_key()
+def rbl_status(ipaddr, sensor_id):
+    if ClusterTool.CONFIG:
+        for s in ClusterTool.CONFIG["sensors"]:
+            if s["_id"] == sensor_id:
+                model = RBLDao()
+                rbl_result = model.check_by_ip(ipaddr, s)
+                return ResponseBuilder.data(rbl_result)
+        return ResponseBuilder.error_500("Failed cheking RBL")
     else:
         return ResponseBuilder.error_500("System not ready")

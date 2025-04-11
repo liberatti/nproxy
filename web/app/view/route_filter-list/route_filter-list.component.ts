@@ -25,6 +25,7 @@ import {NotificationService} from 'app/services/notification.service';
 import {MatChipsModule} from '@angular/material/chips';
 import {RouteFilter} from "../../models/service";
 import {RoutefilterService} from "../../services/routefilter.service";
+import {OAuthService} from "../../services/oauth.service";
 
 
 @Component({
@@ -49,7 +50,8 @@ export class RouteFilterListComponent implements OnInit {
     constructor(
         private notificationService: NotificationService,
         private dictService: RoutefilterService,
-        private confirmDialog: MatDialog
+        private confirmDialog: MatDialog,
+        protected oauth: OAuthService,
     ) {
         this.route_filterDS = new MatTableDataSource<RouteFilter>;
     }
@@ -61,7 +63,8 @@ export class RouteFilterListComponent implements OnInit {
     updateGridTable() {
         this.dictService.get(this.route_filterPA).subscribe(data => {
             this.route_filterDS.data = data.data;
-            this.route_filterPA.total_elements = data.metadata.total_elements;
+            if (data.metadata)
+                this.route_filterPA.total_elements = data.metadata.total_elements;
         });
     }
 

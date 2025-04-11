@@ -25,6 +25,7 @@ import {Upstream} from 'app/models/upstream';
 import {UpstreamService} from 'app/services/upstream.service';
 import {NotificationService} from 'app/services/notification.service';
 import {DefaultPageMeta} from 'app/models/shared';
+import {OAuthService} from "../../services/oauth.service";
 
 @Component({
     selector: 'app-upstream-list',
@@ -47,7 +48,8 @@ export class UpstreamListComponent implements OnInit {
     constructor(
         private notificationService: NotificationService,
         private upstreamService: UpstreamService,
-        private confirmDialog: MatDialog
+        private confirmDialog: MatDialog,
+        protected oauth: OAuthService,
     ) {
         this.upstreamDS = new MatTableDataSource<Upstream>;
     }
@@ -76,7 +78,7 @@ export class UpstreamListComponent implements OnInit {
 
     onRemove(dto: Upstream) {
         const dialogRef = this.confirmDialog.open(ConfirmDialogComponent, {
-            data: { title: "Confirm upstream removal ", message: "Remove " + dto.name },
+            data: {title: "Confirm upstream removal ", message: "Remove " + dto.name},
         });
 
         dialogRef.afterClosed().subscribe(result => {

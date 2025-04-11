@@ -1,14 +1,14 @@
 <ng-container>
     <mat-card>
         <mat-card-header>
-            <mat-card-title>{{'view.config.title'|translate}}</mat-card-title>
+            <mat-card-title>{{ 'view.config.title'|translate }}</mat-card-title>
         </mat-card-header>
         <mat-card-content class="mt-2">
             <form [formGroup]="form">
                 <mat-accordion>
                     <mat-expansion-panel>
                         <mat-expansion-panel-header>
-                            <mat-panel-title>General configuration </mat-panel-title>
+                            <mat-panel-title>General configuration</mat-panel-title>
                         </mat-expansion-panel-header>
 
                         <mat-form-field class="full-width">
@@ -22,7 +22,7 @@
                     </mat-expansion-panel>
                     <mat-expansion-panel>
                         <mat-expansion-panel-header>
-                            <mat-panel-title> Certification Authority </mat-panel-title>
+                            <mat-panel-title> Certification Authority</mat-panel-title>
                         </mat-expansion-panel-header>
 
                         <mat-form-field class="full-width">
@@ -37,21 +37,24 @@
                         </mat-form-field>
                     </mat-expansion-panel>
 
-                    <mat-expansion-panel >
+                    <mat-expansion-panel>
                         <mat-expansion-panel-header>
-                            <mat-panel-title>Transaction Policy </mat-panel-title>
+                            <mat-panel-title>Transaction Policy</mat-panel-title>
                         </mat-expansion-panel-header>
                         <mat-card appearance="outlined" formGroupName="archive">
                             <mat-card-header>
                                 <span>Transaction Archiving</span>
-                                <mat-slide-toggle labelPosition="before" style="float: right;" formControlName="enabled">
+                                <mat-slide-toggle labelPosition="before" style="float: right;"
+                                                  formControlName="enabled">
                                     Enable Archiving
                                 </mat-slide-toggle>
                             </mat-card-header>
                             <mat-card-content>
                                 <p>
-                                    The user transaction archiving process involves collecting and storing transaction data from users in an external solution.
-                                    This ensures that important transaction records are preserved securely and efficiently, enabling easy retrieval and compliance
+                                    The user transaction archiving process involves collecting and storing transaction
+                                    data from users in an external solution.
+                                    This ensures that important transaction records are preserved securely and
+                                    efficiently, enabling easy retrieval and compliance
                                     with regulatory requirements.
                                 </p>
                                 <div class="mat-row">
@@ -104,7 +107,8 @@
                         <mat-card appearance="outlined" formGroupName="purge">
                             <mat-card-header>
                                 <span>Purge </span>
-                                <mat-slide-toggle labelPosition="before" style="float: right;" formControlName="enabled">
+                                <mat-slide-toggle labelPosition="before" style="float: right;"
+                                                  formControlName="enabled">
                                     Enable Purge
                                 </mat-slide-toggle>
                             </mat-card-header>
@@ -112,14 +116,17 @@
                                 <p>
                                     The transaction purging process involves the removal of outdated or unnecessary
                                     transaction records from the database to improve system performance,
-                                    reduce storage costs, and ensure long-term scalability. By expiring and deleting old data,
-                                    organizations can maintain an optimized and efficient database that can handle current transactional
+                                    reduce storage costs, and ensure long-term scalability. By expiring and deleting old
+                                    data,
+                                    organizations can maintain an optimized and efficient database that can handle
+                                    current transactional
                                     loads with greater speed and reliability.
                                 </p>
                                 <div class="mat-row">
                                     <div class="mat-col-6">
                                         <small>
-                                            The Maximum Data Age field defines the threshold for how long data should be retained in
+                                            The Maximum Data Age field defines the threshold for how long data should be
+                                            retained in
                                             the system before it is considered outdated or eligible for purging.
                                         </small>
                                     </div>
@@ -134,11 +141,7 @@
                         </mat-card>
 
 
-
-
-
-
-                        <!-- 
+                        <!--
                                    enabled: new FormControl<boolean>(false),
                             type: new FormControl<string>('opensearch'),
                                 -->
@@ -147,8 +150,10 @@
             </form>
         </mat-card-content>
         <mat-card-actions align="end">
-            <button id="save-btn" type="button" (click)="onSubmit()" mat-raised-button color="primary">
-                <mat-icon>save</mat-icon> {{ 'actions.save' | translate }}
+            <button id="save-btn" type="button" (click)="onSubmit()" mat-raised-button color="primary"
+                    *ngIf="oauth.isRole('superuser')">
+                <mat-icon>save</mat-icon>
+                {{ 'actions.save' | translate }}
             </button>
         </mat-card-actions>
     </mat-card>

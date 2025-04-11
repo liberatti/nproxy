@@ -1,6 +1,5 @@
 import {StaticServer} from "./static";
 import {Sensor} from "./sensor";
-import {Jail} from "./jail";
 import {Upstream} from "./upstream";
 import {Certificate} from "./certificate";
 
@@ -58,6 +57,7 @@ export interface RouteFilter {
     ldap_bind_dn: string;
     ldap_bind_password: string;
     ldap_group_dn: string;
+    geo_block_list: string;
 }
 
 export interface Route {
@@ -89,10 +89,7 @@ export interface Service {
     compression: boolean;
     rate_limit: boolean;
     rate_limit_per_sec: number;
-    jail_enable: boolean;
-    jail: Jail;
     sans: string[];
-
     ssl_protocols: Array<string>;
     certificate: Certificate;
     ssl_client_ca: string;

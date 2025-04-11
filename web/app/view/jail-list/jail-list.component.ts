@@ -25,6 +25,7 @@ import {DefaultPageMeta} from 'app/models/shared';
 import {NotificationService} from 'app/services/notification.service';
 import {JailService} from 'app/services/jail.service';
 import {MatChipsModule} from '@angular/material/chips';
+import {OAuthService} from "../../services/oauth.service";
 
 
 @Component({
@@ -49,7 +50,8 @@ export class JailListComponent implements OnInit {
     constructor(
         private notificationService: NotificationService,
         private dictService: JailService,
-        private confirmDialog: MatDialog
+        private confirmDialog: MatDialog,
+        protected oauth: OAuthService,
     ) {
         this.jailDS = new MatTableDataSource<Jail>;
     }

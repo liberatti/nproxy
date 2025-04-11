@@ -2,8 +2,6 @@ import {Routes} from '@angular/router';
 import {AdminLayoutComponent} from './layouts/admin-layout/admin-layout.component';
 import {SignInComponent} from './view/sign-in/sign-in.component';
 import {PublicLayoutComponent} from './layouts/public-layout/public-layout.component';
-import {DictionaryListComponent} from './view/dictionary-list/dictionary-list.component';
-import {DictionaryFormComponent} from './view/dictionary-form/dictionary-form.component';
 import {CertificateListComponent} from './view/certificate-list/certificate-list.component';
 import {CertificateFormComponent} from './view/certificate-form/certificate-form.component';
 import {UpstreamListComponent} from './view/upstream-list/upstream-list.component';
@@ -22,6 +20,8 @@ import {FeedFormComponent} from "./view/feed-form/feed-form.component";
 import {DashboardHomeComponent} from "./view/dashboard-home/dashboard-home.component";
 import {RouteFilterListComponent} from "./view/route_filter-list/route_filter-list.component";
 import {RouteFilterFormComponent} from "./view/route_filter-form/route_filter-form.component";
+import {UserListComponent} from "./view/user-list/user-list.component";
+import {UserFormComponent} from "./view/user-form/user-form.component";
 
 export const routes: Routes = [
     {
@@ -48,21 +48,21 @@ export const routes: Routes = [
         ]
     },
     {
-        path: 'dict',
-        component: AdminLayoutComponent,
-        children: [
-            {path: '', component: DictionaryListComponent},
-            {path: 'add', component: DictionaryFormComponent},
-            {path: 'edit/:id', component: DictionaryFormComponent},
-        ]
-    },
-    {
         path: 'feed',
         component: AdminLayoutComponent,
         children: [
             {path: '', component: FeedListComponent},
             {path: 'add', component: FeedFormComponent},
             {path: 'edit/:id', component: FeedFormComponent},
+        ]
+    },
+    {
+        path: 'users',
+        component: AdminLayoutComponent,
+        children: [
+            {path: '', component: UserListComponent},
+            {path: 'add', component: UserFormComponent},
+            {path: 'edit/:id', component: UserFormComponent},
         ]
     },
     {

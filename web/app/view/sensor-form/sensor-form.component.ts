@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router, RouterModule} from '@angular/router';
-import {AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatTableDataSource, MatTableModule} from '@angular/material/table';
 import {CommonModule} from '@angular/common';
 import {MatMomentDateModule} from '@angular/material-moment-adapter';
@@ -19,24 +19,27 @@ import {MatSidenavModule} from '@angular/material/sidenav';
 import {MatSortModule} from '@angular/material/sort';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {TranslateModule} from '@ngx-translate/core';
-import {Dictionary} from 'app/models/dictionary';
 import {RuleCategory, SecRule, Sensor} from 'app/models/sensor';
-import {DictionaryService} from 'app/services/dictionary.service';
 import {RuleCategoryService, SensorService} from 'app/services/sensor.service';
 import {NotificationService} from 'app/services/notification.service';
-import {DefaultPageMeta, PageMeta} from 'app/models/shared';
+import {DefaultPageMeta} from 'app/models/shared';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatGridListModule} from '@angular/material/grid-list';
+import {OAuthService} from "../../services/oauth.service";
+import {Feed} from "../../models/feed";
+import {FeedService} from "../../services/feed.service";
+import {Jail} from "../../models/jail";
+import {JailService} from "../../services/jail.service";
+import {FormaterService} from "../../services/formater.service";
 
 @Component({
     selector: 'app-sensor-form',
     standalone: true,
     imports: [RouterModule, CommonModule,
         ReactiveFormsModule, TranslateModule,
-        MatMomentDateModule,
-        MatSidenavModule, MatIconModule, MatButtonModule,
+        MatMomentDateModule, MatSidenavModule, MatIconModule, MatButtonModule,
         MatListModule, MatCardModule, MatProgressBarModule, MatInputModule,
         MatTableModule, MatMenuModule, MatSortModule, MatTabsModule, MatGridListModule,
         MatTooltipModule, MatSelectModule, MatPaginatorModule, MatSlideToggleModule, MatCheckboxModule,
@@ -49,16 +52,20 @@ export class SensorFormComponent implements OnInit {
     submitted = false;
     breakpoint: number;
     _categories: RuleCategory[] = [];
-    _dictionaries: Dictionary[] = [];
-    _rules: SecRule[] = [];
+    _rbl_feeds: Feed[] = [];
+    _jails: Jail[]
+    _geo_countries: string[] = [
+        "US", "CA", "BR", "IN", "GB", "AU", "DE", "FR", "IT", "ES",
+        "JP", "CN", "MX", "RU", "ZA", "KR", "NG", "AR", "SE", "NO",
+        "DK", "FI", "PL", "CH", "NL", "BE", "SG", "AE", "MY", "TH",
+        "PH", "NG", "KR", "None", "Unknown"
+    ];
     ruleDC: string[] = ['code', 'severity', 'msg', 'actionSummary', 'action'];
     ruleDS: MatTableDataSource<SecRule>;
     ruleCH: number[] = [];
-
-    catForm = new FormGroup({
-        category: new FormControl<RuleCategory>(<RuleCategory>{})
+    jailForm = new FormGroup({
+        jail: new FormControl<Jail>({} as Jail)
     });
-
     form = new FormGroup({
         _id: new FormControl<string>(''),
         name: new FormControl<string>('', {
@@ -70,8 +77,10 @@ export class SensorFormComponent implements OnInit {
         description: new FormControl<string>(''),
         categories: new FormControl<Array<string>>([]),
         exclusions: new FormControl<Array<number>>([]),
-        block: new FormControl<Array<Dictionary>>([]),
-        permit: new FormControl<Array<Dictionary>>([]),
+        block: new FormControl<Array<Feed>>([]),
+        permit: new FormControl<Array<Feed>>([]),
+        geo_block_list: new FormControl<string[]>([]),
+        jails: new FormControl<Array<Jail>>([]),
     });
 
     constructor(
@@ -80,15 +89,22 @@ export class SensorFormComponent implements OnInit {
         private router: Router,
         private sensorService: SensorService,
         private ruleCatService: RuleCategoryService,
-        private daoService: DictionaryService
+        private feedService: FeedService,
+        protected oauth: OAuthService,
+        private jailService: JailService,
+        protected formater: FormaterService
     ) {
         this.breakpoint = (window.innerWidth <= 600) ? 2 : 8;
         this.isAddMode = false;
         this.ruleDS = new MatTableDataSource<SecRule>;
+        this._jails = [];
     }
 
     ngOnInit(): void {
         this.isAddMode = !this.route.snapshot.params['id'];
+        if (!this.oauth.isRole('superuser')) {
+            this.form.disable();
+        }
         if (!this.isAddMode) {
             this.sensorService.getById(this.route.snapshot.params['id']).subscribe(data => {
                 this.form.get('_id')?.setValue(data._id);
@@ -98,13 +114,42 @@ export class SensorFormComponent implements OnInit {
                 this.form.get('exclusions')?.setValue(data.exclusions);
                 this.form.get('block')?.setValue(data.block);
                 this.form.get('permit')?.setValue(data.permit);
+                if (data.geo_block_list)
+                    this.form.get('geo_block_list')?.setValue(data.geo_block_list);
+                else {
+                    this.form.get('geo_block_list')?.setValue([]);
+                }
+                if (data.jails)
+                    this.form.get('jails')?.setValue(data.jails);
+                else {
+                    this.form.get('jails')?.setValue([]);
+                }
             });
         }
-        this.getDictionaries(null);
+        this.jailService.get().subscribe((data) => {
+            this._jails = data.data;
+        });
         this.getCategories(null);
+        this.getFeeds(null);
     }
 
-    onSave(preview: boolean) {
+    onAddJail(k: any): void {
+        let j = this.jailForm.value.jail as Jail;
+        if (this.form.value.jails)
+            this.form.value.jails?.push(j);
+        this.jailForm.reset();
+    }
+
+    onRemoveJail(keyword: any): void {
+        if (this.form.value.jails != null) {
+            let index = this.form.value.jails.indexOf(keyword);
+            if (index >= 0) {
+                this.form.value.jails.splice(index, 1);
+            }
+        }
+    }
+
+    onSave() {
         this.submitted = true;
         if (this.form.status === "INVALID") {
             return;
@@ -114,12 +159,12 @@ export class SensorFormComponent implements OnInit {
 
         if (formData.block) {
             for (let i = 0; i < formData.block.length; i++) {
-                formData.block[i] = {_id: formData.block[i]._id} as Dictionary;
+                formData.block[i] = {_id: formData.block[i]._id} as Feed;
             }
         }
         if (formData.permit) {
             for (let i = 0; i < formData.permit.length; i++) {
-                formData.permit[i] = {_id: formData.permit[i]._id} as Dictionary;
+                formData.permit[i] = {_id: formData.permit[i]._id} as Feed;
             }
         }
         if (this.isAddMode) {
@@ -166,74 +211,62 @@ export class SensorFormComponent implements OnInit {
         }
     }
 
-    getDictionaries(event: any) {
+    getFeeds(event: any) {
         if (event === null) {
-            this.daoService.get(new DefaultPageMeta()).subscribe(data => {
-                this._dictionaries = data.data;
+            this.feedService.get(new DefaultPageMeta()).subscribe(data => {
+                this._rbl_feeds = data.data.filter(item => item['type'] === 'network_static' || item['type'] === 'network');
             });
-        } else
-            this.daoService.getByName(event.target.value, <PageMeta>{per_page: 100, page: 0}).subscribe(data => {
-                this._dictionaries = data.data;
-            });
+        }
     }
 
-    onAddDictionary(event: any, type: string): void {
-        let data = event.value as Dictionary;
-        switch (type) {
-            case "p": {
-                if (this.form.value.permit != null) {
-                    this.form.value.permit.push(data);
-                }
-                break;
+    onAddBlock(event: any): void {
+        let data = event.value as Feed;
+        if (this.form.value.block != null) {
+            this.form.value.block.push(data);
+        }
+    }
+
+    onAddPermit(event: any): void {
+        let data = event.value as Feed;
+        if (this.form.value.permit != null) {
+            this.form.value.permit.push(data);
+        }
+    }
+
+    onRemovePermit(keyword: any): void {
+        if (this.form.value.permit != null) {
+            let index = this.form.value.permit.indexOf(keyword);
+            if (index >= 0) {
+                this.form.value.permit.splice(index, 1);
             }
-            case "b": {
-                if (this.form.value.block != null) {
-                    this.form.value.block.push(data);
-                }
-                break;
+        }
+        this.form.markAsTouched()
+    }
+
+    onRemoveBlock(keyword: any): void {
+        if (this.form.value.block != null) {
+            let index = this.form.value.block.indexOf(keyword);
+            if (index >= 0) {
+                this.form.value.block.splice(index, 1);
             }
         }
     }
 
-    onRemoveDictionary(keyword: any, type: string): void {
-        switch (type) {
-            case "p": {
-                if (this.form.value.permit != null) {
-                    let index = this.form.value.permit.indexOf(keyword);
-                    if (index >= 0) {
-                        this.form.value.permit.splice(index, 1);
-                    }
-                }
-                break;
-            }
-            case "b": {
-                if (this.form.value.block != null) {
-                    let index = this.form.value.block.indexOf(keyword);
-                    if (index >= 0) {
-                        this.form.value.block.splice(index, 1);
-                    }
-                }
-                break;
-            }
+
+    onAddGeo(event: any): void {
+        let data = event.value as string;
+        if (this.form.value.geo_block_list != null) {
+            this.form.value.geo_block_list.push(data);
         }
-
-
     }
 
-    filterActiveDictionary(dic: Array<Dictionary>): Array<Dictionary> {
-        const formData = this.form.value as Sensor;
-        formData.block = formData.block || [];
-        formData.permit = formData.permit || [];
-        const selectedDictionaries: Array<Dictionary> = [];
-        for (let index = 0; index < dic.length; index++) {
-            const c = dic[index];
-            const isInBlock = formData.block.some(item => item._id === c._id);
-            const isInPermit = formData.permit.some(item => item._id === c._id);
-            if (!isInBlock && !isInPermit) {
-                selectedDictionaries.push(c);
+    onRemoveGeo(keyword: any): void {
+        if (this.form.value.geo_block_list != null) {
+            let index = this.form.value.geo_block_list.indexOf(keyword);
+            if (index >= 0) {
+                this.form.value.geo_block_list.splice(index, 1);
             }
         }
-        return selectedDictionaries;
     }
 
     getCategories(event: any) {
@@ -255,18 +288,6 @@ export class SensorFormComponent implements OnInit {
         }
     }
 
-    filterActive(cat: Array<RuleCategory>): Array<RuleCategory> {
-        const formData = this.form.value as Sensor;
-        let cats = [];
-        for (let index = 0; index < cat.length; index++) {
-            const c = cat[index];
-            if (!formData.categories.includes(c.name)) {
-                cats.push(c);
-            }
-        }
-        return cats;
-    }
-
     onSelectCategory(cat_name: string): void {
         this.ruleCatService.getBySingleName(cat_name).subscribe(data => {
             let rules = [];
@@ -275,7 +296,6 @@ export class SensorFormComponent implements OnInit {
                 if (rule.action === "block") {
                     rules.push(rule);
                 }
-
             }
             this.ruleDS.data = rules;
             this.ruleCH = [];
@@ -308,15 +328,30 @@ export class SensorFormComponent implements OnInit {
         this.form.get('exclusions')?.reset(exclusions);
     }
 
-    onRuleGroupCheck() {
-        this.form.get('exclusions')?.reset([]);
+    filterActiveCategory(arr1: Array<any>, arr2: Array<any> | null | undefined): Array<any> {
+        if (arr1 && arr2)
+            return arr1.filter(itemA => !arr2.some(itemB => itemB == itemA['name']));
+        return arr1;
+    }
+
+    filterActiveGeo(geo: string[]): string[] {
+        const sensor = this.form.value as Sensor;
+        if (sensor.geo_block_list)
+            return geo.filter(code => !sensor.geo_block_list.includes(code));
+        return geo;
+    }
+
+    filterActiveFeed(feeds: Array<Feed>): Array<Feed> {
+        let arrUsed = [] as Feed[];
+        const sensor = this.form.value as Sensor;
+        arrUsed.push(...sensor.block);
+        arrUsed.push(...sensor.permit);
+        return feeds.filter(a =>
+            !arrUsed.some(b => b['_id'] === a['_id'])
+        );
     }
 
     compareFn(object1: any, object2: any) {
-        return object1 && object2 && object1._id === object2._id;
-    }
-
-    get f(): { [key: string]: AbstractControl } {
-        return this.form.controls;
+        return object1._id === object2._id;
     }
 }

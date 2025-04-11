@@ -3,21 +3,21 @@ local cjson = require "cjson"
 local base64 = require "base64"
 
 local function authenticate(username, password)
-    local ld, err = ldap.open(ngx.var.ldap_host)
+    local ld, err_o = ldap.open(ngx.var.ldap_host)
     if not ld then
-        return nil, "Failed to connect to LDAP server: " .. err
+        return nil, "Failed to connect to LDAP server: " .. err_o
     end
 
-    local res, err = ld:bind_simple(ngx.var.ldap_bind_dn, ngx.var.ldap_bind_password)
+    local res, err_b = ld:bind_simple(ngx.var.ldap_bind_dn, ngx.var.ldap_bind_password)
     if not res then
-        return nil, "LDAP bind failed: " .. err
+        return nil, "LDAP bind failed: " .. err_b
     end
 
     local filter = string.format("(&(objectClass=user)(sAMAccountName=%s))", username)
     for dn, attribs in ld:search { base = ngx.var.ldap_base_dn, filter = filter, scope = "subtree" } do
-        local res, err = ld:bind_simple(dn, password)
-        if not res then
-            return nil, "Login Failed: " .. err
+        local res_b, err_s = ld:bind_simple(dn, password)
+        if not res_b then
+            return nil, "Login Failed: " .. err_s
         end
 
         if ngx.var.ldap_group_dn then
@@ -62,10 +62,9 @@ if not username then
     ngx.exit(401)
 end
 
-local success, err = authenticate(username, password)
+local success, err_l = authenticate(username, password)
 if not success then
-    ngx.log(ngx.DEBUG, "LDAP Filter failed: " .. err)
     ngx.status = 403
-    ngx.say(cjson.encode({ error = "Access forbidden", message = err }))
+    ngx.say(cjson.encode({ error = "Access forbidden", message = err_l }))
     ngx.exit(403)
 end

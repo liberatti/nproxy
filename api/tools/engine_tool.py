@@ -5,27 +5,33 @@ import pickle
 import time
 import traceback
 from collections import OrderedDict
-from datetime import datetime
 
 import requests
 from marshmallow import ValidationError
 
-from api.common_utils import hash_dict, logger, server_id, unpack_zip, clear_directory, replace_tz
+from api.common_utils import (
+    hash_dict,
+    logger,
+    get_server_id,
+    unpack_zip,
+    clear_directory,
+    API_HEADERS,
+)
 from api.model.certificate_model import CertificateDao
 from api.model.config_model import ConfigDao
-from api.model.dictionary_model import DictionaryDao
+from api.model.feed_model import FeedDao
 from api.model.jail_model import JailDao
-from api.model.seclang_model import RuleCategoryDao
-from api.model.seclang_model import SecAction, SecRule
+from api.model.seclang_model import RuleCategoryDao, SecAction, SecRule
 from api.model.sensor_model import SensorDao
 from api.model.service_model import ServiceDao
 from api.model.upstream_model import UpstreamDao
 from api.tools.ruleset_tool import RuleSetParser
-from config import APP_BASE, CLUSTER_ENDPOINT, ENGINE_BASE, NODE_KEY, NODE_ROLE
+from config import APP_BASE, CLUSTER_ENDPOINT, ENGINE_BASE, NODE_ROLE, NODE_KEY
 
 
+# noinspection PyMethodMayBeStatic
 class EngineManager:
-    __LOG_FORMAT = '{"time":"$time_local","service_id":"$service_id","route_name":"$route_name","upstream_id":"$upstream_id","target_addr":"$upstream_addr","sensor_id":"$sensor_id","uniqueid":"$request_id","host":"$http_host","remote_addr":"$remote_addr","remote_port":$remote_port,"server_port":$server_port,"request_line":"$request","method":"$request_method","status":$status,"bytes_in":$request_length,"bytes_out":$body_bytes_sent,"duration":$request_time,"uht":"$upstream_header_time","urt":"$upstream_response_time","referer":"$http_referer","user_agent":"$http_user_agent","limit_req_status":"$limit_req_status"}'
+    __LOG_FORMAT = '{"time":"$time_local","service_id":"$service_id","route_name":"$route_name","upstream_id":"$upstream_id","target_addr":"$upstream_addr","sensor_id":"$sensor_id","uniqueid":"$request_id","host":"$http_host","remote_addr":"$remote_addr","remote_port":$remote_port,"server_port":$server_port,"request_line":"$request","method":"$request_method","status":$status,"bytes_in":$request_length,"bytes_out":$body_bytes_sent,"duration":$request_time,"uht":"$upstream_header_time","urt":"$upstream_response_time","referer":"$http_referer","user_agent":"$http_user_agent","limit_req_status":"$limit_req_status","geoip_status":"$geoip_status","rbl_status":"$rbl_status"}'
     CONFIG = None
 
     nginx = f"{ENGINE_BASE}/sbin/nginx"
@@ -35,45 +41,45 @@ class EngineManager:
         self._init_dir()
         if "main" in NODE_ROLE:
             if startup:  # READ START_CONFIG
-                with open(f"{APP_BASE}/run/activated.config", 'rb') as f:
+                with open(f"{APP_BASE}/run/activated.config", "rb") as f:
                     self.CONFIG = pickle.load(f)
             else:
                 upstream_page = UpstreamDao().get_all()
                 certificate_page = CertificateDao().get_all()
-                dictionary_page = DictionaryDao().get_all()
+                feed_page = FeedDao().get_all()
                 service_page = ServiceDao().get_all()
                 sensor_page = SensorDao().get_all()
                 rule_page = RuleCategoryDao().get_all()
                 jail_page = JailDao().get_all()
                 conf = ConfigDao().get_active()
                 self.CONFIG = {
-                    "applied": False,
                     "config": conf,
                     "certificates": certificate_page["data"],
                     "upstreams": upstream_page["data"],
-                    "dictionaries": dictionary_page["data"],
+                    "feeds": feed_page["data"],
                     "services": service_page["data"],
                     "sensors": sensor_page["data"],
                     "categories": rule_page["data"],
-                    "jails": jail_page["data"]
+                    "jails": jail_page["data"],
                 }
                 self.CONFIG.update({"scn": hash_dict(self.CONFIG)})
         else:
-            _h = {"x-cluster-key": NODE_KEY}
             attempt = 0
             while attempt < self.max_retries:
                 try:
                     response = requests.get(
-                        f"{CLUSTER_ENDPOINT}/api/replica/scn", headers=_h
+                        f"{CLUSTER_ENDPOINT}/api/replica/scn", headers=API_HEADERS
                     )
                     if response.status_code in [200, 201]:
                         check = response.json()
-                        if self.CONFIG and check['scn'] in self.CONFIG["scn"]:
-                            logger.info(f"Keep {self.CONFIG['scn']} for {NODE_ROLE} {CLUSTER_ENDPOINT}")
+                        if self.CONFIG and check["scn"] in self.CONFIG["scn"]:
+                            logger.info(
+                                f"Keep {self.CONFIG['scn']} for {NODE_ROLE} {CLUSTER_ENDPOINT}"
+                            )
                         else:
                             response = requests.get(
                                 f"{CLUSTER_ENDPOINT}/api/replica/config",
-                                headers=_h,
+                                headers=API_HEADERS,
                             )
                             self.CONFIG = response.json()
                             break
@@ -91,29 +97,38 @@ class EngineManager:
     def _init_dir(self):
         os.makedirs(f"{APP_BASE}/run", exist_ok=True)
         os.makedirs(f"{APP_BASE}/temp/", exist_ok=True)
-        for f in ['client_body', 'fastcgi_temp', 'proxy_temp', 'scgi_temp', 'uwsgi_temp']:
+        for f in [
+            "client_body",
+            "fastcgi_temp",
+            "proxy_temp",
+            "scgi_temp",
+            "uwsgi_temp",
+        ]:
             os.makedirs(f"{APP_BASE}/temp/{f}", exist_ok=True)
 
     def _get_config_rules(self):
-        APP_CONFIG_DIR = os.path.join(APP_BASE, "admin/config")
-        for arq_name in os.listdir(APP_CONFIG_DIR):
+        app_config_dir = os.path.join(APP_BASE, "admin/config")
+        for arq_name in os.listdir(app_config_dir):
             try:
                 if (
-                        os.path.isfile(os.path.join(APP_CONFIG_DIR, arq_name))
-                        and arq_name.startswith('feed-')
-                        and arq_name.endswith('.json')
+                    os.path.isfile(os.path.join(app_config_dir, arq_name))
+                    and arq_name.startswith("feed-")
+                    and arq_name.endswith(".json")
                 ):
-                    with open(os.path.join(APP_CONFIG_DIR, arq_name), "r", encoding="utf-8") as arq:
+                    with open(
+                        os.path.join(app_config_dir, arq_name), "r", encoding="utf-8"
+                    ) as arq:
                         feed = json.load(arq)
-                        if "ruleset" in feed['type']:
+                        if "ruleset" in feed["type"]:
                             rules = []
-                            for r in feed['config']:
+                            for r in feed["config"]:
                                 rules.append(RuleSetParser.load(r))
                             return rules
             except ValidationError as e:
                 logger.error(f"Failed to load {arq_name}: %s", e.messages)
                 logger.error(traceback.format_exc())
 
+    # noinspection PyListCreation
     def _build_config_policy(self):
         pcre = 10000
         sb = []
@@ -153,41 +168,7 @@ class EngineManager:
             with open(f"{APP_BASE}/keystore/{c['name']}.key", "w") as f:
                 f.write(c["private_key"])
 
-    def build_dictionaries(self):
-        ruleset_path = f"{APP_BASE}/modsec/conf"
-        dt = replace_tz(datetime.now())
-        jail_dao = JailDao()
-        for jail in self.CONFIG["jails"]:
-            with open(f"{ruleset_path}/{jail['name']}-jl.data", "w") as file_data:
-                jc = []
-                for c in jail["content"]:
-                    if (
-                            "banned_on" in c
-                            and replace_tz(c["banned_on"]) < dt
-                    ):
-                        file_data.write("\n".join(c["ipaddr"]))
-                        jc.append(c)
-            jail.update({"content": jc})
-            jail_dao.update_by_id(jail["_id"], jail)
-
-        for service in self.CONFIG["services"]:
-            if "active" in service and service["active"]:
-                for route in service["routes"]:
-                    if "sensor" in route:
-                        sensor = None
-                        for s in self.CONFIG["sensors"]:
-                            if s["_id"] == route["sensor"]["_id"]:
-                                sensor = copy.deepcopy(s)
-                                break
-                        self._create_whitelist(
-                            f"{service['name']}-{route['name']}", sensor
-                        )
-                        self._create_blacklist(
-                            f"{service['name']}-{route['name']}", sensor
-                        )
-
     def flush_feeds(self):
-        self.build_dictionaries()
         self.build_keystore()
         self.build_crs()
 
@@ -208,6 +189,7 @@ class EngineManager:
         with open(policy_file, "w") as f:
             f.write("\n".join(sensor_sb))
 
+    # noinspection PyListCreation
     def flush_config(self):
         self.flush_feeds()
         clear_directory(f"{APP_BASE}/html")
@@ -222,7 +204,8 @@ class EngineManager:
 
         sb.append("http {")
         sb.append(f" lua_shared_dict geoip_cache 10m;")
-
+        for s in self.CONFIG["sensors"]:
+            sb.append(f" lua_shared_dict si_{s['_id']}_cache 10m;")
         sb.append(f" client_body_temp_path {APP_BASE}/temp/client_body;")
         sb.append(f" fastcgi_temp_path {APP_BASE}/temp/fastcgi;")
         sb.append(f" proxy_temp_path {APP_BASE}/temp/proxy;")
@@ -235,7 +218,7 @@ class EngineManager:
         sb.append(" sendfile on;")
         sb.append(" keepalive_timeout 65;")
         sb.append(f" log_format logger-json escape=json '{self.__LOG_FORMAT}';")
-
+        sb.append(f"large_client_header_buffers 4 32k;")
         self._build_config_policy()
 
         sb.append(
@@ -303,6 +286,8 @@ class EngineManager:
         sb.append(f"  set $upstream_id '-';")
         sb.append(f"  set $route_name '-';")
         sb.append(f"  set $sensor_id '-';")
+        sb.append(f"  set $geoip_status '-';")
+        sb.append(f"  set $rbl_status '-';")
 
         sb.append(f"  client_max_body_size {service['body_limit']}m;")
         if "compression" in service and service["compression"]:
@@ -315,19 +300,20 @@ class EngineManager:
             sb.append(f"  proxy_request_buffering on;")
             sb.append(f"  proxy_buffers 8 {service['buffer']}k;")
             sb.append(f"  proxy_buffer_size {service['buffer']}k;")
+            sb.append(f"  proxy_busy_buffers_size {service['buffer']}k;")
         else:
             sb.append(f"  proxy_request_buffering off;")
             sb.append(f"  proxy_buffering off;")
 
-        sb.append(f"  add_header X-Request-Id $request_id;")
-        sb.append(f"  add_header X-Server-Id {server_id()};")
+        sb.append(f"  add_header X-Request-Id $request_id always;")
+        sb.append(f"  add_header X-Server-Id {get_server_id()} always;")
         for header in service["headers"]:
             sb.append(f"  add_header {header['name']} '{header['content']}';")
 
         sb.append(self.add_service_sensor(service))
 
-        if 'ssl_protocols' in service:
-            ssl_protocols = " ".join(service['ssl_protocols'])
+        if "ssl_protocols" in service:
+            ssl_protocols = " ".join(service["ssl_protocols"])
             sb.append(f"  ssl_protocols {ssl_protocols};")
             sb.append(f"  ssl_prefer_server_ciphers on;")
             sb.append(f"  ssl_session_cache shared:SSL:10m;")
@@ -340,7 +326,10 @@ class EngineManager:
                 f"  ssl_certificate_key {APP_BASE}/keystore/{service['certificate']['name']}.key;"
             )
 
-            if 'certificate' in service and service['certificate']["provider"] == "MANAGED":
+            if (
+                "certificate" in service
+                and service["certificate"]["provider"] == "MANAGED"
+            ):
                 sb.append("  location ^~ /.well-known/acme-challenge/ {")
                 sb.append('   default_type "text/plain";')
                 sb.append("   proxy_redirect off;")
@@ -352,7 +341,7 @@ class EngineManager:
                 sb.append(f"   ';")
                 sb.append("  }")
 
-            if service['ssl_client_auth']:
+            if service["ssl_client_auth"]:
                 sccf = f"{APP_BASE}/keystore/{service['name']}.clienssl"
                 sb.append(f"  ssl_verify_client optional;")
                 sb.append(f"  ssl_verify_depth 5;")
@@ -363,7 +352,7 @@ class EngineManager:
                 sb.append(f"  proxy_set_header X-SSL-Server-Name $ssl_server_name;")
 
                 with open(sccf, "w") as f:
-                    f.write(service['ssl_client_ca'])
+                    f.write(service["ssl_client_ca"])
 
         sb.append(f"  proxy_ssl_server_name on;")
         sb.append(f"  proxy_ssl_verify off;")
@@ -382,14 +371,17 @@ class EngineManager:
         sb.append(self.add_log(service["name"], "ACCESS_LOG"))
         sb.append(self.add_log(service["name"], "ERROR_LOG"))
 
-        sb.append('  error_page 404 403 500 502 503 504 /custom_error;')
+        sb.append("  error_page 404 403 500 502 503 504 /custom_error;")
         sb.append("  location = /custom_error {")
         sb.append("   internal;")
-        sb.append(f"   content_by_lua_file {APP_BASE}/lualib/share/lua/5.4/nproxy/content_by_custom_error.lua;")
+        sb.append(
+            f"   content_by_lua_file {APP_BASE}/lualib/share/lua/5.4/nproxy/content_by_custom_error.lua;"
+        )
         sb.append("  }")
         sb.append(" }")
         return "\n".join(sb)
 
+    # noinspection PyListCreation
     def add_service_sensor(self, service):
         ruleset_path = f"{APP_BASE}/modsec/conf"
         config_policy = f"{ruleset_path}/config.policy"
@@ -426,107 +418,36 @@ class EngineManager:
             }
         )
         sensor_sb.append(RuleSetParser.as_seclang(r10, ruleset_path))
-
-        if "jail_enable" in service and service["jail_enable"]:
-            jr = SecRule().load(
-                {
-                    "schema_type": "SecRule",
-                    "code": 15,
-                    "phase": 1,
-                    "action": "deny",
-                    "logging": "log",
-                    "logdata": "'%{MATCHED_VAR}'",
-                    "audit_log": "auditlog",
-                    "scope": ["REMOTE_ADDR"],
-                    "condition": f"@ipMatchFromFile {service['jail']['name']}-jl.data",
-                    "msg": "'IP is Jailed'"
-                }
-            )
-            sensor_sb.append(RuleSetParser.as_seclang(jr))
-
         with open(policy_file, "w") as f:
             f.write("\n".join(sensor_sb))
 
         sb.append(f"  modsecurity_rules_file {ruleset_path}/crs.policy;")
         return "\n".join(sb)
 
-    def add_log(self, log_id, type):
+    def add_log(self, log_id, log_type):
         log_path = f"{APP_BASE}/logs"
-        if type == "AUDIT":
+        if log_type == "AUDIT":
             return f"SecAuditLog {log_path}/audit_log-{log_id}.log"
-        if type == "ACCESS_LOG":
+        if log_type == "ACCESS_LOG":
             return f"  access_log {log_path}/access_log-{log_id}.log logger-json;"
-        if type == "ERROR_LOG":
+        if log_type == "ERROR_LOG":
             return f"  error_log {log_path}/error_log-{log_id}.log;"
-        return f"# LOG {type} NOT SUPPORTED"
+        return f"# LOG {log_type} NOT SUPPORTED"
 
-    def _create_whitelist(self, prefix_name, sensor):
-        ruleset_path = f"{APP_BASE}/modsec/conf"
-        w_list = []
-        for w in sensor["permit"]:
-            for d in self.CONFIG["dictionaries"]:
-                if d['_id'] == w['_id']:
-                    w_list.extend(d["content"])
-                    break
-
-        r14 = SecRule().load(
-            {
-                "schema_type": "SecRule",
-                "code": 14,
-                "phase": 1,
-                "action": "pass",
-                "logging": "log",
-                "logdata": "'%{MATCHED_VAR}'",
-                "audit_log": "noauditlog",
-                "scope": ["REMOTE_ADDR"],
-                "condition": f"@ipMatchFromFile {prefix_name}-wl.data",
-                "msg": "'IP is whitelisted'",
-                "files": [{"name": f"{prefix_name}-wl.data", "content": w_list}],
-                # "ctl": ["ruleEngine=off"],
-            }
+    def is_net(self, addr):
+        return (
+            "/32" not in addr
+            and "0.0.0.0" not in addr
+            and "/" in addr
+            and "127.0.0.0" not in addr
         )
-        try:
-            return RuleSetParser.as_seclang(r14, ruleset_path)
-        except Exception as e:
-            logger.error("Failed to parse rule: %s %s", r14, e)
-            stack_trace = traceback.format_exc()
-            logger.error(stack_trace)
-
-    def _create_blacklist(self, prefix_name, sensor):
-        ruleset_path = f"{APP_BASE}/modsec/conf"
-        b_list = []
-        for b in sensor["block"]:
-            for d in self.CONFIG["dictionaries"]:
-                if d['_id'] == b['_id']:
-                    b_list.extend(d["content"])
-                    break
-
-        r13 = SecRule().load(
-            {
-                "schema_type": "SecRule",
-                "code": 13,
-                "phase": 1,
-                "action": "deny",
-                "logging": "log",
-                "logdata": "'%{MATCHED_VAR}'",
-                "audit_log": "auditlog",
-                "scope": ["REMOTE_ADDR"],
-                "condition": f"@ipMatchFromFile {prefix_name}-bl.data",
-                "msg": "'IP is blacklisted'",
-                "files": [{"name": f"{prefix_name}-bl.data", "content": b_list}],
-            }
-        )
-        try:
-            return RuleSetParser.as_seclang(r13, ruleset_path)
-        except Exception as e:
-            logger.error("Failed to parse rule: %s %s", r13, e)
-            stack_trace = traceback.format_exc()
-            logger.error(stack_trace)
 
     def add_routes(self, service):
         sb = []
         for route in service["routes"]:
-            policy_file = f"{APP_BASE}/modsec/conf/route-{service['name']}-{route['name']}.policy"
+            policy_file = (
+                f"{APP_BASE}/modsec/conf/route-{service['name']}-{route['name']}.policy"
+            )
             psb = []
             if route["monitor_only"]:
                 psb.append("SecRuleEngine DetectionOnly")
@@ -535,20 +456,12 @@ class EngineManager:
 
             if route["type"] in ["upstream", "static"]:
                 psb.append(self.add_route_methods(route))
+            sensor = None
             if "sensor" in route:
-                sensor = None
                 for s in self.CONFIG["sensors"]:
                     if s["_id"] == route["sensor"]["_id"]:
                         sensor = copy.deepcopy(s)
                         break
-
-                psb.append(
-                    self._create_whitelist(f"{service['name']}-{route['name']}", sensor)
-                )
-                psb.append(
-                    self._create_blacklist(f"{service['name']}-{route['name']}", sensor)
-                )
-
                 exclusions = []
                 if "exclusions" in sensor:
                     exclusions = sensor["exclusions"]
@@ -562,7 +475,7 @@ class EngineManager:
                             if rule["schema_type"] == "SecRule":
                                 exclusions.append(rule["code"])
                 exclude_sub = [
-                    exclusions[i: i + 50] for i in range(0, len(exclusions), 50)
+                    exclusions[i : i + 50] for i in range(0, len(exclusions), 50)
                 ]
                 for idx, exclude_sub in enumerate(exclude_sub):
                     exclude_list = " ".join(map(str, exclude_sub))
@@ -578,31 +491,46 @@ class EngineManager:
                 else:
                     sb.append(f"  location {path}{{")
 
-                if "filters" in route:
-                    for f in route['filters']:
-                        if 'GEOIP_BLOCK' in f['type']:
-                            sb.append(f"   set $block_countries \"{f['countries']}\";")
+                if sensor:
+                    sb.append(f"   set $sensor_id '{route['sensor']['_id']}';")
+                    sb.append(f"   set $route_name '{route['name']}';")
 
-                        if 'SSL_CLIENT_AUTH' in f['type']:
-                            sb.append("   if ($ssl_client_verify != SUCCESS) {return 403;}")
+                    sb.append(f"   set $api_url 'http://127.0.0.1:5000/api';")
+                    sb.append(f"   set $api_key {NODE_KEY};")
+                    if "geo_block_list" in sensor:
+                        sb.append(
+                            f"   set $geo_block_list '{'|'.join(sensor['geo_block_list'])}';"
+                        )
+                    sb.append(
+                        f"   access_by_lua_file  {APP_BASE}/lualib/share/lua/5.4/nproxy/deny_by_sensor.lua;"
+                    )
+                else:
+                    sb.append(f"   set $sensor_id '-';")
+
+                if "filters" in route:
+                    for f in route["filters"]:
+                        if "SSL_CLIENT_AUTH" in f["type"]:
+                            sb.append(
+                                "   if ($ssl_client_verify != SUCCESS) {return 403;}"
+                            )
                             # sb.append("   if ($ssl_client_i_dn !~ '" +f['ssl_dn_regex']+"')  {return 403;}")
-                        if 'LDAP_BASIC_AUTH' in f['type']:
+
+                        if "LDAP_BASIC_AUTH" in f["type"]:
                             sb.append(f"   set $ldap_host \"{f['ldap_host']}\";")
                             sb.append(f"   set $ldap_base_dn \"{f['ldap_base_dn']}\";")
                             sb.append(f"   set $ldap_bind_dn \"{f['ldap_bind_dn']}\";")
-                            sb.append(f"   set $ldap_bind_password \"{f['ldap_bind_password']}\";")
-                            if 'ldap_group_dn' in f:
-                                sb.append(f"   set $ldap_group_dn \"{f['ldap_group_dn']}\";")
-
                             sb.append(
-                                f"   access_by_lua_file {APP_BASE}/lualib/share/lua/5.4/nproxy/access_by_ldap_auth.lua;")
+                                f"   set $ldap_bind_password \"{f['ldap_bind_password']}\";"
+                            )
+                            if "ldap_group_dn" in f:
+                                sb.append(
+                                    f"   set $ldap_group_dn \"{f['ldap_group_dn']}\";"
+                                )
+                            sb.append(
+                                f"   access_by_lua_file {APP_BASE}/lualib/share/lua/5.4/nproxy/access_by_ldap_auth.lua;"
+                            )
 
                 sb.append(f"   modsecurity_rules_file {policy_file};")
-                if "sensor" in route:
-                    sb.append(f"   set $sensor_id '{route['sensor']['_id']}';")
-                else:
-                    sb.append(f"   set $sensor_id '-';")
-                sb.append(f"   set $route_name '{route['name']}';")
 
                 if route["type"] in ["redirect"]:
                     sb.append(
@@ -617,17 +545,15 @@ class EngineManager:
                             break
                     sb.append(f"   set $upstream_id '{route['upstream']['_id']}';")
 
-                    if "static" in ups['type']:
-                        logger.info(f"Deploy static {len(ups['content'])} to {APP_BASE}/html/{ups['name']}")
-                        unpack_zip(ups['content'], f"{APP_BASE}/html/{ups['name']}")
-                        sb.append(
-                            f"   root {APP_BASE}/html/{ups['name']};"
+                    if "static" in ups["type"]:
+                        logger.debug(
+                            f"Deploy static {len(ups['content'])} to {APP_BASE}/html/{ups['name']}"
                         )
-                        sb.append(
-                            f"   index {ups['index']};"
-                        )
+                        unpack_zip(ups["content"], f"{APP_BASE}/html/{ups['name']}")
+                        sb.append(f"   root {APP_BASE}/html/{ups['name']};")
+                        sb.append(f"   index {ups['index']};")
 
-                    if "backend" in ups['type']:
+                    if "backend" in ups["type"]:
                         sb.append(f"   proxy_http_version 1.1;")
                         sb.append(f"   proxy_intercept_errors on;")
                         sb.append(
@@ -641,17 +567,23 @@ class EngineManager:
 
                         # websocket
                         sb.append(f"   proxy_set_header Upgrade $http_upgrade;")
-                        sb.append(f"   proxy_set_header Connection $connection_upgrade;")
+                        sb.append(
+                            f"   proxy_set_header Connection $connection_upgrade;"
+                        )
 
                         if "http" in ups["protocol"].lower():
                             if is_regex:
                                 sb.append(f"   proxy_redirect off;")
-                                sb.append(f"   proxy_pass {ups['protocol'].lower()}://{ups['name']}/$1$is_args$args;")
+                                sb.append(
+                                    f"   proxy_pass {ups['protocol'].lower()}://{ups['name']}/$1$is_args$args;"
+                                )
                             else:
                                 sb.append(
                                     f"   proxy_redirect {ups['protocol'].lower()}://{ups['name']}/ {ups['protocol'].lower()}://$host/;"
                                 )
-                                sb.append(f"   proxy_pass {ups['protocol'].lower()}://{ups['name']};")
+                                sb.append(
+                                    f"   proxy_pass {ups['protocol'].lower()}://{ups['name']};"
+                                )
 
                         elif "cgi" in ups["protocol"].lower():
                             sb.append(f"   include fastcgi.conf;")
@@ -675,7 +607,7 @@ class EngineManager:
     def add_mapping(self):
         h_list = []
         for service in self.CONFIG["services"]:
-            if 'sans' in service:
+            if "sans" in service:
                 h_list.extend(service["sans"])
 
         sb = [" map $host $missing_domain_match {"]
@@ -741,6 +673,7 @@ class EngineManager:
         """
         return "\n".join(sb)
 
+    # noinspection PyListCreation
     def add_monitor(self):
         sb = []
         sb.append(" server {")
@@ -750,6 +683,8 @@ class EngineManager:
         sb.append(f"  set $upstream_id '-';")
         sb.append(f"  set $route_name '-';")
         sb.append(f"  set $sensor_id '-';")
+        sb.append(f"  set $geoip_status '-';")
+        sb.append(f"  set $rbl_status '-';")
 
         sb.append("  access_log off;error_log /dev/null crit;")
         sb.append("  location /ngx_up_status {")

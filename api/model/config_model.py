@@ -23,6 +23,7 @@ class ConfigSchema(Schema):
         unknown = EXCLUDE
 
     _id = fields.String()
+    cluster_id = fields.String()
     maxmind_key = fields.String()
     ca_certificate = fields.String()
     ca_private = fields.String()

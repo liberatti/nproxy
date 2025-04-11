@@ -10,14 +10,15 @@ from api.model.upstream_model import UpstreamDao
 
 routes = Blueprint("upstream", __name__)
 
-
-@routes.before_request
-def before():
-    if request.method in ["PUT", "POST", "DELETE"]:
+@routes.after_request
+def after(response):
+    if request.method in ["PUT", "POST", "DELETE", "PATCH"] and  response.status_code in [200,201]:
         dao = ChangeDao()
         if not dao.get_by_name("upstream"):
             dao.persist({"name": "upstream"})
         socketio.emit('tracking_evt')
+    return response
+
 
 @routes.route("", methods=["GET"])
 @has_any_authority(["viewer", "superuser"])

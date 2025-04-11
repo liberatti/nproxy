@@ -1,28 +1,29 @@
-import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-import { FormGroup, Validators, FormControl, AbstractControl, ReactiveFormsModule } from '@angular/forms';
-import { Feed } from 'app/models/feed';
-import { NotificationService } from 'app/services/notification.service';
-import { FeedService } from 'app/services/feed.service';
-import { CommonModule } from '@angular/common';
-import { MatMomentDateModule } from '@angular/material-moment-adapter';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatListModule } from '@angular/material/list';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatPaginatorModule } from '@angular/material/paginator';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatSortModule } from '@angular/material/sort';
-import { MatTableModule } from '@angular/material/table';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { TranslateModule } from '@ngx-translate/core';
-import { MatChipsModule } from '@angular/material/chips';
+import {Component, OnInit} from '@angular/core';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
+import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {Feed} from 'app/models/feed';
+import {NotificationService} from 'app/services/notification.service';
+import {FeedService} from 'app/services/feed.service';
+import {CommonModule} from '@angular/common';
+import {MatMomentDateModule} from '@angular/material-moment-adapter';
+import {MatButtonModule} from '@angular/material/button';
+import {MatCardModule} from '@angular/material/card';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatIconModule} from '@angular/material/icon';
+import {MatInputModule} from '@angular/material/input';
+import {MatListModule} from '@angular/material/list';
+import {MatMenuModule} from '@angular/material/menu';
+import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatProgressBarModule} from '@angular/material/progress-bar';
+import {MatSelectModule} from '@angular/material/select';
+import {MatSidenavModule} from '@angular/material/sidenav';
+import {MatSortModule} from '@angular/material/sort';
+import {MatTableModule} from '@angular/material/table';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {TranslateModule} from '@ngx-translate/core';
+import {MatChipsModule} from '@angular/material/chips';
 import {ScrollingModule} from "@angular/cdk/scrolling";
+import {OAuthService} from "../../services/oauth.service";
 
 @Component({
     selector: 'app-feed-form',
@@ -32,7 +33,7 @@ import {ScrollingModule} from "@angular/cdk/scrolling";
         MatMomentDateModule,
         MatSidenavModule, MatIconModule, MatButtonModule,
         MatListModule, MatCardModule, MatProgressBarModule, MatInputModule,
-        MatTableModule, MatMenuModule, MatSortModule,ScrollingModule, MatListModule,
+        MatTableModule, MatMenuModule, MatSortModule, ScrollingModule, MatListModule,
         MatTooltipModule, MatSelectModule, MatPaginatorModule,
         MatFormFieldModule, MatChipsModule],
     templateUrl: './feed-form.component.html'
@@ -40,7 +41,17 @@ import {ScrollingModule} from "@angular/cdk/scrolling";
 export class FeedFormComponent implements OnInit {
     isAddMode: boolean;
     submitted = false;
-    _supportedTypes = ['network','ruleset'];
+    _supportedTypes = ['network', 'ruleset', 'network_static'];
+    _actions = ['deny', 'pass']
+    ipv4Pattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/(3[0-2]|[12]?[0-9])$/;
+    ipv6Pattern = /([0-9a-fA-F]{1,4}:){7}([0-9a-fA-F]{1,4})\/(12[0-8]|1[0-1][0-9]|[1-9]?[0-9])/;
+
+    contentForm = new FormGroup({
+        text: new FormControl<string>('', [
+            Validators.required,
+            this.ipv4OrIpv6Validator.bind(this)
+        ])
+    });
 
     form = new FormGroup({
         _id: new FormControl<string>(''),
@@ -50,6 +61,7 @@ export class FeedFormComponent implements OnInit {
                 Validators.minLength(4),
             ],
         }),
+        action: new FormControl<string>('deny'),
         content: new FormControl<Array<string>>([]),
         scope: new FormControl<string>('user'),
         type: new FormControl<string>(''),
@@ -67,20 +79,26 @@ export class FeedFormComponent implements OnInit {
         private route: ActivatedRoute,
         private router: Router,
         private feedService: FeedService,
+        protected oauth: OAuthService
     ) {
         this.isAddMode = false;
     }
 
     ngOnInit(): void {
         this.isAddMode = !this.route.snapshot.params['id'];
+        if (!this.oauth.isRole('superuser')) {
+            this.form.disable();
+        }
         if (!this.isAddMode) {
             this.feedService.getById(this.route.snapshot.params['id']).subscribe(data => {
                 this.form.get('_id')?.setValue(data._id);
                 this.form.get('name')?.setValue(data.name);
+                this.form.get('action')?.setValue(data.action);
                 this.form.get('scope')?.setValue(data.scope);
                 this.form.get('type')?.setValue(data.type);
                 this.form.get('description')?.setValue(data.description);
                 this.form.get('slug')?.setValue(data.slug);
+                this.form.get('content')?.setValue(data.content);
                 this.form.get('provider')?.setValue(data.provider);
                 this.form.get('version')?.setValue(data.version);
                 this.form.get('source')?.setValue(data.source);
@@ -88,6 +106,7 @@ export class FeedFormComponent implements OnInit {
             });
         }
     }
+
     onSubmit() {
         this.submitted = true;
         if (this.form.status === "INVALID") {
@@ -111,10 +130,41 @@ export class FeedFormComponent implements OnInit {
         }
     }
 
-    get f(): { [key: string]: AbstractControl } {
-        return this.form.controls;
+    onAddContent(): void {
+        if (this.contentForm.status === "INVALID") {
+            return;
+        }
+        const formData = this.contentForm.value.text as string;
+        if (this.form.value.content != null) {
+            this.form.value.content?.push(formData);
+        }
+        this.contentForm.reset();
     }
-    compareFn(object1: any, object2: any) {
-        return object1 && object2 && object1._id === object2._id;
+
+    onRemoveContent(keyword: any): void {
+        if (this.form.value.content != null) {
+            let index = this.form.value.content.indexOf(keyword);
+            if (index >= 0) {
+                this.form.value.content.splice(index, 1);
+            }
+        }
+    }
+
+    ipv4OrIpv6Validator(control: FormControl): { [key: string]: boolean } | null {
+        const value = control.value;
+
+        // Verifica se o valor corresponde ao padrão IPv4 ou IPv6
+        const isIpv4 = this.ipv4Pattern.test(value);
+        const isIpv6 = this.ipv6Pattern.test(value);
+
+        if (isIpv4 || isIpv6) {
+            return null; // válido
+        }
+
+        return {'invalidAddress': true}; // inválido
+    }
+
+    trackByFn(index: number, item: any): number {
+        return index;
     }
 }

@@ -8,14 +8,14 @@ from api.model.service_model import ServiceDao
 
 routes = Blueprint("service", __name__)
 
-@routes.before_request
-def before():
-    if request.method in ["PUT", "POST", "DELETE", "PATCH"]:
+@routes.after_request
+def after(response):
+    if request.method in ["PUT", "POST", "DELETE", "PATCH"] and  response.status_code in [200,201]:
         dao = ChangeDao()
         if not dao.get_by_name("service"):
             dao.persist({"name": "service"})
         socketio.emit('tracking_evt')
-
+    return response
 
 @routes.route("/<service_id>", methods=["GET"])
 @has_any_authority(["viewer", "superuser"])

@@ -60,11 +60,17 @@
             <ng-container matColumnDef="logtime">
                 <mat-header-cell *matHeaderCellDef> Time</mat-header-cell>
                 <mat-cell *matCellDef="let element">
-                    <div class="trn-action {{element.action|lowercase}}"></div>
-                    {{ element.logtime |dateFormat }}
+                    <p class="no-wrap">{{ element.logtime |dateFormat }}</p>
                 </mat-cell>
             </ng-container>
-
+            <ng-container matColumnDef="score">
+                <mat-header-cell *matHeaderCellDef> Score</mat-header-cell>
+                <mat-cell *matCellDef="let element">
+                    <mat-chip class="score_chip {{element.action|lowercase}}">
+                        {{ element.score }}
+                    </mat-chip>
+                </mat-cell>
+            </ng-container>
             <ng-container matColumnDef="source">
                 <mat-header-cell *matHeaderCellDef> Source</mat-header-cell>
                 <mat-cell *matCellDef="let element" style="text-wrap: nowrap;">
@@ -95,9 +101,8 @@
                 <mat-header-cell *matHeaderCellDef> Request</mat-header-cell>
                 <mat-cell *matCellDef="let element">
                     @if (element.http) {
-                        {{ element.http.request_line }}
+                        <p class="text-wrap">{{ element.http.request_line }}</p>
                     }
-
                 </mat-cell>
             </ng-container>
             <ng-container matColumnDef="duration">
@@ -124,6 +129,12 @@
                                         </small>
                                         <small class="exp-panel-token">
                                             <b>Dos:</b> {{ element.limit_req_status }}
+                                        </small>
+                                        <small class="exp-panel-token">
+                                            <b>GeoIP:</b> {{ element.geoip_status }}
+                                        </small>
+                                        <small class="exp-panel-token">
+                                            <b>RBL:</b> {{ element.rbl_status }}
                                         </small>
 
                                     }

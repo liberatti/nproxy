@@ -1,5 +1,6 @@
 from marshmallow import EXCLUDE, Schema, fields
 
+from api.common_utils import logger
 from api.model.mongo_base_model import MongoDAO
 
 
@@ -20,18 +21,16 @@ class UserSchema(Schema):
     email = fields.String()
     password = fields.String()
     locale = fields.String(required=False)
+    role = fields.String()
 
 
 class UserDao(MongoDAO):
     def __init__(self):
         super().__init__("users", schema=UserSchema)
 
-    def _load(self, vo):
-        super()._load(vo)
-        if vo:
-            vo.pop("password")
-
     def get_by_email(self, email):
-        v = self.collection.find_one({"email": email})
+        query={"email": email}
+        logger.debug(query)
+        v = self.collection.find_one(query)
         super()._load(v)
         return v

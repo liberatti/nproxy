@@ -17,7 +17,7 @@ export class ClusterService extends APIService<any, string> {
     }
 
     getPending(): Observable<Page> {
-        return this.httpClient.get<Page>(this.END_POINT + "/apply_pending");
+        return this.httpClient.get<Page>(this.END_POINT + "/changes");
     }
 
     applyConfig(): Observable<any> {

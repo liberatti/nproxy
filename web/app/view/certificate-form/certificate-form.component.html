@@ -15,7 +15,8 @@
                         <mat-form-field>
                             <mat-label>Certificate Provider</mat-label>
                             <mat-select id="provider" formControlName="provider">
-                                <mat-option id="p-{{i}}" *ngFor="let ut of _supportedProviders;  let i = index"
+                                <mat-option id="p-{{i}}"
+                                            *ngFor="let ut of _supportedProviders;  let i = index"
                                             [value]="ut">
                                     {{ ut }}
                                 </mat-option>
@@ -46,7 +47,9 @@
             </div>
         </mat-card-content>
         <mat-card-actions align="end">
-            <button type="button" (click)="onSubmit()" mat-raised-button color="primary">
+            <button type="button" mat-raised-button color="primary"
+                    *ngIf="form.enabled"
+                    (click)="onSubmit()">
                 <mat-icon>save</mat-icon>
                 {{ 'actions.save'|translate }}
             </button>

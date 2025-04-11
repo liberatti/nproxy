@@ -34,10 +34,8 @@ import {
     ServiceRouteFormDialogComponent
 } from 'app/components/service-route-form-dialog/service-route-form-dialog.component';
 import {Upstream} from 'app/models/upstream';
-import {Jail} from 'app/models/jail';
 import {Sensor} from 'app/models/sensor';
 import {Bind, Header, Route, Service} from 'app/models/service';
-import {JailService} from 'app/services/jail.service';
 import {ServiceService} from 'app/services/service.service';
 import {NotificationService} from 'app/services/notification.service';
 import {DragDropModule} from '@angular/cdk/drag-drop';
@@ -45,6 +43,7 @@ import {MatExpansionModule} from '@angular/material/expansion';
 import {Certificate} from "../../models/certificate";
 import {CertificateService} from "../../services/certificate.service";
 import {MatStepperModule} from "@angular/material/stepper";
+import {OAuthService} from "../../services/oauth.service";
 
 @Component({
     selector: 'app-service-form',
@@ -62,7 +61,6 @@ import {MatStepperModule} from "@angular/material/stepper";
 export class ServiceFormComponent implements OnInit {
 
     _certificates: Certificate[];
-    _jails: Jail[]
 
     isAddMode: boolean;
     bindingDS: MatTableDataSource<Bind>;
@@ -98,12 +96,10 @@ export class ServiceFormComponent implements OnInit {
         inspect_level: new FormControl<number>(3),
         inbound_score: new FormControl<number>(15),
         outbound_score: new FormControl<number>(15),
-        buffer: new FormControl<number>(1),
+        buffer: new FormControl<number>(256),
         compression: new FormControl<boolean>(true),
         rate_limit: new FormControl<boolean>(true),
         rate_limit_per_sec: new FormControl<number>(256),
-        jail_enable: new FormControl<boolean>(false),
-        jail: new FormControl<Jail>({} as Jail),
         sans: new FormControl<Array<string>>([]),
         ssl_protocols: new FormControl<Array<string>>(['TLSv1', 'TLSv1.1', 'TLSv1.2', 'TLSv1.3']),
         certificate: new FormControl<Certificate>({} as Certificate),
@@ -118,14 +114,13 @@ export class ServiceFormComponent implements OnInit {
         private confirmDialog: MatDialog,
         private notificationService: NotificationService,
         private serviceService: ServiceService,
-        private jailService: JailService,
-        private certificateService: CertificateService
+        private certificateService: CertificateService,
+        protected oauth: OAuthService,
     ) {
         this.headerDS = new MatTableDataSource<Header>;
         this.routeDS = new MatTableDataSource<Route>;
         this.bindingDS = new MatTableDataSource<Bind>;
         this.isAddMode = false;
-        this._jails = [];
         this._certificates = [];
     }
 
@@ -154,9 +149,6 @@ export class ServiceFormComponent implements OnInit {
                     this.form.get('compression')?.setValue(data.compression);
                     this.form.get('rate_limit')?.setValue(data.rate_limit);
                     this.form.get('rate_limit_per_sec')?.setValue(data.rate_limit_per_sec);
-                    this.form.get('jail_enable')?.setValue(data.jail_enable);
-                    this.form.get('jail')?.setValue(data.jail);
-
                     this.form.get('certificate')?.setValue(data.certificate);
                     if (data.ssl_protocols)
                         this.form.get('ssl_protocols')?.setValue(data.ssl_protocols);
@@ -175,9 +167,7 @@ export class ServiceFormComponent implements OnInit {
             this.form.get('headers')?.setValue(basicHeaders);
             this.headerDS.data = basicHeaders;
         }
-        this.jailService.get().subscribe((data) => {
-            this._jails = data.data;
-        });
+
         this.certificateService.get().subscribe(data => {
             this._certificates = data.data;
         });
@@ -194,7 +184,6 @@ export class ServiceFormComponent implements OnInit {
     }
 
     onAddCN(): void {
-        console.log(this.sansForm.value.cn);
         const formData = this.sansForm.value.cn as string;
         this.form.value.sans?.push(formData);
         this.sansForm.reset();
@@ -234,8 +223,9 @@ export class ServiceFormComponent implements OnInit {
         if (_data._id === "") {
             Reflect.deleteProperty(_data, '_id');
         }
-        if (!_data.jail_enable) {
-            Reflect.deleteProperty(_data, 'jail');
+
+        if (!this.hasSslSupport()) {
+            Reflect.deleteProperty(_data, 'certificate');
         }
 
         if (_data.routes)
@@ -375,12 +365,13 @@ export class ServiceFormComponent implements OnInit {
     }
 
     onRemoveProto(keyword: any): void {
-        if (this.form.value.ssl_protocols != null) {
-            let index = this.form.value.ssl_protocols.indexOf(keyword);
-            if (index >= 0) {
-                this.form.value.ssl_protocols.splice(index, 1);
+        if (this.form.enabled)
+            if (this.form.value.ssl_protocols != null) {
+                let index = this.form.value.ssl_protocols.indexOf(keyword);
+                if (index >= 0) {
+                    this.form.value.ssl_protocols.splice(index, 1);
+                }
             }
-        }
     }
 
     compareFn(object1: any, object2: any) {

@@ -2,8 +2,16 @@ from bson import ObjectId
 from marshmallow import EXCLUDE, Schema, fields
 
 from api.common_utils import logger
-from api.model.dictionary_model import DataObjectSchema
 from api.model.mongo_base_model import MongoDAO
+
+
+class DataObjectSchema(Schema):
+    class Meta:
+        unknown = EXCLUDE
+
+    _id = fields.String()
+    name = fields.String()
+    content = fields.List(fields.String())
 
 
 class SecBaseSchema(Schema):
@@ -118,16 +126,14 @@ class RuleDao(MongoDAO):
         if vo:
             super()._load(vo)
             daoc = RuleCategoryDao()
-            vo.update({"category": daoc.get_descr_by_id(vo.pop('category_id'))})
+            vo.update({"category": daoc.get_descr_by_id(vo.pop("category_id"))})
 
 
 class RuleCategoryDao(MongoDAO):
     def __init__(self):
         super().__init__("rule_cat", schema=RuleCategorySchema)
 
-    def get_all(
-            self, pagination=None, dt_start=None, dt_end=None, filters=None
-    ):
+    def get_all(self, pagination=None, dt_start=None, dt_end=None, filters=None):
         query = [
             {"$sort": {"phase": 1}},
         ]
@@ -136,8 +142,12 @@ class RuleCategoryDao(MongoDAO):
                 {
                     "$facet": {
                         "data": [
-                            {"$skip": ((pagination['page'] - 1) * pagination['per_page'])},
-                            {"$limit": pagination['per_page']},
+                            {
+                                "$skip": (
+                                    (pagination["page"] - 1) * pagination["per_page"]
+                                )
+                            },
+                            {"$limit": pagination["per_page"]},
                         ],
                         "pagination": [{"$count": "total"}],
                     }

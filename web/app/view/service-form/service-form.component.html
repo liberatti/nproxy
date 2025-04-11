@@ -9,7 +9,7 @@
                 <mat-stepper [linear]="false" #stepper>
                     <mat-step label="Details">
                         <div class="mat-row">
-                            <div class="mat-col-6">
+                            <div class="mat-col-6" style="right: 5px">
                                 <div class="mat-row">
                                     <div class="mat-col-12">
                                         <mat-form-field class="full-width">
@@ -17,7 +17,7 @@
                                             <input matInput formControlName="name">
                                         </mat-form-field>
                                         <form [formGroup]="sansForm">
-                                            <mat-card>
+                                            <mat-card appearance="outlined">
                                                 <mat-form-field>
                                                     <mat-label>Domain</mat-label>
                                                     <input id="sans-domain" matInput formControlName="cn">
@@ -42,76 +42,80 @@
                                     </div>
                                 </div>
                                 <div class="mat-row">
-                                    <div class="mat-col-12 full-width">
-
-                                    </div>
-                                </div>
-                                <div class="mat-row">
                                     <div class="mat-col-12">
                                         <mat-checkbox formControlName="compression">compression</mat-checkbox>
                                         <mat-checkbox formControlName="rate_limit">Limit requests</mat-checkbox>
-                                        <mat-checkbox formControlName="jail_enable">Source Jail</mat-checkbox>
                                     </div>
                                 </div>
                                 <div class="mat-row">
-                                    <div class="mat-col-12">
-                                        <mat-form-field class="full-width" *ngIf="form.value.jail_enable">
-                                            <mat-label>Jail</mat-label>
-                                            <mat-select formControlName="jail" [compareWith]="compareFn">
-                                                <mat-option *ngFor="let c of _jails;" [value]="c">
-                                                    {{ c.name }}
-                                                </mat-option>
-                                            </mat-select>
+                                    <div class="mat-col-6">
+                                        <mat-form-field *ngIf="form.value.rate_limit" class="full-width">
+                                            <mat-label>Buffer (KB)</mat-label>
+                                            <input matInput type="number" formControlName="buffer">
                                         </mat-form-field>
                                     </div>
-                                </div>
-                                <div class="mat-row">
-                                    <div class="mat-col-12">
-                                        <mat-form-field *ngIf="form.value.rate_limit">
+
+                                    <div class="mat-col-6">
+                                        <mat-form-field *ngIf="form.value.rate_limit" class="full-width">
                                             <mat-label>Requests per seconds</mat-label>
                                             <input matInput type="number" formControlName="rate_limit_per_sec">
                                         </mat-form-field>
                                     </div>
-                                </div>
-                                <div class="mat-row">
-                                    <div class="mat-col-12">
-                                        <mat-form-field>
+                                    <div class="mat-col-6">
+                                        <mat-form-field class="full-width">
                                             <mat-label>Request Body Limit (MB)</mat-label>
                                             <input matInput type="number" formControlName="body_limit">
                                         </mat-form-field>
-                                        <mat-form-field>
+                                    </div>
+                                    <div class="mat-col-6">
+                                        <mat-form-field class="full-width">
                                             <mat-label>Request Timeout (seconds)</mat-label>
                                             <input matInput type="number" formControlName="timeout">
                                         </mat-form-field>
                                     </div>
-                                    <mat-card class="mt-2">
-                                        <mat-card-header>
-                                            <mat-card-subtitle>Security Inspection</mat-card-subtitle>
-                                        </mat-card-header>
-                                        <mat-card-content>
-                                            <mat-form-field>
-                                                <mat-label>Inspect Level</mat-label>
-                                                <input matInput type="number" formControlName="inspect_level">
-                                            </mat-form-field>
-                                            <mat-form-field>
-                                                <mat-label>inboundScore</mat-label>
-                                                <input matInput type="number" formControlName="inbound_score">
-                                            </mat-form-field>
-                                            <mat-form-field>
-                                                <mat-label>outboundScore</mat-label>
-                                                <input matInput type="number" formControlName="outbound_score">
-                                            </mat-form-field>
-                                        </mat-card-content>
-                                    </mat-card>
+                                </div>
+                                <div class="mat-row">
+                                    <div class="mat-col-12">
+                                        <mat-card appearance="outlined">
+                                            <mat-card-header>
+                                                <mat-card-subtitle>Security Inspection</mat-card-subtitle>
+                                            </mat-card-header>
+                                            <mat-card-content>
+                                                <div class="mat-row">
+                                                    <div class="mat-col-6">
+                                                        <mat-form-field class="full-width">
+                                                            <mat-label>Inspect Level</mat-label>
+                                                            <input matInput type="number"
+                                                                   formControlName="inspect_level">
+                                                        </mat-form-field>
+                                                    </div>
+                                                    <div class="mat-col-6">
+                                                        <mat-form-field class="full-width">
+                                                            <mat-label>inboundScore</mat-label>
+                                                            <input matInput type="number"
+                                                                   formControlName="inbound_score">
+                                                        </mat-form-field>
+                                                    </div>
+                                                    <div class="mat-col-6">
+                                                        <mat-form-field class="full-width">
+                                                            <mat-label>outboundScore</mat-label>
+                                                            <input matInput type="number"
+                                                                   formControlName="outbound_score">
+                                                        </mat-form-field>
+                                                    </div>
+                                                </div>
+                                            </mat-card-content>
+                                        </mat-card>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="mat-col-6">
-                                <mat-card>
+                            <div class="mat-col-6" style="padding-left: 5px">
+                                <mat-card appearance="outlined">
                                     <mat-card-header>
                                         <mat-card-subtitle>Service Port Bindings</mat-card-subtitle>
                                         <div style="flex: auto">
                                             <button style="float: right" mat-icon-button color="primary"
-                                                    (click)="onAddBind()">
+                                                    *ngIf="form.enabled" (click)="onAddBind()">
                                                 <mat-icon>add</mat-icon>
                                             </button>
                                         </div>
@@ -155,7 +159,7 @@
                                                                 Edit
                                                             </button>
                                                             <button mat-menu-item type="button"
-                                                                    (click)="onBindRemove(i)">
+                                                                    *ngIf="form.enabled" (click)="onBindRemove(i)">
                                                                 <mat-icon>delete</mat-icon>
                                                                 Delete
                                                             </button>
@@ -168,7 +172,7 @@
                                     </mat-card-content>
                                 </mat-card>
                                 @if (hasSslSupport()) {
-                                    <mat-card class="mt-2">
+                                    <mat-card class="mt-2" appearance="outlined">
                                         <mat-card-header>
                                             <mat-card-subtitle>SSL Configuration</mat-card-subtitle>
                                         </mat-card-header>
@@ -201,7 +205,7 @@
                                                         <mat-label>Protocol</mat-label>
                                                         <input matInput formControlName="text">
                                                         <button color="primary" matSuffix mat-icon-button
-                                                                (click)="onAddProto()">
+                                                                *ngIf="form.enabled" (click)="onAddProto()">
                                                             <mat-icon>add</mat-icon>
                                                         </button>
                                                     </mat-form-field>
@@ -230,12 +234,12 @@
                     </mat-step>
                     <mat-step label="Overrides">
                         <div style="padding: 10px;">
-                            <mat-card>
+                            <mat-card appearance="outlined">
                                 <mat-card-header>
                                     <mat-card-subtitle>Headers</mat-card-subtitle>
                                     <div style="flex: auto">
                                         <button style="float: right" mat-icon-button color="primary"
-                                                (click)="onAddHeader()">
+                                                *ngIf="form.enabled" (click)="onAddHeader()">
                                             <mat-icon>add</mat-icon>
                                         </button>
                                     </div>
@@ -259,7 +263,8 @@
                                             <th mat-header-cell *matHeaderCellDef></th>
                                             <td mat-cell *matCellDef="let element;let i = index;">
                                                 <div class="table-cell-actions">
-                                                    <button mat-button type="button" [matMenuTriggerFor]="menu">
+                                                    <button mat-button type="button" [matMenuTriggerFor]="menu"
+                                                            *ngIf="form.enabled">
                                                         <mat-icon>more_vert</mat-icon>
                                                     </button>
                                                     <mat-menu #menu="matMenu" xPosition="before"
@@ -284,12 +289,12 @@
                     </mat-step>
                     <mat-step label="Routes">
                         <div style="padding: 10px;">
-                            <mat-card>
+                            <mat-card appearance="outlined">
                                 <mat-card-header>
                                     <mat-card-subtitle>Routes</mat-card-subtitle>
                                     <div style="flex: auto">
                                         <button style="float: right" mat-icon-button color="primary"
-                                                (click)="onAddRoute()">
+                                                *ngIf="form.enabled" (click)="onAddRoute()">
                                             <mat-icon>add</mat-icon>
                                         </button>
                                     </div>
@@ -332,7 +337,8 @@
                                             </td>
                                             <td class="table-cell-actions">
                                                 <div class="toggle-container">
-                                                    <button mat-button type="button" [matMenuTriggerFor]="menu">
+                                                    <button mat-button type="button" [matMenuTriggerFor]="menu"
+                                                            *ngIf="form.enabled">
                                                         <mat-icon>more_vert</mat-icon>
                                                     </button>
                                                     <mat-menu #menu="matMenu" xPosition="before"
@@ -356,7 +362,8 @@
                         </div>
                         <div class="mat-mdc-card-actions">
                             <button mat-raised-button matStepperPrevious>Back</button>
-                            <button (click)="onSubmit()" mat-raised-button color="primary">
+                            <button mat-raised-button color="primary"
+                                    *ngIf="form.enabled" (click)="onSubmit()">
                                 <mat-icon>save</mat-icon>
                                 {{ 'actions.save' | translate }}
                             </button>

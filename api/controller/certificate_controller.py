@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from flask import Blueprint, request
 from marshmallow import ValidationError
@@ -13,13 +13,14 @@ from config import TZ
 
 routes = Blueprint("certificate", __name__)
 
-@routes.before_request
-def before():
-    if request.method in ["PUT", "POST", "DELETE","PATCH"]:
+@routes.after_request
+def after(response):
+    if request.method in ["PUT", "POST", "DELETE","PATCH"] and  response.status_code in [200,201]:
         dao = ChangeDao()
         if not dao.get_by_name("certificate"):
             dao.persist({"name": "certificate"})
         socketio.emit('tracking_evt')
+    return response
 
 
 @routes.route("/<certificate_id>", methods=["GET"])
@@ -42,7 +43,7 @@ def search():
     if result and result["metadata"]["total_elements"] > 0:
       renew_date = replace_tz(datetime.now())
       for c in result["data"]:
-        if (c["force_renew"] or replace_tz(c["not_after"]) < renew_date):
+        if c["force_renew"] or replace_tz(c["not_after"]) < renew_date:
           c.update({"status": "EXPIRED"})
         else:
           c.update({"status": "VALID"})

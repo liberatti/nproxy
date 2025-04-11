@@ -1,21 +1,29 @@
 from flask import Blueprint, request
 from marshmallow import ValidationError
 
-from api.common_utils import ResponseBuilder, has_any_authority, get_pagination
-from api.common_utils import socketio
+from api.common_utils import (
+    ResponseBuilder,
+    has_any_authority,
+    get_pagination,
+    socketio,
+)
 from api.model.config_model import ChangeDao
 from api.model.jail_model import JailDao
 
 routes = Blueprint("jail", __name__)
 
 
-@routes.before_request
-def before():
-    if request.method in ["PUT", "POST", "DELETE"]:
+@routes.after_request
+def after(response):
+    if request.method in ["PUT", "POST", "DELETE"] and response.status_code in [
+        200,
+        201,
+    ]:
         dao = ChangeDao()
         if not dao.get_by_name("jail"):
             dao.persist({"name": "jail"})
-        socketio.emit('tracking_evt')
+        socketio.emit("tracking_evt")
+    return response
 
 
 @routes.route("/<jail_id>", methods=["GET"])

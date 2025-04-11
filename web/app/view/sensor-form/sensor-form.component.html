@@ -15,7 +15,6 @@
                                     <input matInput formControlName="name">
                                 </mat-form-field>
                             </div>
-
                         </div>
                         <div class="mat-row">
                             <div class="mat-col-12">
@@ -27,19 +26,77 @@
                         </div>
                         <div class="mat-row">
                             <div class="mat-col-6">
+                                <div class="mat-row">
+                                    <div class="mat-col-12">
+                                        <form [formGroup]="jailForm" style="display: flex">
+                                            <mat-form-field style="flex-grow: 1;">
+                                                <mat-label>Transaction Analyzer Jail</mat-label>
+                                                <mat-select formControlName="jail" [compareWith]="compareFn"
+                                                            (selectionChange)="onAddJail($event)">
+                                                    <mat-option
+                                                            *ngFor="let c of formater.filterActive(_jails,form.value?.jails);"
+                                                            [value]="c">
+                                                        {{ c.name }}
+                                                    </mat-option>
+                                                </mat-select>
+                                            </mat-form-field>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="mat-row">
+                                    <div class="mat-col-12">
+                                        <mat-chip-listbox>
+                                            <mat-chip-row *ngFor="let p of form.value.jails"
+                                                          (removed)="onRemoveJail(p)">
+                                                {{ p.name }}
+                                                <button matChipRemove *ngIf="form.enabled">
+                                                    <mat-icon>cancel</mat-icon>
+                                                </button>
+                                            </mat-chip-row>
+                                        </mat-chip-listbox>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mat-col-6">
                                 <mat-form-field class="full-width">
-                                    <mat-label>Blocklist</mat-label>
+                                    <mat-label>Geo Blocked Countries</mat-label>
+                                    <mat-select (selectionChange)="onAddGeo($event)">
+                                        <mat-option *ngFor="let country of filterActiveGeo(_geo_countries)"
+                                                    [value]="country">
+                                            {{ country }}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                                <mat-chip-listbox class="full-width" [multiple]="false" [selectable]="true">
+                                    <mat-chip-option class="small-chip"
+                                                     *ngFor="let p of form.value.geo_block_list"
+                                                     (removed)="onRemoveGeo(p)">
+                                        {{ p }}
+                                        <button matChipRemove>
+                                            <mat-icon>cancel</mat-icon>
+                                        </button>
+                                    </mat-chip-option>
+                                </mat-chip-listbox>
+                            </div>
+                        </div>
+                    </mat-tab>
+                    <mat-tab label="IP Reputation">
+                        <div class="mat-row">
+                            <div class="mat-col-6">
+                                <mat-form-field class="full-width">
+                                    <mat-label>RBL Blocking Feed</mat-label>
                                     <mat-select [compareWith]="compareFn"
-                                                (selectionChange)="onAddDictionary($event,'b')">
-                                        <input (keyup)="getDictionaries($event)"/>
-                                        <mat-option *ngFor="let c of filterActiveDictionary(_dictionaries)" [value]="c">
+                                                (selectionChange)="onAddBlock($event)">
+                                        <mat-option
+                                                *ngFor="let c of  filterActiveFeed(_rbl_feeds)"
+                                                [value]="c">
                                             {{ c.name }}
                                         </mat-option>
                                     </mat-select>
                                 </mat-form-field>
                                 <mat-chip-listbox class="full-width" [multiple]="false" [selectable]="true">
                                     <mat-chip-option *ngFor="let p of form.value.block; let i = index"
-                                                     class="small-chip" (removed)="onRemoveDictionary(p,'b')">
+                                                     class="small-chip" (removed)="onRemoveBlock(p)">
                                         {{ p.name }}
                                         <button matChipRemove>
                                             <mat-icon>cancel</mat-icon>
@@ -49,18 +106,19 @@
                             </div>
                             <div class="mat-col-6">
                                 <mat-form-field class="full-width">
-                                    <mat-label>Allowlist</mat-label>
+                                    <mat-label>RBL ByPass</mat-label>
                                     <mat-select [compareWith]="compareFn"
-                                                (selectionChange)="onAddDictionary($event,'p')">
-                                        <input (keyup)="getDictionaries($event)"/>
-                                        <mat-option *ngFor="let c of filterActiveDictionary(_dictionaries)" [value]="c">
+                                                (selectionChange)="onAddPermit($event)">
+                                        <mat-option
+                                                *ngFor="let c of  filterActiveFeed(_rbl_feeds)"
+                                                [value]="c">
                                             {{ c.name }}
                                         </mat-option>
                                     </mat-select>
                                 </mat-form-field>
                                 <mat-chip-listbox class="full-width" [multiple]="false" [selectable]="true">
                                     <mat-chip-option *ngFor="let p of form.value.permit; let i = index"
-                                                     class="small-chip" (removed)="onRemoveDictionary(p,'p')">
+                                                     class="small-chip" (removed)="onRemovePermit(p)">
                                         {{ p.name }}
                                         <button matChipRemove>
                                             <mat-icon>cancel</mat-icon>
@@ -70,12 +128,13 @@
                             </div>
                         </div>
                     </mat-tab>
-                    <mat-tab label="Rules">
+                    <mat-tab label="Security Inspection">
                         <mat-form-field class="full-width  mt-2">
                             <mat-label>Category</mat-label>
                             <mat-select [compareWith]="compareFn" (selectionChange)="onAddCategory($event)">
-                                <input (keyup)="getCategories($event)"/>
-                                <mat-option *ngFor="let c of filterActive(_categories)" [value]="c">
+                                <mat-option
+                                        *ngFor="let c of filterActiveCategory(_categories,form.value.categories)"
+                                        [value]="c">
                                     {{ c.name }}
                                 </mat-option>
                             </mat-select>
@@ -145,12 +204,11 @@
                         </div>
                     </mat-tab>
                 </mat-tab-group>
-
-
             </form>
         </mat-card-content>
         <mat-card-actions align="end">
-            <button type="button" (click)="onSave(false)" mat-raised-button color="primary">
+            <button type="button" mat-raised-button color="primary"
+                    *ngIf="form.enabled" (click)="onSave()">
                 <mat-icon>save</mat-icon>
                 Save
             </button>

@@ -1,6 +1,6 @@
-import {   Upstream } from "./upstream";
-import {  Service } from "./service";
-import { Sensor } from "./sensor";
+import {Upstream} from "./upstream";
+import {Service} from "./service";
+import {Sensor} from "./sensor";
 
 export interface TransactionSecMatch {
     unique_id: string;
@@ -23,6 +23,7 @@ export interface TransactionUserAgent {
     major: number;
     minor: number;
 }
+
 export interface TransactionFilter {
     start: Date;
     end: Date;
@@ -38,9 +39,9 @@ export interface TransactionHeader {
 export interface TransactionHttp {
     request: TransactionRequest;
     response: TransactionResponse;
-    version:string;
+    version: string;
     duration: number;
-    request_line:string;
+    request_line: string;
 }
 
 export interface TransactionRequest {
@@ -62,8 +63,8 @@ export interface TransactionDestination {
 
 export interface TransactionSource {
     ip: string;
-    port:number;
-    geo:TransactionGeo;
+    port: number;
+    geo: TransactionGeo;
 }
 
 export interface TransactionGeo {
@@ -83,28 +84,16 @@ export interface TransactionLog {
     route_name: string;
     unique_id: string;
     server_id: string;
-    http:TransactionHttp;
-    destination:TransactionDestination;
-    source:TransactionSource;
+    http: TransactionHttp;
+    destination: TransactionDestination;
+    source: TransactionSource;
     user_agent: TransactionUserAgent;
-    service:Service;
-    upstream:Upstream;
-    sensor:Sensor;
-    isExpanded:boolean;
-    limit_req_status:string;
+    service: Service;
+    upstream: Upstream;
+    sensor: Sensor;
+    isExpanded: boolean;
+    limit_req_status: string;
+    geoip_status: string;
+    rbl_status: string;
+    score: number;
 }
-
-
-/**
- * 
-{
-    "audit":{
-       "connector":"ModSecurity-nginx v1.0.3",
-       "engine":"ModSecurity v3.0.12 (Linux)",
-       "messages":[
-          
-       ],
-       "mode":"Enabled"
-    }
- }
- */

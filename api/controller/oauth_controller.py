@@ -5,7 +5,7 @@ from marshmallow import ValidationError
 from api.common_utils import ResponseBuilder, jwt_decode, jwt_create_access_token, \
     jwt_create_refresh_token, jwt_get_refresh
 from api.model.oauth_model import OIDCToken, UserDao
-from config import (ADMIN_ROLE, JWT_EXPIRE)
+from config import ( JWT_EXPIRE)
 
 routes = Blueprint("oauth", __name__)
 
@@ -23,7 +23,7 @@ def refresh_token():
     user = user_dao.get_by_id(payload['sub'])
     if user:
         return {
-            "access_token": jwt_create_access_token(user["_id"], authorities=ADMIN_ROLE, profile=user),
+            "access_token": jwt_create_access_token(user["_id"], authorities=[user["role"]], profile=user),
             "expires_in": JWT_EXPIRE,
             "token_type": 'bearer'
         }
@@ -34,7 +34,7 @@ def _create_oidc_token(user):
     if "password" in user:
         user.pop("password")
     return {
-        "access_token": jwt_create_access_token(user["_id"], authorities=ADMIN_ROLE, profile=user),
+        "access_token": jwt_create_access_token(user["_id"], authorities=[user['role']], profile=user),
         "refresh_token": jwt_create_refresh_token(user['_id']),
         "expires_in": JWT_EXPIRE,
         "token_type": 'bearer'
