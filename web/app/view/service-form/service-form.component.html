@@ -45,49 +45,8 @@
                                     <div class="mat-col-12">
                                         <mat-checkbox formControlName="compression">compression</mat-checkbox>
                                         <mat-checkbox formControlName="rate_limit">Limit requests</mat-checkbox>
-                                        <mat-checkbox formControlName="jail_enable">Source Jail</mat-checkbox>
                                     </div>
                                 </div>
-                                <mat-card appearance="outlined" *ngIf="form.value.jail_enable">
-                                    <mat-card-content>
-                                        <div class="mat-row">
-                                            <div class="mat-col-12">
-                                                <form [formGroup]="jailForm" style="display: flex">
-                                                    <mat-form-field style="flex-grow: 1;">
-                                                        <mat-label>Jail</mat-label>
-                                                        <mat-select [compareWith]="compareFn"
-                                                                    formControlName="jail">
-                                                            <mat-option
-                                                                    *ngFor="let c of formater.filterActive(_jails,form.value?.jails);"
-                                                                    [value]="c">
-                                                                {{ c.name }}
-                                                            </mat-option>
-                                                        </mat-select>
-                                                    </mat-form-field>
-                                                    <button color="primary" matSuffix mat-button
-                                                            (click)="onAddJail()">
-                                                        <mat-icon>add</mat-icon>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                        <div class="mat-row">
-                                            <div class="mat-col-12">
-                                                <mat-chip-listbox>
-                                                    <mat-chip-row *ngFor="let p of form.value.jails"
-                                                                  (removed)="onRemoveJail(p)">
-                                                        {{ p.name }}
-                                                        <button matChipRemove *ngIf="form.enabled">
-                                                            <mat-icon>cancel</mat-icon>
-                                                        </button>
-                                                    </mat-chip-row>
-                                                </mat-chip-listbox>
-                                            </div>
-                                        </div>
-                                    </mat-card-content>
-                                </mat-card>
-
-
                                 <div class="mat-row">
                                     <div class="mat-col-6">
                                         <mat-form-field *ngIf="form.value.rate_limit" class="full-width">

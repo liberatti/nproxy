@@ -43,8 +43,6 @@ import {OAuthService} from "../../services/oauth.service";
 export class JailFormComponent implements OnInit {
     isAddMode: boolean;
     submitted = false;
-    _types: string[] = ['static', 'dynamic']
-
     ruleDS: MatTableDataSource<JailRule>;
     ruleDC: string[] = ['field', 'regex', 'action'];
 
@@ -55,7 +53,6 @@ export class JailFormComponent implements OnInit {
     form = new FormGroup({
         _id: new FormControl<string>(''),
         name: new FormControl<string>(''),
-        type: new FormControl<string>(''),
         content: new FormControl<Array<JailEntry>>([]),
         bantime: new FormControl<number>(60),
         occurrence: new FormControl<number>(1),
@@ -84,7 +81,6 @@ export class JailFormComponent implements OnInit {
             this.jailService.getById(this.route.snapshot.params['id']).subscribe(data => {
                 this.form.get('_id')?.setValue(data._id);
                 this.form.get('name')?.setValue(data.name);
-                this.form.get('type')?.setValue(data.type);
                 this.form.get('content')?.setValue(data.content);
                 this.form.get('bantime')?.setValue(data.bantime);
                 this.form.get('occurrence')?.setValue(data.occurrence);

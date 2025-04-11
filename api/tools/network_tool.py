@@ -84,13 +84,16 @@ class NetworkTool:
 
     @classmethod
     def range_from_network(cls, net):
+        v = 6
         if cls.is_ipv4(net):
+            v = 4
             rede = ipaddress.IPv4Network(net, strict=False)
         else:
             rede = ipaddress.IPv6Network(net, strict=False)
         return {
             "net_start": cls.id(str(rede.network_address)),
             "net_end": cls.id(str(rede.broadcast_address)),
+            "version": v,
         }
 
     @classmethod

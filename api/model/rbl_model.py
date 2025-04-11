@@ -1,5 +1,7 @@
+from bson import ObjectId
 from marshmallow import EXCLUDE, Schema, fields
 
+from api.common_utils import logger
 from api.model.feed_model import FeedSchema
 from api.model.mongo_base_model import MongoDAO
 from api.tools.network_tool import NetworkTool
@@ -29,13 +31,18 @@ class RBLDao(MongoDAO):
         if "block" in sensor:
             for sb in sensor["block"]:
                 if sb:
-                    bl_providers.append(sb["_id"])
+                    bl_providers.append(ObjectId(sb["_id"]))
+
+        if "jails" in sensor:
+            for sb in sensor["jails"]:
+                if sb:
+                    bl_providers.append(ObjectId(sb["_id"]))
 
         per_providers = []
         if "permit" in sensor:
             for sb in sensor["permit"]:
                 if sb:
-                    per_providers.append(sb["_id"])
+                    per_providers.append(ObjectId(sb["_id"]))
 
         query = [
             {
@@ -59,7 +66,7 @@ class RBLDao(MongoDAO):
                         {
                             "$match": {
                                 "action": "deny",
-                                "provider_id": {"$in": bl_providers},
+                                "provider_id": {"$in": list(set(bl_providers))},
                             }
                         }
                     ],
@@ -79,6 +86,7 @@ class RBLDao(MongoDAO):
             {"$unwind": "$result"},
             {"$replaceRoot": {"newRoot": "$result"}},
         ]
+        logger.debug(query)
         rs = list(self.collection.aggregate(query))
         return {"blocked": (len(rs) > 0)}
 
@@ -86,7 +94,18 @@ class RBLDao(MongoDAO):
         query = {
             "$and": [
                 {"provider_type": {"$eq": provider_type}},
-                {"provider_id": {"$eq": provider_id}},
+                {"provider_id": {"$eq": ObjectId(provider_id)}},
             ]
         }
+        self.collection.delete_many(query)
+
+    def delete_expired(self, provider_type, provider_id, bantime_limit):
+        query = {
+            "$and": [
+                {"provider_type": {"$eq": provider_type}},
+                {"provider_id": {"$eq": ObjectId(provider_id)}},
+                {"banned_on": {"$lte": bantime_limit}},
+            ]
+        }
+        logger.debug(query)
         self.collection.delete_many(query)

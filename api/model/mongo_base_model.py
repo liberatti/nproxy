@@ -116,6 +116,12 @@ class MongoDAO:
         self._load(rs)
         return rs
 
+    def update_by_query(self, query, vo):
+        self._unload(vo)
+        logger.debug(query)
+        rs = self.collection.update_one(query, {"$set": vo})
+        return rs.modified_count > 0
+
     def update_by_id(self, _id, vo):
         self._unload(vo)
         query = {"$set": vo}

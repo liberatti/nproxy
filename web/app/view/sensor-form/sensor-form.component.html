@@ -25,7 +25,39 @@
                             </div>
                         </div>
                         <div class="mat-row">
-                            <div class="mat-col-12">
+                            <div class="mat-col-6">
+                                <div class="mat-row">
+                                    <div class="mat-col-12">
+                                        <form [formGroup]="jailForm" style="display: flex">
+                                            <mat-form-field style="flex-grow: 1;">
+                                                <mat-label>Transaction Analyzer Jail</mat-label>
+                                                <mat-select formControlName="jail" [compareWith]="compareFn"
+                                                            (selectionChange)="onAddJail($event)">
+                                                    <mat-option
+                                                            *ngFor="let c of formater.filterActive(_jails,form.value?.jails);"
+                                                            [value]="c">
+                                                        {{ c.name }}
+                                                    </mat-option>
+                                                </mat-select>
+                                            </mat-form-field>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="mat-row">
+                                    <div class="mat-col-12">
+                                        <mat-chip-listbox>
+                                            <mat-chip-row *ngFor="let p of form.value.jails"
+                                                          (removed)="onRemoveJail(p)">
+                                                {{ p.name }}
+                                                <button matChipRemove *ngIf="form.enabled">
+                                                    <mat-icon>cancel</mat-icon>
+                                                </button>
+                                            </mat-chip-row>
+                                        </mat-chip-listbox>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mat-col-6">
                                 <mat-form-field class="full-width">
                                     <mat-label>Geo Blocked Countries</mat-label>
                                     <mat-select (selectionChange)="onAddGeo($event)">

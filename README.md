@@ -75,7 +75,6 @@ docker run --rm -v ${PWD}/reports:/app/reports \
   distributed to others.
     - 10 - Sensor config
     - 12 - Method is not allowed by route
-    - 15 - Jail config
     - 50 - ModSecurity internal error
     - 51 - Multipart parser detected a possible unmatched boundary
     - 52 - requestBodyProcessor=XML

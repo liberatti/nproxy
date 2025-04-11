@@ -168,18 +168,7 @@ class EngineManager:
             with open(f"{APP_BASE}/keystore/{c['name']}.key", "w") as f:
                 f.write(c["private_key"])
 
-    def build_jails(self):
-        ruleset_path = f"{APP_BASE}/modsec/conf"
-        for s in self.CONFIG["services"]:
-            with open(f"{ruleset_path}/{s['name']}-jl.data", "w") as file_data:
-                for sj in s["jails"]:
-                    for jail in self.CONFIG["jails"]:
-                        if sj["_id"] in jail["_id"]:
-                            for c in jail["content"]:
-                                file_data.write(c["ipaddr"] + "\n")
-
     def flush_feeds(self):
-        self.build_jails()
         self.build_keystore()
         self.build_crs()
 
@@ -316,8 +305,8 @@ class EngineManager:
             sb.append(f"  proxy_request_buffering off;")
             sb.append(f"  proxy_buffering off;")
 
-        sb.append(f"  add_header X-Request-Id $request_id;")
-        sb.append(f"  add_header X-Server-Id {get_server_id()};")
+        sb.append(f"  add_header X-Request-Id $request_id always;")
+        sb.append(f"  add_header X-Server-Id {get_server_id()} always;")
         for header in service["headers"]:
             sb.append(f"  add_header {header['name']} '{header['content']}';")
 
@@ -429,28 +418,6 @@ class EngineManager:
             }
         )
         sensor_sb.append(RuleSetParser.as_seclang(r10, ruleset_path))
-
-        if "jail_enable" in service and service["jail_enable"]:
-            jr = SecRule().load(
-                {
-                    "schema_type": "SecRule",
-                    "code": 15,
-                    "phase": 1,
-                    "action": "deny",
-                    "logging": "log",
-                    "logdata": "'%{MATCHED_VAR}'",
-                    "audit_log": "auditlog",
-                    "scope": ["REMOTE_ADDR"],
-                    "condition": f"@ipMatchFromFile {service['name']}-jl.data",
-                    "msg": "'IP is Jailed'",
-                    "setvar": [
-                        f"tx.anomaly_score=tx.sensor_iscore",
-                        f"TX:OUTBOUND_ANOMALY_SCORE=tx.sensor_oscore",
-                    ],
-                }
-            )
-            sensor_sb.append(RuleSetParser.as_seclang(jr))
-
         with open(policy_file, "w") as f:
             f.write("\n".join(sensor_sb))
 

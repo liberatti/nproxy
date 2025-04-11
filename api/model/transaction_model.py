@@ -304,9 +304,12 @@ class TransactionDao(MongoDAO):
         rs = self.collection.aggregate(query)
         return list(rs)
 
-    def get_last_n_minutes(self, minutes):
+    def get_last_n_minutes(self, minutes, sensor_ids=None):
         dt_start = replace_tz((datetime.now() - timedelta(minutes=minutes)))
-        query = {"logtime": {"$gte": dt_start}}
+        query = {
+            "logtime": {"$gte": dt_start},
+            "sensor_id": {"$in": [ObjectId(id_str) for id_str in sensor_ids]},
+        }
         logger.debug(query)
         rows = list(self.collection.find(query))
         for e in rows:

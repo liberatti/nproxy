@@ -1,4 +1,5 @@
 import {Feed} from "./feed";
+import {Jail} from "./jail";
 
 export interface RuleCategory {
     _id: string;
@@ -28,6 +29,7 @@ export interface Sensor {
     block: Array<Feed>;
     permit: Array<Feed>;
     geo_block_list: string[];
+    jails: Array<Jail>;
     categories: Array<string>;
     exclusions: Array<number>;
 }

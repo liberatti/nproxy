@@ -1,3 +1,4 @@
+from bson import ObjectId
 from flask import Blueprint, request
 from marshmallow import ValidationError
 
@@ -97,9 +98,8 @@ def __rebuild_feed(feed_dict):
         rbl = dict(NetworkTool.range_from_network(c))
         rbl.update(
             {
-                "version": 4,
                 "provider_type": "feed",
-                "provider_id": feed_dict["_id"],
+                "provider_id": ObjectId(feed_dict["_id"]),
                 "action": feed_dict["action"],
             }
         )

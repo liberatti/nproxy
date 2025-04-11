@@ -38,7 +38,7 @@ import {JailRule} from "../../models/jail";
 })
 export class JailRuleFormDialogComponent implements OnInit {
 
-    _fields: string[] = ['src.header', 'src.request_line', 'action', 'status_code']
+    _fields: string[] = ['src.header', 'src.request_line', 'status_code']
 
     form = new FormGroup({
         field: new FormControl<string>(''),

@@ -1,6 +1,6 @@
 {
   "name": "NProxy",
-  "version": "v1.0-alpha",
+  "version": "v1.0.1-rc",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

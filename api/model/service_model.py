@@ -3,7 +3,6 @@ from marshmallow import EXCLUDE, Schema, fields
 
 from api.common_utils import logger
 from api.model.certificate_model import CertificateDao, CertificateSchema
-from api.model.jail_model import JailDao, JailSchema
 from api.model.mongo_base_model import MongoDAO
 from api.model.sensor_model import SensorSchema, SensorDao
 from api.model.upstream_model import UpstreamDao, UpstreamSchema
@@ -86,11 +85,7 @@ class ServiceSchema(Schema):
     compression = fields.Boolean()
     rate_limit = fields.Boolean()
     rate_limit_per_sec = fields.Integer()
-    jail_enable = fields.Boolean()
-    jails = fields.Nested(JailSchema, many=True)
-
     sans = fields.List(fields.String())
-
     ssl_protocols = fields.List(fields.String())
     certificate = fields.Nested(CertificateSchema)
     ssl_client_ca = fields.String()
@@ -108,15 +103,6 @@ class ServiceDao(MongoDAO):
 
     def _unload(self, vo):
         super()._unload(vo)
-
-        if "jails" in vo:
-            jail_ids = []
-            for jail in vo.pop("jails"):
-                if "_id" in jail:
-                    jail_ids.append(ObjectId(jail["_id"]))
-            vo.update({"jail_ids": jail_ids})
-        else:
-            vo.update({"jail_ids": []})
 
         if "certificate" in vo:
             certificate = vo.pop("certificate")
@@ -143,14 +129,6 @@ class ServiceDao(MongoDAO):
 
     def _load(self, vo):
         super()._load(vo)
-
-        if "jail_ids" in vo:
-            jail_ids = vo.pop("jail_ids")
-            dao = JailDao()
-            jails = []
-            for ji in jail_ids:
-                jails.append(dao.get_descr_by_id(ji))
-            vo.update({"jails": jails})
 
         if "certificate_id" in vo:
             crt_id = vo.pop("certificate_id")

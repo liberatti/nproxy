@@ -170,5 +170,3 @@ with app.app_context():
     app.logger.info(f"System is up and running")
     scheduler_thread = threading.Thread(target=_scheduler, daemon=True)
     scheduler_thread.start()
-# TODO auto flush is running during apply (wrong)
-# TODO header not overites, just add (wrong)

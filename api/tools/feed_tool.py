@@ -5,11 +5,12 @@ import os
 import re
 import tarfile
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 from zipfile import ZipFile
 
 import geoip2.database
 import requests
+from bson import ObjectId
 from marshmallow import ValidationError
 
 from api.common_utils import logger, replace_tz
@@ -20,7 +21,6 @@ from api.model.jail_model import JailDao
 from api.model.rbl_model import RBLDao
 from api.model.seclang_model import RuleCategoryDao, RuleCategorySchema, RuleDao
 from api.model.sensor_model import SensorDao
-from api.model.service_model import ServiceDao
 from api.model.transaction_model import TransactionDao
 from api.tools.network_tool import NetworkTool
 from api.tools.ruleset_tool import RuleSetParser
@@ -30,64 +30,54 @@ from config import APP_BASE, TZ
 class JailTool:
 
     @classmethod
-    def __is_jail_active(cls, services, jail):
-        for s in services:
-            for j in s["jails"]:
-                if j["_id"] in jail["_id"]:
-                    return True
-        return False
-
-    @classmethod
     def calc_process_jails(cls):
-        dt = replace_tz(datetime.now())
+        now_dt = replace_tz(datetime.now())
         dao = JailDao()
         trn_dao = TransactionDao()
-        srv_dao = ServiceDao()
-
-        services = srv_dao.get_all()["data"]
-        for j in dao.get_by_type("dynamic"):
-            cs = {}
-
-            bl = []
-            for c in j["content"]:
-                if (dt - replace_tz(c["banned_on"])).total_seconds() / 60 < j[
-                    "bantime"
-                ]:
-                    bl.append(c)
-
-            transactions = trn_dao.get_last_n_minutes(j["interval"])
-            for t in transactions:
-                if not cls.__is_jail_active(services, j):
-                    pass
-                source_ip = t["source"]["ip"]
-                if source_ip not in cs:  # register source ip
-                    cs[source_ip] = 0
-
-                for rule in j["rules"]:
-                    if "src.header" in rule["field"]:
-                        for h in t["http"]["request"]["headers"]:
-                            if re.search(rule["regex"], h["name"] + h["content"]):
+        sensor_dao = SensorDao()
+        rbl_dao = RBLDao()
+        for j in dao.get_all()["data"]:
+            sensor_ids = sensor_dao.get_ids_by_jail(j["_id"])
+            if sensor_ids and len(sensor_ids) > 0:
+                transactions = trn_dao.get_last_n_minutes(
+                    j["interval"], sensor_ids=sensor_ids
+                )
+                cs = {}
+                for t in transactions:
+                    source_ip = t["source"]["ip"]
+                    if source_ip not in cs:  # register source ip
+                        cs[source_ip] = 0
+                    for rule in j["rules"]:
+                        if "src.header" in rule["field"]:
+                            pattern = re.compile(rule["regex"], re.IGNORECASE)
+                            for h in t["http"]["request"]["headers"]:
+                                if pattern.search(h["content"]):
+                                    cs[source_ip] += 1
+                        if "src.request_line" in rule["field"]:
+                            if re.search(rule["regex"], t["http"]["request_line"]):
                                 cs[source_ip] += 1
-                    if "src.request_line" in rule["field"]:
-                        if re.search(
-                            rule["regex"], t["http"]["request"]["request_line"]
-                        ):
-                            cs[source_ip] += 1
-                    if "action" in rule["field"]:
-                        if re.search(rule["regex"], t["action"]):
-                            cs[source_ip] += 1
-                    if "status_code" in rule["field"]:
-                        if re.search(
-                            rule["regex"], t["http"]["response"]["status_code"]
-                        ):
-                            cs[source_ip] += 1
-            for ip, score in cs.items():
-                if score >= j["occurrence"] and not any(
-                    entry["ipaddr"] == ip for entry in bl
-                ):
-                    bl.append({"ipaddr": ip, "banned_on": dt})
-
-            dao.update_by_id(j["_id"], {"content": bl})
+                        if "status_code" in rule["field"]:
+                            if re.search(
+                                rule["regex"], t["http"]["response"]["status_code"]
+                            ):
+                                cs[source_ip] += 1
+                for ip, score in cs.items():
+                    if score >= j["occurrence"]:
+                        b = NetworkTool.range_from_network(ip)
+                        b.update(
+                            {
+                                "provider_type": "jail",
+                                "provider_id": ObjectId(j["_id"]),
+                                "action": "deny",
+                            }
+                        )
+                        ck_upd = rbl_dao.update_by_query(b, {"banned_on": now_dt})
+                        if not ck_upd:
+                            b.update({"banned_on": now_dt})
+                            rbl_dao.persist(b)
+            rbl_dao.delete_expired(
+                "jail", j["_id"], now_dt - timedelta(minutes=j["bantime"])
+            )
 
 
 class RuleSetTool:
@@ -234,7 +224,7 @@ class SecurityFeedTool:
                                         {
                                             "version": ip_v,
                                             "provider_type": "feed",
-                                            "provider_id": feed["_id"],
+                                            "provider_id": ObjectId(feed["_id"]),
                                             "action": feed["action"],
                                         }
                                     )

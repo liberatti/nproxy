@@ -1,7 +1,9 @@
 from bson import ObjectId
 from marshmallow import EXCLUDE, Schema, fields
 
+from api.common_utils import logger
 from api.model.feed_model import FeedDao, FeedSchema
+from api.model.jail_model import JailDao
 from api.model.mongo_base_model import MongoDAO
 
 
@@ -17,6 +19,7 @@ class SensorSchema(Schema):
     permit = fields.Nested(FeedSchema, many=True)
     block = fields.Nested(FeedSchema, many=True)
     geo_block_list = fields.List(fields.String())
+    jails = fields.Nested(FeedSchema, many=True)
 
 
 class SensorDao(MongoDAO):
@@ -40,6 +43,13 @@ class SensorDao(MongoDAO):
                     permit.append(dao.get_descr_by_id(str(b)))
                 vo.update({"permit": permit})
 
+            if "jail_ids" in vo:
+                jails = []
+                dao = JailDao()
+                for b in vo.pop("jail_ids"):
+                    jails.append(dao.get_descr_by_id(str(b)))
+                vo.update({"jails": jails})
+
     def _unload(self, vo):
         if vo:
             super()._unload(vo)
@@ -54,3 +64,14 @@ class SensorDao(MongoDAO):
                 for b in vo.pop("permit"):
                     permit_ids.append(ObjectId(b["_id"]))
                 vo.update({"permit_ids": permit_ids})
+            if "jails" in vo:
+                jail_ids = []
+                for b in vo.pop("jails"):
+                    jail_ids.append(ObjectId(b["_id"]))
+                vo.update({"jail_ids": jail_ids})
+
+    def get_ids_by_jail(self, jail_id):
+        query = {"jail_ids": ObjectId(jail_id)}
+        logger.debug(query)
+        rows = list(self.collection.find(query))
+        return [str(doc["_id"]) for doc in rows]

@@ -30,6 +30,9 @@ import {MatGridListModule} from '@angular/material/grid-list';
 import {OAuthService} from "../../services/oauth.service";
 import {Feed} from "../../models/feed";
 import {FeedService} from "../../services/feed.service";
+import {Jail} from "../../models/jail";
+import {JailService} from "../../services/jail.service";
+import {FormaterService} from "../../services/formater.service";
 
 @Component({
     selector: 'app-sensor-form',
@@ -50,6 +53,7 @@ export class SensorFormComponent implements OnInit {
     breakpoint: number;
     _categories: RuleCategory[] = [];
     _rbl_feeds: Feed[] = [];
+    _jails: Jail[]
     _geo_countries: string[] = [
         "US", "CA", "BR", "IN", "GB", "AU", "DE", "FR", "IT", "ES",
         "JP", "CN", "MX", "RU", "ZA", "KR", "NG", "AR", "SE", "NO",
@@ -59,7 +63,9 @@ export class SensorFormComponent implements OnInit {
     ruleDC: string[] = ['code', 'severity', 'msg', 'actionSummary', 'action'];
     ruleDS: MatTableDataSource<SecRule>;
     ruleCH: number[] = [];
-
+    jailForm = new FormGroup({
+        jail: new FormControl<Jail>({} as Jail)
+    });
     form = new FormGroup({
         _id: new FormControl<string>(''),
         name: new FormControl<string>('', {
@@ -74,6 +80,7 @@ export class SensorFormComponent implements OnInit {
         block: new FormControl<Array<Feed>>([]),
         permit: new FormControl<Array<Feed>>([]),
         geo_block_list: new FormControl<string[]>([]),
+        jails: new FormControl<Array<Jail>>([]),
     });
 
     constructor(
@@ -84,10 +91,13 @@ export class SensorFormComponent implements OnInit {
         private ruleCatService: RuleCategoryService,
         private feedService: FeedService,
         protected oauth: OAuthService,
+        private jailService: JailService,
+        protected formater: FormaterService
     ) {
         this.breakpoint = (window.innerWidth <= 600) ? 2 : 8;
         this.isAddMode = false;
         this.ruleDS = new MatTableDataSource<SecRule>;
+        this._jails = [];
     }
 
     ngOnInit(): void {
@@ -108,12 +118,35 @@ export class SensorFormComponent implements OnInit {
                     this.form.get('geo_block_list')?.setValue(data.geo_block_list);
                 else {
                     this.form.get('geo_block_list')?.setValue([]);
-
+                }
+                if (data.jails)
+                    this.form.get('jails')?.setValue(data.jails);
+                else {
+                    this.form.get('jails')?.setValue([]);
                 }
             });
         }
+        this.jailService.get().subscribe((data) => {
+            this._jails = data.data;
+        });
         this.getCategories(null);
         this.getFeeds(null);
+    }
+
+    onAddJail(k: any): void {
+        let j = this.jailForm.value.jail as Jail;
+        if (this.form.value.jails)
+            this.form.value.jails?.push(j);
+        this.jailForm.reset();
+    }
+
+    onRemoveJail(keyword: any): void {
+        if (this.form.value.jails != null) {
+            let index = this.form.value.jails.indexOf(keyword);
+            if (index >= 0) {
+                this.form.value.jails.splice(index, 1);
+            }
+        }
     }
 
     onSave() {
