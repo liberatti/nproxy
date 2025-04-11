@@ -2,7 +2,6 @@ name: main-flow
 on:
   push:
     branches:
-      - 'main'
       - 'v[0-9]*'
 
 jobs:
