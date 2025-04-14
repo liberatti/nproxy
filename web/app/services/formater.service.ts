@@ -24,9 +24,11 @@ export class FormaterService {
 
 
     filterActive(list1: any[], list2: any[] | null | undefined): any[] {
-        return list1.filter(item1 =>
-            !list2?.some(item2 => item2._id === item1._id)
-        );
+        if (list1 && list2)
+            return list1.filter(item1 =>
+                !list2?.some(item2 => item2._id === item1._id)
+            );
+        return []
     }
 
 
