@@ -22,7 +22,6 @@ import {TranslateModule} from '@ngx-translate/core';
 import {Jail, JailEntry, JailRule} from 'app/models/jail';
 import {JailService} from 'app/services/jail.service';
 import {NotificationService} from 'app/services/notification.service';
-import {DateFormatPipe} from "../../pipes/date_format.pipe";
 import {JailRuleFormDialogComponent} from "../../components/jail-rule-form-dialog/jail-rule-form-dialog.component";
 import {MatDialog} from "@angular/material/dialog";
 import {OAuthService} from "../../services/oauth.service";
@@ -37,7 +36,7 @@ import {OAuthService} from "../../services/oauth.service";
         MatListModule, MatCardModule, MatProgressBarModule, MatInputModule,
         MatTableModule, MatMenuModule, MatSortModule,
         MatTooltipModule, MatSelectModule, MatPaginatorModule,
-        MatFormFieldModule, MatChipsModule, DateFormatPipe],
+        MatFormFieldModule, MatChipsModule],
     templateUrl: './jail-form.component.html'
 })
 export class JailFormComponent implements OnInit {
