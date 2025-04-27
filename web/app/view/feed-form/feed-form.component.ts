@@ -85,24 +85,34 @@ export class FeedFormComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.isAddMode = !this.route.snapshot.params['id'];
+        // Extract id from route params
+        const { id } = this.route.snapshot.params;
+        this.isAddMode = !id;
+
+        // Disable form if user is not a superuser
         if (!this.oauth.isRole('superuser')) {
             this.form.disable();
+            // No need to fetch data if form is disabled and not in add mode
+            if (!this.isAddMode) return;
         }
+
+        // If editing, fetch feed and patch form values
         if (!this.isAddMode) {
-            this.feedService.getById(this.route.snapshot.params['id']).subscribe(data => {
-                this.form.get('_id')?.setValue(data._id);
-                this.form.get('name')?.setValue(data.name);
-                this.form.get('action')?.setValue(data.action);
-                this.form.get('scope')?.setValue(data.scope);
-                this.form.get('type')?.setValue(data.type);
-                this.form.get('description')?.setValue(data.description);
-                this.form.get('slug')?.setValue(data.slug);
-                this.form.get('content')?.setValue(data.content);
-                this.form.get('provider')?.setValue(data.provider);
-                this.form.get('version')?.setValue(data.version);
-                this.form.get('source')?.setValue(data.source);
-                this.form.get('update_interval')?.setValue(data.update_interval);
+            this.feedService.getById(id).subscribe(data => {
+                this.form.patchValue({
+                    _id: data._id,
+                    name: data.name,
+                    action: data.action,
+                    scope: data.scope,
+                    type: data.type,
+                    description: data.description,
+                    slug: data.slug,
+                    content: data.content,
+                    provider: data.provider,
+                    version: data.version,
+                    source: data.source,
+                    update_interval: data.update_interval
+                });
             });
         }
     }

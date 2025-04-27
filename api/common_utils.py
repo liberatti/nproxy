@@ -149,6 +149,10 @@ def jwt_decode(token):
 
 def jwt_create_access_token(sub, profile=None, authorities=None):
     now = datetime.now(TZ)
+    if profile:
+        profile.pop("created_at", None)
+        profile.pop("updated_at", None)
+        profile.pop("password", None)
     payload = {
         "exp": int((now + timedelta(seconds=JWT_EXPIRE)).timestamp()),
         "iat": int(now.timestamp()),

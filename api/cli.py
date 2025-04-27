@@ -2,15 +2,17 @@ import json
 import os
 import sys
 import traceback
+import threading
 
 import bcrypt
 
-from api.common_utils import logger, gen_random_string
-from api.model.config_model import ConfigDao
-from api.model.feed_model import FeedDao
-from api.model.oauth_model import UserDao
-from api.tools.feed_tool import RuleSetTool, SecurityFeedTool
-from api.tools.ssl_tool import SSLTool
+from config import MONGO_DB
+from common_utils import logger, gen_random_string,config_db
+from model.config_model import ConfigDao
+from model.feed_model import FeedDao
+from model.oauth_model import UserDao
+from tools.feed_tool import RuleSetTool, SecurityFeedTool
+from tools.ssl_tool import SSLTool
 from config import APP_BASE
 
 APP_CONFIG_DIR = os.path.join(APP_BASE, "admin/config")
@@ -18,8 +20,18 @@ APP_CONFIG_DIR = os.path.join(APP_BASE, "admin/config")
 
 def initialize_db():
     logger.info("Initialize DB")
+    config_db.drop_database(MONGO_DB)
+    with open("config/mongo-schema.json", "r") as file:
+        schema = json.load(file)
+        database = getattr(config_db,schema['database'])
+        for collection in schema['collections']:
+            db_collection = database[collection['name']]
+            if 'indexes' in collection:
+                for index in collection['indexes']:
+                    db_collection.create_index(index['name'])
+
+
     config_dao = ConfigDao()
-    config_dao.drop_database()
     ca = SSLTool.gen_ca("Internal-CA", crt_org="NProxy")
     config_dao.persist(
         {
@@ -29,28 +41,26 @@ def initialize_db():
             "iblocklist_pin": "",
             "ca_certificate": SSLTool.crt_to_pem(ca["certificate"]),
             "ca_private": SSLTool.private_to_pem(ca["private_key"]),
-            "acme_directory_url": "https://acme-v02.api.letsencrypt.org/directory",
+            "acme_directory_url": "https://acme-v02.letsencrypt.org/directory",
         }
     )
-
-    user_model = UserDao()
     logger.info("Create admin user")
-    hashed = bcrypt.hashpw("admin".encode("utf8"), bcrypt.gensalt())
+    user_model = UserDao()
     user_model.persist(
         {
             "name": "Administrator",
             "email": "admin@local",
-            "password": hashed.decode("utf-8"),
             "role": "superuser",
         }
     )
+    reset_password(email="admin@local",psw="admin")
     logger.info("Initialize DB completed")
 
 
 def install():
     logger.info(f"Installation started")
     initialize_db()
-    update()
+    update_async()
 
 
 def update():
@@ -83,12 +93,24 @@ def update():
     logger.info(f"Update done")
 
 
-def reset_admin():
-    psw = sys.argv[2]
+def update_async():
+    """Run the update method in a new thread"""
+    thread = threading.Thread(target=update)
+    thread.daemon = True  # This makes the thread exit when the main program exits
+    thread.start()
+    logger.info("Update started in background thread")
+    return thread
+
+
+def reset_password(email=None,psw=None):
+    if not email:
+        email = input("Enter email: ")
+    if not psw:
+        psw = input("Enter new password: ")
     user_model = UserDao()
-    user = user_model.get_by_email("admin@local")
+    user = user_model.get_by_email(email)
     if not user:
-        logger.error(f"User: admin@local not found")
+        logger.error(f"User: {email} not found")
         sys.exit(1)
     hashed = bcrypt.hashpw(psw.encode("utf8"), bcrypt.gensalt())
     user_model.update_by_id(
@@ -96,13 +118,18 @@ def reset_admin():
     )
     logger.info(f"User: {user['name']} reset is ok")
 
+   
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Uso: python cli.py <update> [options]")
         sys.exit(1)
 
-    switch = {"install": install, "update": update, "reset_admin": reset_admin}
+    switch = {
+        "install": install,
+        "update": update,
+        "reset_password": reset_password
+    }
 
     fn = switch.get(sys.argv[1])
     fn()

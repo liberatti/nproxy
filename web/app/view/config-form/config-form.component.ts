@@ -72,19 +72,18 @@ export class ConfigFormComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        // Fetch active configuration and patch form values
         this.configService.getActive().subscribe(data => {
-            this.form.get('_id')?.setValue(data._id);
-            this.form.get('maxmind_key')?.setValue(data.maxmind_key);
-            this.form.get('ca_certificate')?.setValue(data.ca_certificate);
-            this.form.get('ca_private')?.setValue(data.ca_private);
-            this.form.get('acme_directory_url')?.setValue(data.acme_directory_url);
-            if (data.archive)
-                this.form.get('archive')?.setValue(data.archive);
-            if (data.purge)
-                this.form.get('purge')?.setValue(data.purge);
-
+            this.form.patchValue({
+                _id: data._id,
+                maxmind_key: data.maxmind_key,
+                ca_certificate: data.ca_certificate,
+                ca_private: data.ca_private,
+                acme_directory_url: data.acme_directory_url,
+                archive: data.archive || {},
+                purge: data.purge || {}
+            });
         });
-
     }
 
     onSubmit() {

@@ -90,34 +90,51 @@ export class UpstreamFormComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.isAddMode = !this.route.snapshot.params['id'];
+        // Extract id from route params
+        const { id } = this.route.snapshot.params;
+        this.isAddMode = !id;
+
+        // Disable form if user is not a superuser
         if (!this.oauth.isRole('superuser')) {
             this.form.disable();
+            // No need to fetch data if form is disabled and not in add mode
+            if (!this.isAddMode) return;
         }
+
+        // If editing, fetch upstream and patch form values
         if (!this.isAddMode) {
-            this.upstreamService.getById(this.route.snapshot.params['id']).subscribe(data => {
-                this.form.get('_id')?.setValue(data._id);
-                this.form.get('name')?.setValue(data.name);
-                this.form.get('description')?.setValue(data.description);
+            this.upstreamService.getById(id).subscribe(data => {
+                // Patch common fields
+                this.form.patchValue({
+                    _id: data._id,
+                    name: data.name,
+                    description: data.description,
+                    script_path: data.script_path,
+                    type: data.type || 'backend'
+                });
 
-                this.form.get('script_path')?.setValue(data.script_path);
+                // Handle backend type specific fields
+                if (this.form.value.type === 'backend') {
+                    this.form.patchValue({
+                        retry: data.retry,
+                        retry_timeout: data.retry_timeout,
+                        conn_timeout: data.conn_timeout,
+                        protocol: data.protocol,
+                        persist: data.persist
+                    });
 
-                if (data.type)
-                    this.form.get('type')?.setValue(data.type);
-                if (this.form.value.type == 'backend') {
-                    this.form.get('retry')?.setValue(data.retry);
-                    this.form.get('retry_timeout')?.setValue(data.retry_timeout);
-                    this.form.get('conn_timeout')?.setValue(data.conn_timeout);
-                    this.form.get('protocol')?.setValue(data.protocol);
+                    // Update targets data source
                     this.targetDS.data = data.targets;
-                    if (typeof data.persist != 'undefined') {
-                        this.form.get('persist')?.setValue(data.persist);
-                        if (data.persist.type != SessionPersistenceType.NONE) {
-                            this.persistEnabledControl.setValue(true);
-                        }
+
+                    // Handle persistence
+                    if (typeof data.persist !== 'undefined') {
+                        this.persistEnabledControl.setValue(data.persist.type !== SessionPersistenceType.NONE);
                     }
                 } else {
-                    this.form.get('index')?.setValue(data.index);
+                    // Handle non-backend type fields
+                    this.form.patchValue({
+                        index: data.index
+                    });
                 }
             });
         }

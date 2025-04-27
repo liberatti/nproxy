@@ -2,8 +2,8 @@ import bcrypt
 from flask import Blueprint, request
 from marshmallow import ValidationError
 
-from api.common_utils import ResponseBuilder, has_any_authority, jwt_decode, jwt_get, get_pagination
-from api.model.oauth_model import UserDao
+from common_utils import ResponseBuilder, has_any_authority, jwt_decode, jwt_get, get_pagination
+from model.oauth_model import UserDao
 
 routes = Blueprint("user", __name__)
 

@@ -1,5 +1,4 @@
 <div class="navbar-container navbar-black" [class.example-is-mobile]="isMobile()">
-    <tour-step-template></tour-step-template>
     <!-- Top navbar -->
     <mat-toolbar class="navbar" color="primary" style="align-items: center;justify-content: center;">
         <button mat-icon-button (click)="onSidenavToggle()">
@@ -69,13 +68,13 @@
             <mat-nav-list>
                 <div *ngFor="let link of menu">
                     @if (link.route) {
-                        <a mat-list-item [id]="link.label" tourAnchor="help.{{link.label}}" class="icon-link"
+                        <a mat-list-item [id]="link.label" class="icon-link"
                            [routerLink]="[link.route]" routerLinkActive="active">
                             <mat-icon mat-list-icon>{{ link.icon }}</mat-icon>
                             <span>{{ link.label | translate }}</span>
                         </a>
                     } @else {
-                        <a mat-list-item [id]="link.label" tourAnchor="help.{{link.label}}" class="icon-link"
+                        <a mat-list-item [id]="link.label"class="icon-link"
                            (click)="toggleSubMenu(link)">
                             <mat-icon mat-list-icon>{{ link.icon }}</mat-icon>
                             <span>{{ link.label | translate }}</span>
@@ -85,7 +84,7 @@
                             </mat-icon>
                         </a>
                         <mat-nav-list *ngIf="link.expanded" class="expanded-sub">
-                            <a tourAnchor="help.{{subLink.label}}" mat-list-item *ngFor="let subLink of link.menu"
+                            <a  mat-list-item *ngFor="let subLink of link.menu"
                                [id]="subLink.label" class="icon-link sub-1"
                                [routerLink]="[subLink.route]" routerLinkActive="active">
                                 <mat-icon mat-list-icon>{{ subLink.icon }}</mat-icon>

@@ -2,8 +2,8 @@ from datetime import datetime
 
 from flask import Blueprint, request
 
-from api.common_utils import ResponseBuilder, has_any_authority, get_pagination, replace_tz
-from api.model.transaction_model import TransactionDao
+from common_utils import ResponseBuilder, has_any_authority, get_pagination, replace_tz
+from model.transaction_model import TransactionDao
 from config import DATETIME_FMT
 
 routes = Blueprint("trn", __name__)

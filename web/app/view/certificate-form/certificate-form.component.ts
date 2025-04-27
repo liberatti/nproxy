@@ -73,20 +73,30 @@ export class CertificateFormComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.isAddMode = !this.route.snapshot.params['id'];
+        // Extract id from route params
+        const { id } = this.route.snapshot.params;
+        this.isAddMode = !id;
+
+        // Disable form if user is not a superuser
         if (!this.oauth.isRole('superuser')) {
             this.form.disable();
+            // No need to fetch data if form is disabled and not in add mode
+            if (!this.isAddMode) return;
         }
+
+        // If editing, fetch certificate and patch form values
         if (!this.isAddMode) {
-            this.certificateService.getById(this.route.snapshot.params['id']).subscribe(data => {
-                this.form.get('_id')?.setValue(data._id);
-                this.form.get('name')?.setValue(data.name);
-                this.form.get('chain')?.setValue(data.chain);
-                this.form.get('certificate')?.setValue(data.certificate);
-                this.form.get('private_key')?.setValue(data.private_key);
-                this.form.get('not_before')?.setValue(data.not_before);
-                this.form.get('not_after')?.setValue(data.not_after);
-                this.form.get('provider')?.setValue(data.provider);
+            this.certificateService.getById(id).subscribe(data => {
+                this.form.patchValue({
+                    _id: data._id,
+                    name: data.name,
+                    chain: data.chain,
+                    certificate: data.certificate,
+                    private_key: data.private_key,
+                    not_before: data.not_before,
+                    not_after: data.not_after,
+                    provider: data.provider
+                });
             });
         }
     }

@@ -3,8 +3,8 @@ import re
 
 from marshmallow import ValidationError
 
-from api.common_utils import logger
-from api.model.seclang_model import (
+from common_utils import logger
+from model.seclang_model import (
     SecAction,
     SecBaseSchema,
     SecComponentSignature,

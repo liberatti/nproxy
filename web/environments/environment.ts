@@ -5,5 +5,5 @@ export const environment = {
     production: false,
     apiUrl: "http://localhost:5000",
     apiDateFormat:"YYYY-MM-DDTHH:mm:ss.SSS[Z]",
-    version : 'dev'
+    version : packageJson.version + "-dev"
   };

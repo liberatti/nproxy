@@ -1,16 +1,39 @@
 import json
 import pickle
+from typing import Any, Dict, List, Optional, Union
+from datetime import datetime
 
 from bson import ObjectId
 from marshmallow import Schema, fields
+from pymongo.errors import PyMongoError
 
-from api.common_utils import logger, config_db
+from common_utils import logger, config_db
 from config import MONGO_DB
 
 
 class MongoDAO:
-
-    def __init__(self, collection_name, schema=None):
+    """
+    Base class for MongoDB data access.
+    
+    This class provides an abstract interface for basic CRUD operations
+    and additional functionalities like pagination, data export and import.
+    
+    Attributes:
+        __DB_NAME__ (str): MongoDB database name
+        database: MongoDB database instance
+        collection_name (str): Collection name
+        collection: MongoDB collection reference
+        schema: Marshmallow schema for validation and serialization
+    """
+    
+    def __init__(self, collection_name: str, schema: Optional[Schema] = None):
+        """
+        Initializes the DAO with the specified collection and schema.
+        
+        Args:
+            collection_name (str): MongoDB collection name
+            schema (Optional[Schema]): Marshmallow schema for validation
+        """
         self.__DB_NAME__ = MONGO_DB
         self.database = getattr(config_db, self.__DB_NAME__)
         self.collection_name = collection_name
@@ -27,8 +50,6 @@ class MongoDAO:
             self.pageSchema = page_class()
             self.schema = schema()
 
-    def drop_database(self):
-        config_db.drop_database(self.__DB_NAME__)
 
     def json_load(self, json_data):
         if self.schema:
@@ -39,11 +60,11 @@ class MongoDAO:
     def json_dump(self, vo):
         return self.schema.dump(vo)
 
-    def _unload(self, vo):
+    def _from_dict(self, vo):
         if vo and "_id" in vo:
             vo.update({"_id": ObjectId(vo["_id"])})
 
-    def _load(self, vo):
+    def _to_dict(self, vo):
         if vo and "_id" in vo:
             vo.update({"_id": str(vo["_id"])})
         return vo
@@ -60,7 +81,7 @@ class MongoDAO:
             pagination = {"total_elements": te, "page": 1, "per_page": te}
 
         for r in rows:
-            self._load(r)
+             self._to_dict(r)
         return dict(
             {
                 "metadata": pagination,
@@ -108,38 +129,73 @@ class MongoDAO:
             rs = self.collection.find_one({"_id": _id})
         else:
             rs = self.collection.find_one({"_id": ObjectId(_id)})
-        self._load(rs)
+        self._to_dict(rs)
         return rs
 
     def get_by_name(self, name):
         rs = self.collection.find_one({"name": name})
-        self._load(rs)
+        self._to_dict(rs)
         return rs
 
     def update_by_query(self, query, vo):
-        self._unload(vo)
+        self._from_dict(vo)
         logger.debug(query)
         rs = self.collection.update_one(query, {"$set": vo})
         return rs.modified_count > 0
 
-    def update_by_id(self, _id, vo):
-        self._unload(vo)
-        query = {"$set": vo}
-        logger.debug(query)
-        if isinstance(_id, ObjectId):
-            rs = self.collection.update_one({"_id": _id}, query)
-        else:
-            rs = self.collection.update_one({"_id": ObjectId(_id)}, query)
-        self._load(vo)
-        return rs.modified_count > 0
+    def update_by_id(self, _id: Union[str, ObjectId], vo: Dict[str, Any]) -> bool:
+        """
+        Updates a document by ID.
+        
+        Args:
+            _id (Union[str, ObjectId]): Document ID
+            vo (Dict[str, Any]): Dictionary with updated data
+            
+        Returns:
+            bool: True if the document was updated, False otherwise
+            
+        Raises:
+            PyMongoError: If an error occurs during the update operation
+        """
+        try:
+            self._from_dict(vo)
+            #vo["updated_at"] = datetime.utcnow() #TODO: Object of type datetime is not JSON serializable
+            query = {"$set": vo}
+            logger.debug(query)
+            if isinstance(_id, ObjectId):
+                rs = self.collection.update_one({"_id": _id}, query)
+            else:
+                rs = self.collection.update_one({"_id": ObjectId(_id)}, query)
+            self._to_dict(vo)
+            return rs.modified_count > 0
+        except PyMongoError as e:
+            logger.error(f"Error updating document: {str(e)}")
+            raise
 
-    def persist(self, vo):
-        if "_id" in vo:
-            vo.pop("_id")
-        self._unload(vo)
-        pk = self.collection.insert_one(vo)
-        vo.update({"_id": str(pk.inserted_id)})
-        return str(pk.inserted_id)
+    def persist(self, vo: Dict[str, Any]) -> str:
+        """
+        Persists a new document in the collection.
+        
+        Args:
+            vo (Dict[str, Any]): Dictionary with document data
+            
+        Returns:
+            str: ID of the inserted document
+            
+        Raises:
+            PyMongoError: If an error occurs during the insert operation
+        """
+        try:
+            if "_id" in vo:
+                vo.pop("_id")
+            #vo["created_at"] = datetime.utcnow() #TODO: Object of type datetime is not JSON serializable
+            self._from_dict(vo)
+            pk = self.collection.insert_one(vo)
+            vo.update({"_id": str(pk.inserted_id)})
+            return str(pk.inserted_id)
+        except PyMongoError as e:
+            logger.error(f"Error persisting document: {str(e)}")
+            raise
 
     def persist_many(self, arr):
         return self.collection.insert_many(arr)

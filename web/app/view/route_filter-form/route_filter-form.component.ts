@@ -72,23 +72,31 @@ export class RouteFilterFormComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.isAddMode = !this.route.snapshot.params['id'];
+        // Extract id from route params
+        const { id } = this.route.snapshot.params;
+        this.isAddMode = !id;
+
+        // Disable form if user is not a superuser
         if (!this.oauth.isRole('superuser')) {
             this.form.disable();
+            // No need to fetch data if form is disabled and not in add mode
+            if (!this.isAddMode) return;
         }
-        if (!this.isAddMode) {
-            this.rfService.getById(this.route.snapshot.params['id']).subscribe(data => {
-                this.form.get('_id')?.setValue(data._id);
-                this.form.get('name')?.setValue(data.name);
-                this.form.get('description')?.setValue(data.description);
-                if (data.type)
-                    this.form.get('type')?.setValue(data.type);
 
-                this.form.get('ldap_group_dn')?.setValue(data.ldap_group_dn);
-                this.form.get('ldap_host')?.setValue(data.ldap_host);
-                this.form.get('ldap_base_dn')?.setValue(data.ldap_base_dn);
-                this.form.get('ldap_bind_dn')?.setValue(data.ldap_bind_dn);
-                this.form.get('ldap_bind_password')?.setValue(data.ldap_bind_password);
+        // If editing, fetch route filter and patch form values
+        if (!this.isAddMode) {
+            this.rfService.getById(id).subscribe(data => {
+                this.form.patchValue({
+                    _id: data._id,
+                    name: data.name,
+                    description: data.description,
+                    type: data.type,
+                    ldap_group_dn: data.ldap_group_dn,
+                    ldap_host: data.ldap_host,
+                    ldap_base_dn: data.ldap_base_dn,
+                    ldap_bind_dn: data.ldap_bind_dn,
+                    ldap_bind_password: data.ldap_bind_password
+                });
             });
         }
     }

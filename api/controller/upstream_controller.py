@@ -3,10 +3,10 @@ import json
 from flask import Blueprint, request
 from marshmallow import ValidationError
 
-from api.common_utils import ResponseBuilder, has_any_authority, get_pagination
-from api.common_utils import socketio
-from api.model.config_model import ChangeDao
-from api.model.upstream_model import UpstreamDao
+from common_utils import ResponseBuilder, has_any_authority, get_pagination
+from common_utils import socketio
+from model.config_model import ChangeDao
+from model.upstream_model import UpstreamDao
 
 routes = Blueprint("upstream", __name__)
 

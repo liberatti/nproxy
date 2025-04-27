@@ -9,28 +9,28 @@ from flask import Flask, render_template, send_from_directory, Blueprint
 from flask_cors import CORS
 from flask_restful import Api
 
-from api.common_utils import ma, socketio, ResponseBuilder, gen_random_string
-from api.controller.certificate_controller import routes as certificate_routes
-from api.controller.challenge_controller import routes as acme_routes
-from api.controller.cluster_controller import routes as cluster_routes
-from api.controller.feed_controller import routes as feed_routes
-from api.controller.health_controller import routes as health_routes
-from api.controller.jail_controller import routes as jail_routes
-from api.controller.oauth_controller import routes as oauth_routes
-from api.controller.replica_controller import routes as replica_routes
-from api.controller.route_filter_controller import routes as route_filter_routes
-from api.controller.rulecat_controller import routes as rule_cat_routes
-from api.controller.rulesec_controller import routes as rule_sec_routes
-from api.controller.sensor_controller import routes as sensor_routes
-from api.controller.service_controller import routes as service_routes
-from api.controller.transaction_controller import routes as trn_routes
-from api.controller.upstream_controller import routes as upstream_routes
-from api.controller.user_controller import routes as user_routes
-from api.model.config_model import ConfigDao
-from api.tools.acme_tool import AcmeTool
-from api.tools.archive_tool import LogArchiverTool
-from api.tools.cluster_tool import ClusterTool
-from api.tools.feed_tool import RuleSetTool, JailTool, SecurityFeedTool
+from common_utils import ma, socketio, ResponseBuilder, gen_random_string
+from controller.certificate_controller import routes as certificate_routes
+from controller.challenge_controller import routes as acme_routes
+from controller.cluster_controller import routes as cluster_routes
+from controller.feed_controller import routes as feed_routes
+from controller.health_controller import routes as health_routes
+from controller.jail_controller import routes as jail_routes
+from controller.oauth_controller import routes as oauth_routes
+from controller.replica_controller import routes as replica_routes
+from controller.route_filter_controller import routes as route_filter_routes
+from controller.rulecat_controller import routes as rule_cat_routes
+from controller.rulesec_controller import routes as rule_sec_routes
+from controller.sensor_controller import routes as sensor_routes
+from controller.service_controller import routes as service_routes
+from controller.transaction_controller import routes as trn_routes
+from controller.upstream_controller import routes as upstream_routes
+from controller.user_controller import routes as user_routes
+from model.config_model import ConfigDao
+from tools.acme_tool import AcmeTool
+from tools.archive_tool import LogArchiverTool
+from tools.cluster_tool import ClusterTool
+from tools.feed_tool import RuleSetTool, JailTool, SecurityFeedTool
 from cli import install
 from config import (
     APP_BASE,
