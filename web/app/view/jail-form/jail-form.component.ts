@@ -72,19 +72,30 @@ export class JailFormComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.isAddMode = !this.route.snapshot.params['id'];
+        // Extract id from route params
+        const { id } = this.route.snapshot.params;
+        this.isAddMode = !id;
+
+        // Disable form if user is not a superuser
         if (!this.oauth.isRole('superuser')) {
             this.form.disable();
+            // No need to fetch data if form is disabled and not in add mode
+            if (!this.isAddMode) return;
         }
+
+        // If editing, fetch jail and patch form values
         if (!this.isAddMode) {
-            this.jailService.getById(this.route.snapshot.params['id']).subscribe(data => {
-                this.form.get('_id')?.setValue(data._id);
-                this.form.get('name')?.setValue(data.name);
-                this.form.get('content')?.setValue(data.content);
-                this.form.get('bantime')?.setValue(data.bantime);
-                this.form.get('occurrence')?.setValue(data.occurrence);
-                this.form.get('interval')?.setValue(data.interval);
-                this.form.get('rules')?.setValue(data.rules);
+            this.jailService.getById(id).subscribe(data => {
+                this.form.patchValue({
+                    _id: data._id,
+                    name: data.name,
+                    content: data.content,
+                    bantime: data.bantime,
+                    occurrence: data.occurrence,
+                    interval: data.interval,
+                    rules: data.rules
+                });
+                // Update rules data source
                 this.ruleDS.data = data.rules;
             });
         }

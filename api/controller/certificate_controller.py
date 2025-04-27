@@ -1,78 +1,111 @@
 from datetime import datetime
+from typing import Dict, List, Optional, Union
 
-from flask import Blueprint, request
+from flask import Blueprint, request, Response
 from marshmallow import ValidationError
 
-from api.common_utils import ResponseBuilder, deep_merge, has_any_authority, get_pagination, replace_tz
-from api.common_utils import socketio
-from api.model.certificate_model import CertificateDao
-from api.model.config_model import ChangeDao
-from api.model.service_model import ServiceDao
-from api.tools.ssl_tool import SSLTool
+from common_utils import (
+    ResponseBuilder,
+    deep_merge,
+    has_any_authority,
+    get_pagination,
+    replace_tz,
+    socketio
+)
+from model.certificate_model import CertificateDao
+from model.config_model import ChangeDao
+from model.service_model import ServiceDao
+from tools.ssl_tool import SSLTool
 from config import TZ
 
+# Create a Blueprint for certificate-related routes
 routes = Blueprint("certificate", __name__)
 
 @routes.after_request
-def after(response):
-    if request.method in ["PUT", "POST", "DELETE","PATCH"] and  response.status_code in [200,201]:
+def after(response: Response) -> Response:
+    """
+    Track changes after certificate modifications.
+    
+    Args:
+        response: The Flask response object
+        
+    Returns:
+        Response: The modified response object
+    """
+    if request.method in ["PUT", "POST", "DELETE", "PATCH"] and response.status_code in [200, 201]:
         dao = ChangeDao()
         if not dao.get_by_name("certificate"):
             dao.persist({"name": "certificate"})
         socketio.emit('tracking_evt')
     return response
 
-
 @routes.route("/<certificate_id>", methods=["GET"])
 @has_any_authority(["viewer", "superuser"])
-def get(certificate_id):
+def get(certificate_id: str) -> Response:
+    """
+    Retrieve a specific certificate by ID.
+    
+    Args:
+        certificate_id: The unique identifier of the certificate
+        
+    Returns:
+        Response: JSON response containing the certificate data or 404 error
+    """
     dao = CertificateDao()
     certificate = dao.get_by_id(certificate_id)
-    if certificate:
-        return ResponseBuilder.data(certificate, schema=dao.schema)
-    else:
-        return ResponseBuilder.error_404()
+    return ResponseBuilder.data(certificate, schema=dao.schema) if certificate else ResponseBuilder.error_404()
 
 @routes.route("", methods=["GET"])
 @has_any_authority(["viewer", "superuser"])
-def search():
+def search() -> Response:
+    """
+    Search and list all certificates with their current status.
+    
+    Returns:
+        Response: JSON response containing paginated certificate list or 404 error
+    """
     dao = CertificateDao()
-    _filters = []
-    result = dao.get_all(pagination=get_pagination(), filters=_filters)
+    result = dao.get_all(pagination=get_pagination(), filters=[])
 
     if result and result["metadata"]["total_elements"] > 0:
-      renew_date = replace_tz(datetime.now())
-      for c in result["data"]:
-        if c["force_renew"] or replace_tz(c["not_after"]) < renew_date:
-          c.update({"status": "EXPIRED"})
-        else:
-          c.update({"status": "VALID"})
-      return ResponseBuilder.data(result, schema=dao.pageSchema)
-    else:
-        return ResponseBuilder.error_404()
+        renew_date = replace_tz(datetime.now())
+        for cert in result["data"]:
+            cert["status"] = "EXPIRED" if cert["force_renew"] or replace_tz(cert["not_after"]) < renew_date else "VALID"
+        return ResponseBuilder.data(result, schema=dao.pageSchema)
+    return ResponseBuilder.error_404()
 
 @routes.route("", methods=["POST"])
 @has_any_authority(["superuser"])
-def save():
+def save() -> Response:
+    """
+    Create a new certificate.
+    Supports three types of certificates:
+    - EXTERNAL: Import existing certificate
+    - MANAGED: Create managed certificate
+    - SELF: Create self-signed certificate
+    
+    Returns:
+        Response: JSON response containing the created certificate or error message
+    """
     dao = CertificateDao()
     try:
         dto = dao.json_load(request.json)
-        pk=None
+        pk = None
+        
+        # Handle EXTERNAL certificate
         if 'EXTERNAL' in dto['provider']:
-          crt = SSLTool.crt_from_pem(dto["certificate"])
-          dto.update(SSLTool.extract_info_from_crt(crt))
-          if dto["not_after"] <= datetime.now(TZ):
-            dto.update({"status": "EXPIRED"})
-          else:
-            dto.update({"status": "VALID"})
-          dto.update({'force_renew':False})
-          pk = dao.persist(dto)
-
-        if dto["provider"] in ["MANAGED", "SELF"]:
+            crt = SSLTool.crt_from_pem(dto["certificate"])
+            dto.update(SSLTool.extract_info_from_crt(crt))
+            dto.update({
+                "status": "EXPIRED" if dto["not_after"] <= datetime.now(TZ) else "VALID",
+                "force_renew": False
+            })
+            pk = dao.persist(dto)
+        
+        # Handle MANAGED or SELF certificates
+        elif dto["provider"] in ["MANAGED", "SELF"]:
             self_crt = SSLTool.create_certificate("localhost")
-            self_chain = []
-            for c in self_crt["chain"]:
-                self_chain.append(SSLTool.crt_to_pem(c))
+            self_chain = [SSLTool.crt_to_pem(c) for c in self_crt["chain"]]
             crt = {
                 "name": dto["name"],
                 "chain": "\n".join(self_chain),
@@ -82,7 +115,7 @@ def save():
                 "not_before": self_crt["not_before"],
                 "not_after": self_crt["not_after"],
                 "force_renew": True,
-                "provider":dto["provider"]
+                "provider": dto["provider"]
             }
             pk = dao.persist(crt)
 
@@ -90,28 +123,37 @@ def save():
         return ResponseBuilder.data(certificate, schema=dao.schema)
     except ValidationError as err:
         return ResponseBuilder.error_parse(err)
-    
+
 @routes.route("/<certificate_id>", methods=["PUT"])
 @has_any_authority(["superuser"])
-def update(certificate_id):
+def update(certificate_id: str) -> Response:
+    """
+    Update an existing certificate.
+    
+    Args:
+        certificate_id: The unique identifier of the certificate to update
+        
+    Returns:
+        Response: JSON response containing the updated certificate or error message
+    """
     dao = CertificateDao()
     try:
         dto = dao.json_load(request.json)
+        
+        # Handle EXTERNAL certificate update
         if dto['provider'] in ['EXTERNAL']:
-          crt = SSLTool.crt_from_pem(dto["certificate"])
-          dto.update(SSLTool.extract_info_from_crt(crt))
-          if dto["not_after"] <= datetime.now(TZ):
-            dto.update({"status": "EXPIRED"})
-          else:
-            dto.update({"status": "VALID"})
-          dto.update({'force_renew':True})
-          dao.update_by_id(certificate_id, dto)
-          
-        if dto["provider"] in ["MANAGED", "SELF"]:
+            crt = SSLTool.crt_from_pem(dto["certificate"])
+            dto.update(SSLTool.extract_info_from_crt(crt))
+            dto.update({
+                "status": "EXPIRED" if dto["not_after"] <= datetime.now(TZ) else "VALID",
+                "force_renew": True
+            })
+            dao.update_by_id(certificate_id, dto)
+        
+        # Handle MANAGED or SELF certificate update
+        elif dto["provider"] in ["MANAGED", "SELF"]:
             self_crt = SSLTool.create_certificate("localhost")
-            self_chain = []
-            for c in self_crt["chain"]:
-                self_chain.append(SSLTool.crt_to_pem(c))
+            self_chain = [SSLTool.crt_to_pem(c) for c in self_crt["chain"]]
             crt = {
                 "name": dto["name"],
                 "chain": "\n".join(self_chain),
@@ -121,7 +163,7 @@ def update(certificate_id):
                 "not_before": self_crt["not_before"],
                 "not_after": self_crt["not_after"],
                 "force_renew": True,
-                "provider":dto["provider"]
+                "provider": dto["provider"]
             }
             dao.update_by_id(certificate_id, crt)
         
@@ -131,39 +173,56 @@ def update(certificate_id):
 
 @routes.route("/<certificate_id>", methods=["PATCH"])
 @has_any_authority(["superuser"])
-def partial_update(certificate_id):
+def partial_update(certificate_id: str) -> Response:
+    """
+    Partially update a certificate with specific fields.
+    
+    Args:
+        certificate_id: The unique identifier of the certificate to update
+        
+    Returns:
+        Response: Success message or error response
+    """
     dao = CertificateDao()
     try:
         c_new = dao.json_load(request.json)
         c_old = dao.get_by_id(certificate_id)
-
-        dao.update_by_id(certificate_id,deep_merge(c_old,c_new))
+        dao.update_by_id(certificate_id, deep_merge(c_old, c_new))
         return ResponseBuilder.ok("Certificate partially updated")
-
     except ValidationError as err:
         return ResponseBuilder.error_parse(err)
     except Exception as err:
-        return ResponseBuilder.error(msg=err)
-
+        return ResponseBuilder.error(msg=str(err))
 
 @routes.route("/<certificate_id>", methods=["DELETE"])
 @has_any_authority(["superuser"])
-def delete(certificate_id):
+def delete(certificate_id: str) -> Response:
+    """
+    Delete a certificate if it's not in use by any service.
+    
+    Args:
+        certificate_id: The unique identifier of the certificate to delete
+        
+    Returns:
+        Response: Success message or error response
+    """
     dao = CertificateDao()
     dao_service = ServiceDao()
+    
+    # Check if certificate is in use by any HTTPS service
     service_list = dao_service.get_all()
     in_use = False
     if "data" in service_list:
-        for s in service_list["data"]:
-            for b in s['bindings']:
-              if b['protocol'] == 'HTTPS' and  certificate_id in b["certificate"]["_id"]:
-                 in_use = True
-                 break
+        for service in service_list["data"]:
+            for binding in service['bindings']:
+                if binding['protocol'] == 'HTTPS' and certificate_id in binding["certificate"]["_id"]:
+                    in_use = True
+                    break
+            if in_use:
+                break
+    
     if in_use:
         return ResponseBuilder.error_500("Certificate in use")
-    else:
-        result = dao.delete_by_id(certificate_id)
-        if result:
-            return ResponseBuilder.data_removed(certificate_id)
-        else:
-            return ResponseBuilder.error_404()
+    
+    result = dao.delete_by_id(certificate_id)
+    return ResponseBuilder.data_removed(certificate_id) if result else ResponseBuilder.error_404()

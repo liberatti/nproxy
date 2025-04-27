@@ -1,20 +1,37 @@
-from flask import Blueprint
+from typing import Dict, List, Optional, Union
 
-from api.common_utils import (
-    ResponseBuilder, has_integration_key, )
-from api.tools.cluster_tool import ClusterTool
+from flask import Blueprint, Response
+
+from common_utils import (
+    ResponseBuilder,
+    has_integration_key,
+)
+from tools.cluster_tool import ClusterTool
 
 routes = Blueprint("replica", __name__)
 
 
 @routes.route("/scn", methods=["GET"])
 @has_integration_key()
-def scn():
-    if ClusterTool.CONFIG:
-        return ResponseBuilder.data({'scn':ClusterTool.CONFIG['scn']})
-    else: return ResponseBuilder.error_500("System not ready")
+def scn() -> Response:
+    """
+    Retrieve the System Change Number (SCN) from the cluster configuration.
+    
+    Returns:
+        Response: JSON response containing the SCN or error response
+    """
+    if not ClusterTool.CONFIG:
+        return ResponseBuilder.error_500("System not ready")
+    return ResponseBuilder.data({'scn': ClusterTool.CONFIG['scn']})
+
 
 @routes.route("/config", methods=["GET"])
 @has_integration_key()
-def config():
+def config() -> Response:
+    """
+    Retrieve the cluster configuration.
+    
+    Returns:
+        Response: JSON response containing the cluster configuration
+    """
     return ResponseBuilder.data(ClusterTool.CONFIG)

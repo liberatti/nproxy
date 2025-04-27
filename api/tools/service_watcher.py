@@ -1,7 +1,7 @@
 import threading
 
-from api.common_utils import LogCache, logger
-from api.tools.log_tool import LogParserTool
+from common_utils import LogCache, logger
+from tools.log_tool import LogParserTool
 from config import APP_BASE
 
 

@@ -16,11 +16,11 @@ TELEMETRY_URL = "https://nproxy.tooka.com.br"
 MAINTENANCE_WINDOW = "01:00"
 
 # Config database (MongoDB)
-MONGO_HOST = os.environ.get("MONGO_HOST")
-MONGO_PORT = os.environ.get("MONGO_PORT")
-MONGO_DB = os.environ.get("MONGO_DB")
-MONGO_USER = os.environ.get("MONGO_USER")
-MONGO_PASS = os.environ.get("MONGO_PASS")
+MONGO_HOST = os.environ.get("MONGO_HOST",'127.0.0.1')
+MONGO_PORT = os.environ.get("MONGO_PORT",27017)
+MONGO_DB = os.environ.get("MONGO_DB",'nproxy')
+MONGO_USER = os.environ.get("MONGO_USER","nproxy_usr")
+MONGO_PASS = os.environ.get("MONGO_PASS","nproxy_psw")
 MONGO_URI = f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB}?authSource=admin"
 
 # Security config

@@ -27,14 +27,13 @@ import {MatChipsModule} from '@angular/material/chips';
 import {MatTooltip} from "@angular/material/tooltip";
 import {HttpClient} from "@angular/common/http";
 import {environment} from 'environments/environment';
-import {TourMatMenuModule} from 'ngx-ui-tour-md-menu';
 
 @Component({
     selector: 'app-admin-layout',
     standalone: true,
     imports: [RouterModule, CommonModule, TranslateModule, MatProgressBarModule,
         MatSidenavModule, MatIconModule, MatToolbarModule, MatCardModule, MatChipsModule,
-        MatButtonModule, MatListModule, MatMenuModule, MatBadgeModule, MatTooltip, TourMatMenuModule
+        MatButtonModule, MatListModule, MatMenuModule, MatBadgeModule, MatTooltip
     ],
     templateUrl: './admin-layout.component.html',
     styleUrl: './admin-layout.component.css'

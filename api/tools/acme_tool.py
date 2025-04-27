@@ -4,12 +4,12 @@ from datetime import datetime, timedelta
 # noinspection PyPep8Naming
 from acme import errors as ACMEerrors
 
-from api.common_utils import logger, replace_tz
-from api.model.acme_model import ChallengeDao
-from api.model.certificate_model import CertificateDao
-from api.model.service_model import ServiceDao
-from api.tools.cluster_tool import ClusterTool
-from api.tools.ssl_tool import SSLLetsEncryptTool, SSLTool
+from common_utils import logger, replace_tz
+from model.acme_model import ChallengeDao
+from model.certificate_model import CertificateDao
+from model.service_model import ServiceDao
+from tools.cluster_tool import ClusterTool
+from tools.ssl_tool import SSLLetsEncryptTool, SSLTool
 
 
 class AcmeTool:

@@ -1,12 +1,30 @@
 import ipaddress
 import socket
+from typing import Dict, List, Optional, Tuple, Union
 
-from api.common_utils import logger
+from common_utils import logger
 
 
 class NetworkTool:
+    """Network utility class for handling IP addresses and network operations.
+    
+    This class provides methods for:
+    - IP address resolution and validation
+    - Network address manipulation
+    - IP address format conversion
+    - Network range calculations
+    """
+    
     @classmethod
-    def hostbyname(cls, ns):
+    def hostbyname(cls, ns: str) -> Optional[str]:
+        """Resolve a hostname to its IP address.
+        
+        Args:
+            ns: Hostname to resolve
+            
+        Returns:
+            IP address as string if resolution successful, None otherwise
+        """
         try:
             return socket.gethostbyname(ns)
         except socket.gaierror as e:
@@ -14,11 +32,27 @@ class NetworkTool:
             return None
 
     @classmethod
-    def id(cls, ip):
+    def id(cls, ip: str) -> str:
+        """Convert an IP address to its expanded form.
+        
+        Args:
+            ip: IP address to expand
+            
+        Returns:
+            Expanded IP address as string
+        """
         return cls.expand_ip(ip)
 
     @classmethod
-    def is_host(cls, ip):
+    def is_host(cls, ip: str) -> bool:
+        """Check if a string is a valid IP address.
+        
+        Args:
+            ip: String to validate as IP address
+            
+        Returns:
+            True if valid IP address, False otherwise
+        """
         try:
             ipaddress.ip_address(ip)
             return True
@@ -26,7 +60,15 @@ class NetworkTool:
             return False
 
     @classmethod
-    def is_network(cls, net):
+    def is_network(cls, net: str) -> bool:
+        """Check if a string is a valid network address.
+        
+        Args:
+            net: String to validate as network address
+            
+        Returns:
+            True if valid network address, False otherwise
+        """
         try:
             ipaddress.ip_network(net, strict=False)
             return True
@@ -36,7 +78,15 @@ class NetworkTool:
             return False
 
     @classmethod
-    def aggregate(cls, addr_list):
+    def aggregate(cls, addr_list: List[str]) -> List[str]:
+        """Aggregate a list of IP addresses/networks into the most efficient network ranges.
+        
+        Args:
+            addr_list: List of IP addresses or networks to aggregate
+            
+        Returns:
+            List of aggregated network ranges
+        """
         nets = [ipaddress.ip_network(ip) for ip in addr_list]
         nets = set(nets)
         nets = sorted(nets, key=lambda n1: n1.prefixlen)
@@ -48,25 +98,50 @@ class NetworkTool:
         return [str(r) for r in uq_nets]
 
     @classmethod
-    def hosts_from_net(cls, masked_ip):
-        network = ipaddress.IPv4Network(masked_ip, strict=False)
-        return [str(ip) for ip in network.hosts()]
+    def hosts_from_net(cls, masked_ip: str) -> List[str]:
+        """Get all host IP addresses from a network.
+        
+        Args:
+            masked_ip: Network address in CIDR notation
+            
+        Returns:
+            List of host IP addresses in the network
+        """
+        try:
+            network = ipaddress.IPv4Network(masked_ip, strict=False)
+            return [str(ip) for ip in network.hosts()]
+        except Exception as e:
+            logger.error(f"Failed to get hosts from network {masked_ip}: {e}")
+            return []
 
     @classmethod
-    def is_ipv4(cls, ip):
+    def is_ipv4(cls, ip: str) -> bool:
+        """Check if an IP address is IPv4.
+        
+        Args:
+            ip: IP address to check
+            
+        Returns:
+            True if IPv4 address, False otherwise
+        """
         try:
-            if cls.is_network(ip):
-                network = ipaddress.ip_network(ip, strict=False)
-                addr_ini = network.network_address
-            else:
-                addr_ini = ipaddress.ip_address(cls.compress_ip(ip))
-            return addr_ini.version == 4
-        except ValueError as e:
-            logger.info(e)
+            return ipaddress.ip_network(ip, strict=False).version == 4
+        except Exception:
             return False
 
     @classmethod
     def expand_ip(cls, ip):
+        """Expand an IP address to its full form.
+        
+        For IPv4 addresses, pads each octet with leading zeros.
+        For IPv6 addresses, expands to full form.
+        
+        Args:
+            ip: IP address to expand
+            
+        Returns:
+            Expanded IP address as string
+        """
         if cls.is_ipv4(ip):
             parts = ip.split(".")
             parts_with_zero = [part.zfill(3) for part in parts]
@@ -74,13 +149,17 @@ class NetworkTool:
         return str(ipaddress.ip_address(ip).exploded)
 
     @classmethod
-    def compress_ip(cls, ip):
-        return str(ipaddress.ip_address(ip).compressed)
-
-    @classmethod
-    def masklen_from_network(cls, addr, netmask):
-        net = ipaddress.ip_network(f"{addr}/{netmask}", strict=False)
-        return net.prefixlen
+    def masklen_from_network(cls, addr: str, netmask: str) -> int:
+        """Calculate network mask length from address and netmask.
+        
+        Args:
+            addr: Network address
+            netmask: Network mask
+            
+        Returns:
+            Mask length as integer
+        """
+        return ipaddress.ip_network(f"{addr}/{netmask}", strict=False).prefixlen
 
     @classmethod
     def range_from_network(cls, net):

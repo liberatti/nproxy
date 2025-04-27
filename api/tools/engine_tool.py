@@ -9,7 +9,7 @@ from collections import OrderedDict
 import requests
 from marshmallow import ValidationError
 
-from api.common_utils import (
+from common_utils import (
     hash_dict,
     logger,
     get_server_id,
@@ -17,15 +17,15 @@ from api.common_utils import (
     clear_directory,
     API_HEADERS,
 )
-from api.model.certificate_model import CertificateDao
-from api.model.config_model import ConfigDao
-from api.model.feed_model import FeedDao
-from api.model.jail_model import JailDao
-from api.model.seclang_model import RuleCategoryDao, SecAction, SecRule
-from api.model.sensor_model import SensorDao
-from api.model.service_model import ServiceDao
-from api.model.upstream_model import UpstreamDao
-from api.tools.ruleset_tool import RuleSetParser
+from model.certificate_model import CertificateDao
+from model.config_model import ConfigDao
+from model.feed_model import FeedDao
+from model.jail_model import JailDao
+from model.seclang_model import RuleCategoryDao, SecAction, SecRule
+from model.sensor_model import SensorDao
+from model.service_model import ServiceDao
+from model.upstream_model import UpstreamDao
+from tools.ruleset_tool import RuleSetParser
 from config import APP_BASE, CLUSTER_ENDPOINT, ENGINE_BASE, NODE_ROLE, NODE_KEY
 
 

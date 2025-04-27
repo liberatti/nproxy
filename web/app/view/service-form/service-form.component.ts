@@ -125,37 +125,40 @@ export class ServiceFormComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.isAddMode = !this.route.snapshot.params['id'];
-        if (!this.isAddMode) {
-            this.serviceService.getById(this.route.snapshot.params['id'])
-                .subscribe(data => {
-                    this.form.get('_id')?.setValue(data._id as string);
-                    this.form.get('name')?.setValue(data.name);
-                    this.form.get('headers')?.setValue(data.headers);
-                    this.headerDS.data = data.headers;
-                    this.form.get('routes')?.setValue(data.routes);
-                    this.routeDS.data = data.routes;
-                    this.form.get('bindings')?.setValue(data.bindings);
-                    this.bindingDS.data = data.bindings;
-                    this.form.get('body_limit')?.setValue(data.body_limit);
-                    this.form.get('timeout')?.setValue(data.timeout);
-                    this.form.get('inspect_level')?.setValue(data.inspect_level);
-                    this.form.get('inbound_score')?.setValue(data.inbound_score);
-                    this.form.get('outbound_score')?.setValue(data.outbound_score);
-                    this.form.get('buffer')?.setValue(data.buffer);
-                    if (data.sans)
-                        this.form.get('sans')?.setValue(data.sans);
+        // Extract id from route params
+        const { id } = this.route.snapshot.params;
+        this.isAddMode = !id;
 
-                    this.form.get('compression')?.setValue(data.compression);
-                    this.form.get('rate_limit')?.setValue(data.rate_limit);
-                    this.form.get('rate_limit_per_sec')?.setValue(data.rate_limit_per_sec);
-                    this.form.get('certificate')?.setValue(data.certificate);
-                    if (data.ssl_protocols)
-                        this.form.get('ssl_protocols')?.setValue(data.ssl_protocols);
-                    this.form.get('ssl_client_auth')?.setValue(data.ssl_client_auth);
-                    if (data.ssl_client_auth)
-                        this.form.get('ssl_client_ca')?.setValue(data.ssl_client_ca);
+        // If editing, fetch service and patch form values
+        if (!this.isAddMode) {
+            this.serviceService.getById(id).subscribe(data => {
+                this.form.patchValue({
+                    _id: data._id as string,
+                    name: data.name,
+                    headers: data.headers,
+                    routes: data.routes,
+                    bindings: data.bindings,
+                    body_limit: data.body_limit,
+                    timeout: data.timeout,
+                    inspect_level: data.inspect_level,
+                    inbound_score: data.inbound_score,
+                    outbound_score: data.outbound_score,
+                    buffer: data.buffer,
+                    sans: data.sans,
+                    compression: data.compression,
+                    rate_limit: data.rate_limit,
+                    rate_limit_per_sec: data.rate_limit_per_sec,
+                    certificate: data.certificate,
+                    ssl_protocols: data.ssl_protocols || ['TLSv1', 'TLSv1.1', 'TLSv1.2', 'TLSv1.3'],
+                    ssl_client_auth: data.ssl_client_auth,
+                    ssl_client_ca: data.ssl_client_auth ? data.ssl_client_ca : ''
                 });
+
+                // Update data sources
+                this.headerDS.data = data.headers;
+                this.routeDS.data = data.routes;
+                this.bindingDS.data = data.bindings;
+            });
         } else {
             const basicHeaders = [
                 <Header>{name: "X-Powered-By", content: "Tooka"},

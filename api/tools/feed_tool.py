@@ -13,17 +13,17 @@ import requests
 from bson import ObjectId
 from marshmallow import ValidationError
 
-from api.common_utils import logger, replace_tz
-from api.model.config_model import ConfigDao
-from api.model.feed_model import FeedDao
-from api.model.geoip_model import GeoIpDao
-from api.model.jail_model import JailDao
-from api.model.rbl_model import RBLDao
-from api.model.seclang_model import RuleCategoryDao, RuleCategorySchema, RuleDao
-from api.model.sensor_model import SensorDao
-from api.model.transaction_model import TransactionDao
-from api.tools.network_tool import NetworkTool
-from api.tools.ruleset_tool import RuleSetParser
+from common_utils import logger, replace_tz
+from model.config_model import ConfigDao
+from model.feed_model import FeedDao
+from model.geoip_model import GeoIpDao
+from model.jail_model import JailDao
+from model.rbl_model import RBLDao
+from model.seclang_model import RuleCategoryDao, RuleCategorySchema, RuleDao
+from model.sensor_model import SensorDao
+from model.transaction_model import TransactionDao
+from tools.network_tool import NetworkTool
+from tools.ruleset_tool import RuleSetParser
 from config import APP_BASE, TZ
 
 
@@ -271,7 +271,7 @@ class SecurityFeedTool:
 
     @classmethod
     def download_mmdb(cls, key, edition_id):
-        url = f"https://download.maxmind.com/api.geoip_download?edition_id={edition_id}&license_key={key}&suffix=tar.gz"
+        url = f"https://download.maxmind.com/geoip_download?edition_id={edition_id}&license_key={key}&suffix=tar.gz"
         logger.info(f"{url}")
         response = requests.get(url)
         if response.status_code == 200:

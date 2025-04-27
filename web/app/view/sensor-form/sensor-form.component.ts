@@ -101,31 +101,35 @@ export class SensorFormComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.isAddMode = !this.route.snapshot.params['id'];
+        // Extract id from route params
+        const { id } = this.route.snapshot.params;
+        this.isAddMode = !id;
+
+        // Disable form if user is not a superuser
         if (!this.oauth.isRole('superuser')) {
             this.form.disable();
+            // No need to fetch data if form is disabled and not in add mode
+            if (!this.isAddMode) return;
         }
+
+        // If editing, fetch sensor and patch form values
         if (!this.isAddMode) {
-            this.sensorService.getById(this.route.snapshot.params['id']).subscribe(data => {
-                this.form.get('_id')?.setValue(data._id);
-                this.form.get('name')?.setValue(data.name);
-                this.form.get('description')?.setValue(data.description);
-                this.form.get('categories')?.setValue(data.categories);
-                this.form.get('exclusions')?.setValue(data.exclusions);
-                this.form.get('block')?.setValue(data.block);
-                this.form.get('permit')?.setValue(data.permit);
-                if (data.geo_block_list)
-                    this.form.get('geo_block_list')?.setValue(data.geo_block_list);
-                else {
-                    this.form.get('geo_block_list')?.setValue([]);
-                }
-                if (data.jails)
-                    this.form.get('jails')?.setValue(data.jails);
-                else {
-                    this.form.get('jails')?.setValue([]);
-                }
+            this.sensorService.getById(id).subscribe(data => {
+                this.form.patchValue({
+                    _id: data._id,
+                    name: data.name,
+                    description: data.description,
+                    categories: data.categories,
+                    exclusions: data.exclusions,
+                    block: data.block,
+                    permit: data.permit,
+                    geo_block_list: data.geo_block_list || [],
+                    jails: data.jails || []
+                });
             });
         }
+
+        // Load additional data
         this.jailService.get().subscribe((data) => {
             this._jails = data.data;
         });

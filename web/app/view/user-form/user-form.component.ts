@@ -68,17 +68,27 @@ export class UserFormComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.isAddMode = !this.route.snapshot.params['id'];
+        // Extract id from route params
+        const { id } = this.route.snapshot.params;
+        this.isAddMode = !id;
+
+        // Disable form if user is not a superuser
         if (!this.oauth.isRole('superuser')) {
             this.form.disable();
+            // No need to fetch data if form is disabled and not in add mode
+            if (!this.isAddMode) return;
         }
+
+        // If editing, fetch user and patch form values
         if (!this.isAddMode) {
-            this.feedService.getById(this.route.snapshot.params['id']).subscribe(data => {
-                this.form.get('_id')?.setValue(data._id);
-                this.form.get('name')?.setValue(data.name);
-                this.form.get('email')?.setValue(data.email);
-                this.form.get('role')?.setValue(data.role);
-                this.form.get('password')?.setValue(data.password);
+            this.feedService.getById(id).subscribe(data => {
+                this.form.patchValue({
+                    _id: data._id,
+                    name: data.name,
+                    email: data.email,
+                    role: data.role,
+                    password: data.password
+                });
             });
         }
     }

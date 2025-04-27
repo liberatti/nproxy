@@ -2,14 +2,14 @@ import os
 import shutil
 import zipfile
 
-from api.model.certificate_model import CertificateDao
-from api.model.feed_model import FeedDao
-from api.model.geoip_model import GeoIpDao
-from api.model.oauth_model import UserDao
-from api.model.seclang_model import RuleCategoryDao, RuleDao
-from api.model.sensor_model import SensorDao
-from api.model.service_model import ServiceDao
-from api.model.upstream_model import UpstreamDao
+from model.certificate_model import CertificateDao
+from model.feed_model import FeedDao
+from model.geoip_model import GeoIpDao
+from model.oauth_model import UserDao
+from model.seclang_model import RuleCategoryDao, RuleDao
+from model.sensor_model import SensorDao
+from model.service_model import ServiceDao
+from model.upstream_model import UpstreamDao
 from config import APP_BASE
 
 

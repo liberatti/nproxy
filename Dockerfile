@@ -59,12 +59,11 @@ COPY --from=frontend /app/web/dist/index.html /opt/nproxy/admin/templates/
 
 WORKDIR /opt/nproxy/admin
 
-COPY requirements.txt /opt/nproxy/admin/
+COPY api/requirements.txt /opt/nproxy/admin/
 RUN pip3.12 install -r /opt/nproxy/admin/requirements.txt
 
-COPY api /opt/nproxy/admin/api
+COPY api /opt/nproxy/admin
 COPY config /opt/nproxy/admin/config
-COPY *.py /opt/nproxy/admin/
 
 RUN mkdir -p /opt/nproxy/lualib/share/lua/5.4/nproxy/
 COPY lualib /opt/nproxy/lualib/share/lua/5.4/nproxy/
