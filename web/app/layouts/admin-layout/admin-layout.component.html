@@ -5,7 +5,7 @@
             <mat-icon>menu</mat-icon>
         </button>
         <a class="navbar-brand" [routerLink]="['/']" matTooltip="Home" style="font-family: Bitter;">
-            {{ title }} <small class="chip-small">{{ version }}</small>
+            <span style="text-transform: capitalize;">{{ title }}</span> <small class="chip-small">{{ version }}</small>
         </a>
         <span class="navbar-spacer"></span>
         <div *ngIf="trackingEvt">

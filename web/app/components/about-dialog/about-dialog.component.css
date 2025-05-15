@@ -1,16 +1,121 @@
-#uploadConfig {
-  background-color: #f8f9fa;
-  border: 1px solid #ced4da;
+.dialog-content {
+  padding: 24px;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.custom-tab-group {
+  margin-bottom: 20px;
+}
+
+.about-content, .restore-content {
+  padding: 20px 0;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.about-text {
+  margin-bottom: 24px;
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.links-container {
+  display: flex;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.link-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
   border-radius: 4px;
-  padding: 8px;
-  box-shadow: none;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  text-decoration: none;
+  color: rgba(0, 0, 0, 0.87);
+  transition: background-color 0.2s;
+  background-color: rgba(0, 0, 0, 0.04);
 }
-mat-tab-group.mat-primary{
-  color: var(--toolbar-background)!important;
+
+.link-button:hover {
+  background-color: rgba(0, 0, 0, 0.08);
 }
-#uploadConfig:focus {
-  border-color: #80bdff;
-  outline: 0;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+
+.github-icon {
+  height: 24px;
+  width: auto;
+}
+
+.restore-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.restore-notice {
+  margin-bottom: 16px;
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.file-upload-container {
+  position: relative;
+}
+
+.file-input {
+  position: absolute;
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.file-upload-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background-color: rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.file-upload-label:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.dialog-actions {
+  padding: 16px 24px;
+  gap: 12px;
+  background-color: #fafafa;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.loading-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.12);
+  border-top: 4px solid #1976d2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

@@ -52,12 +52,12 @@
         "label": "view.user.link",
         "route": "/users",
         "icon": "supervised_user_circle"
+      },
+      {
+        "label": "view.config.link",
+        "route": "/config",
+        "icon": "settings"
       }
     ]
-  },
-  {
-    "label": "view.config.link",
-    "route": "/config",
-    "icon": "settings"
   }
 ]

@@ -14,6 +14,7 @@ import {MatIconModule} from '@angular/material/icon';
 import {TranslateModule} from '@ngx-translate/core';
 import {RouterModule} from '@angular/router';
 import {NotificationService} from "../../services/notification.service";
+import { environment } from 'environments/environment';
 
 
 @Component({
@@ -37,7 +38,7 @@ export class AboutDialogComponent {
     selectedFile: File | null = null;
     currentTab: number = 0;
     restoreReady: boolean = true;
-
+    _REST_API_URL: string = environment.apiUrl;
     constructor(
         public dialogRef: MatDialogRef<AboutDialogComponent>,
         private clusterService: ClusterService, private http: HttpClient,

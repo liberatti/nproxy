@@ -47,6 +47,7 @@ export class ApplyDialogComponent implements OnInit {
         this.clusterService.healthCheck().subscribe(data => {
             this.applyReady = !data.apply_active;
             if (this.applyReady) {
+                this.applyReady = false;
                 this.clusterService.applyConfig().subscribe({
                     next: (data) => {
                         this.applyReady = true;

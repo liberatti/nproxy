@@ -64,6 +64,8 @@ RUN pip3.12 install -r /opt/nproxy/admin/requirements.txt
 
 COPY api /opt/nproxy/admin
 COPY config /opt/nproxy/admin/config
+COPY web/assets/swagger-ui /opt/nproxy/admin/static/swagger-ui
+COPY openapi.yml /opt/nproxy/admin/static/swagger-ui/
 
 RUN mkdir -p /opt/nproxy/lualib/share/lua/5.4/nproxy/
 COPY lualib /opt/nproxy/lualib/share/lua/5.4/nproxy/
