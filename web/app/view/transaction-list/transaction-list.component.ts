@@ -1,4 +1,4 @@
-import {Component, OnInit, signal} from '@angular/core';
+import {Component, OnInit, signal, ViewChild} from '@angular/core';
 import {MatTableDataSource, MatTableModule} from '@angular/material/table';
 import {MatPaginatorModule, PageEvent} from '@angular/material/paginator';
 import {MatDialog} from '@angular/material/dialog';
@@ -42,13 +42,13 @@ import {animate, state, style, transition, trigger} from '@angular/animations';
 import {TimeFormatPipe} from 'app/pipes/format_time.pipe';
 import {TransactionRAWDialogComponent} from 'app/components/transaction-raw-dialog/transaction-raw-dialog.component';
 import {MatRipple} from "@angular/material/core";
-import {DatetimePickerDialogComponent} from "../../components/datetime-picker-dialog/datetime-picker-dialog.component";
 import {RuleDetailsDialogComponent} from "../../components/rule-details-dialog/rule-details-dialog.component";
 import {RuleService} from "../../services/sensor.service";
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
-import { HighlightModule } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import {HighlightModule} from 'ngx-highlightjs';
+import {HighlightLineNumbers} from 'ngx-highlightjs/line-numbers';
+import {DatetimeFieldComponent} from '../../components/datetime-field/datetime-field.component';
 
 @Component({
     selector: 'app-transaction-list',
@@ -70,16 +70,20 @@ import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
         MatListModule, MatCardModule, MatProgressBarModule, MatInputModule,
         MatTableModule, MatMenuModule, MatSortModule, MatExpansionModule,
         MatTooltipModule, MatSelectModule, MatPaginatorModule, MatSlideToggleModule,
-        MatFormFieldModule, MatChipsModule, MatRipple, FormsModule, MatSnackBarModule],
+        MatFormFieldModule, MatChipsModule, MatRipple, FormsModule, MatSnackBarModule,
+        DatetimeFieldComponent],
     templateUrl: './transaction-list.component.html',
     styleUrl: './transaction-list.component.css',
-
 })
 
-
 export class TransactionListComponent implements OnInit {
+    @ViewChild('startField') startField: any;
+    @ViewChild('endField') endField: any;
+
     readonly panelOpenState = signal(false);
     input_regex: string = "";
+    logtime_start: Date = moment().subtract(1, 'day').toDate();
+    logtime_end: Date = moment().toDate();
     form = new FormGroup({
         start: new FormControl<Date>(moment().subtract(1, 'day').toDate()),
         end: new FormControl<Date>(moment().toDate()),
@@ -170,7 +174,6 @@ export class TransactionListComponent implements OnInit {
         private confirmDialog: MatDialog,
         private responsive: BreakpointObserver,
         private formatService: FormaterService,
-        private dateTimePickerDialog: MatDialog,
         private ruleService: RuleService,
         private snackBar: MatSnackBar
     ) {
@@ -199,17 +202,6 @@ export class TransactionListComponent implements OnInit {
 
     ngOnInit(): void {
         this.updateGridTable();
-    }
-
-    openDatePicker() {
-        const dialogRef = this.dateTimePickerDialog.open(DatetimePickerDialogComponent, {});
-
-        dialogRef.afterClosed().subscribe(result => {
-            if (result) {
-                this.form.get('start')?.setValue(result.logtime_start);
-                this.form.get('end')?.setValue(result.logtime_end);
-            }
-        });
     }
 
     updateGridTable() {
@@ -258,7 +250,6 @@ export class TransactionListComponent implements OnInit {
 
     onSearch() {
         this.updateGridTable();
-
     }
 
     onShowRAW(trn: TransactionLog) {
@@ -333,5 +324,14 @@ export class TransactionListComponent implements OnInit {
                 this.form.value.filters.splice(index, 1);
             }
         }
+    }
+
+    onDateTimeConfirm(event: any) {
+        this.form.get('start')?.setValue(event.toDate());
+        let filter = this.form.value as TransactionFilter;
+
+        console.log(filter);
+        
+        this.updateGridTable();
     }
 }
