@@ -14,7 +14,7 @@ class OIDCToken(Schema):
     """
     access_token = fields.String()
     refresh_token = fields.String()
-    token_type = fields.String(default="Bearer")
+    token_type = fields.String(load_default="Bearer", dump_default="Bearer")
     expires_in = fields.Integer()
     provider = fields.String()
 

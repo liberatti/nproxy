@@ -38,7 +38,7 @@ def after(response: Response) -> Response:
 
 
 @routes.route("/<feed_id>", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def get(feed_id: str) -> Response:
     """
     Retrieve a specific feed by ID.
@@ -55,7 +55,7 @@ def get(feed_id: str) -> Response:
 
 
 @routes.route("", methods=["POST"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def save() -> Response:
     """
     Create a new feed.
@@ -79,7 +79,7 @@ def save() -> Response:
 
 
 @routes.route("", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def search() -> Response:
     """
     Search and list all feeds.
@@ -93,7 +93,7 @@ def search() -> Response:
 
 
 @routes.route("/<feed_id>", methods=["PUT"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def update(feed_id: str) -> Response:
     """
     Update an existing feed.
@@ -117,7 +117,7 @@ def update(feed_id: str) -> Response:
 
 
 @routes.route("/<feed_id>", methods=["DELETE"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def delete(feed_id: str) -> Response:
     """
     Delete a feed.

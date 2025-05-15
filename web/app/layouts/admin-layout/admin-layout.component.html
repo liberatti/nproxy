@@ -5,11 +5,11 @@
             <mat-icon>menu</mat-icon>
         </button>
         <a class="navbar-brand" [routerLink]="['/']" matTooltip="Home" style="font-family: Bitter;">
-            {{ title }} <small class="chip-small">{{ version }}</small>
+            <span style="text-transform: capitalize;">{{ title }}</span> <small class="chip-small">{{ version }}</small>
         </a>
         <span class="navbar-spacer"></span>
         <div *ngIf="trackingEvt">
-            <button mat-button [matMenuTriggerFor]="notificationMenu" (click)="checkPending()">
+            <button mat-button [matMenuTriggerFor]="notificationMenu" (click)="healthCheck()">
                 <mat-icon matBadge matBadgeColor="accent" [matBadge]="null">notifications</mat-icon>
             </button>
             <mat-menu #notificationMenu="matMenu" xPosition="before" yPosition="above" [overlapTrigger]="false">
@@ -19,8 +19,8 @@
                     </mat-card-header>
                     <mat-card-content>
                         <mat-chip-listbox>
-                            @for (p of changes; track p.name) {
-                                <mat-chip-row>{{ 'view.' + p.name + '.link' |translate }}</mat-chip-row>
+                            @for (p of changes; track p) {
+                                <mat-chip-row>{{ 'view.' + p + '.link' |translate }}</mat-chip-row>
                             }
                         </mat-chip-listbox>
                     </mat-card-content>
@@ -101,9 +101,7 @@
         </mat-sidenav>
         <!-- Main content -->
         <mat-sidenav-content class="sidenav-content">
-            <div style="margin-bottom: 10px;">
-                <router-outlet></router-outlet>
-            </div>
+            <router-outlet></router-outlet>
             <footer class="footer">
                 <div class="footer-content">
                     <small [innerHTML]="'content.copy' |translate"></small> - Enjoy {{ version }}

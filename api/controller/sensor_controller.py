@@ -7,7 +7,6 @@ from common_utils import (
     ResponseBuilder,
     has_any_authority,
     get_pagination,
-    has_integration_key,
     socketio,
 )
 from model.config_model import ChangeDao
@@ -38,7 +37,7 @@ def after(response: Response) -> Response:
 
 
 @routes.route("/<sensor_id>", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def get(sensor_id: str) -> Response:
     """
     Retrieve a specific sensor by ID.
@@ -55,7 +54,7 @@ def get(sensor_id: str) -> Response:
 
 
 @routes.route("", methods=["POST"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def save() -> Response:
     """
     Create a new sensor.
@@ -74,7 +73,7 @@ def save() -> Response:
 
 
 @routes.route("", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def search() -> Response:
     """
     Search and list all sensors.
@@ -88,7 +87,7 @@ def search() -> Response:
 
 
 @routes.route("/<sensor_id>", methods=["PUT"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def update(sensor_id: str) -> Response:
     """
     Update an existing sensor.
@@ -109,7 +108,7 @@ def update(sensor_id: str) -> Response:
 
 
 @routes.route("/<sensor_id>", methods=["DELETE"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def delete(sensor_id: str) -> Response:
     """
     Delete a sensor.
@@ -126,7 +125,7 @@ def delete(sensor_id: str) -> Response:
 
 
 @routes.route("/<sensor_id>/check/<ipaddr>", methods=["GET"])
-@has_integration_key()
+@has_any_authority( _internal=True)
 def geoip_info(ipaddr: str) -> Response:
     """
     Check GeoIP information for an IP address.

@@ -4,19 +4,36 @@
 <head>
   <meta charset="utf-8">
   <title>NProxy</title>
+  <meta name="description" content="NProxy - A powerful proxy management tool">
   <meta name="robots" content="noindex">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="msapplication-TileColor" content="#ffffff">
   <meta name="theme-color" content="#ffffff">
-  <!--  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"> -->
+  
+  <!-- Open Graph / Social Media Meta Tags -->
+  <meta property="og:title" content="NProxy">
+  <meta property="og:description" content="NProxy - A powerful proxy management tool">
+  <meta property="og:type" content="website">
+  
+  <!-- PWA Support -->
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <link rel="manifest" href="assets/manifest.json">
-  <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/css/flag-icons.min.css" /> -->
+  <link rel="apple-touch-icon" href="assets/icon-192x192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  
+  <!-- Preload Critical Resources -->
+  <link rel="preload" href="assets/favicon.ico" as="image">
+  <link rel="preload" href="assets/manifest.json" as="fetch" crossorigin>
 </head>
 
 <body class="mat-app-background">
-  <app-root></app-root>
-  <noscript>Please enable JavaScript to continue using this application.</noscript>
+  <app-root role="main" aria-label="NProxy Application"></app-root>
+  <noscript>
+    <div role="alert" aria-live="assertive">
+      Please enable JavaScript to continue using this application.
+    </div>
+  </noscript>
 </body>
 
 </html>

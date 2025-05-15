@@ -1,6 +1,22 @@
-<h2 mat-dialog-title>Configuration in Progress</h2>
+<h2 mat-dialog-title>{{ 'Configuration in Progress' | translate }}</h2>
 <mat-dialog-content class="mat-typography">
     <div class="loading-box" *ngIf="!applyReady">
         <div class="spinner"></div>
+        <p>{{ 'Applying configuration...' | translate }}</p>
+    </div>
+    
+    <div *ngIf="applyReady">
+        <div *ngIf="success" class="success-message">
+            <mat-icon>check_circle</mat-icon>
+            <p>{{ 'Configuration applied successfully!' | translate }}</p>
+        </div>
+        <div *ngIf="!success" class="error-message">
+            <mat-icon>error</mat-icon>
+            <p>{{ error | translate }}</p>
+        </div>
     </div>
 </mat-dialog-content>
+
+<mat-dialog-actions align="end" *ngIf="applyReady">
+    <button mat-button (click)="closeDialog()">{{ 'Close' | translate }}</button>
+</mat-dialog-actions>

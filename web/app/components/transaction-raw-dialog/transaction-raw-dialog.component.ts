@@ -15,6 +15,7 @@ import {MatTabsModule} from '@angular/material/tabs';
 import {CommonModule} from '@angular/common';
 import {MatIconModule} from '@angular/material/icon';
 import {TransactionLog} from 'app/models/transaction';
+import { HighlightModule } from 'ngx-highlightjs';
 
 @Component({
     selector: 'app-atransaction-raw-dialog',
@@ -29,8 +30,9 @@ import {TransactionLog} from 'app/models/transaction';
         MatDialogTitle,
         MatDialogContent,
         MatDialogActions,
-        MatTabsModule, MatIconModule
-    ],
+        MatTabsModule, MatIconModule,
+        HighlightModule
+    ]
 })
 
 export class TransactionRAWDialogComponent {
@@ -38,6 +40,10 @@ export class TransactionRAWDialogComponent {
         @Inject(MAT_DIALOG_DATA) public data: TransactionLog,
         public dialogRef: MatDialogRef<TransactionRAWDialogComponent>
     ) { }
+
+    get jsonData(): string {
+        return JSON.stringify(this.data, null, 4);
+    }
 
     onDismiss(): void {
         this.dialogRef.close(false);

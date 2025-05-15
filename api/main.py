@@ -14,7 +14,6 @@ from controller.certificate_controller import routes as certificate_routes
 from controller.challenge_controller import routes as acme_routes
 from controller.cluster_controller import routes as cluster_routes
 from controller.feed_controller import routes as feed_routes
-from controller.health_controller import routes as health_routes
 from controller.jail_controller import routes as jail_routes
 from controller.oauth_controller import routes as oauth_routes
 from controller.replica_controller import routes as replica_routes
@@ -72,6 +71,15 @@ def handle_exception(error):
     app.logger.error(f"Internal Server Error: {stack_trace}")
     return ResponseBuilder.error_500("Unexpected Server Error", details=stack_trace)
 
+@bp.route("/api-docs")
+def api_docs():
+    """Serve the API documentation page."""
+    return send_from_directory("./static/swagger-ui", "index.html")
+
+@bp.route("/openapi.yml")
+def openapi_spec():
+    """Serve the OpenAPI specification file."""
+    return send_from_directory("./static/swagger-ui", "openapi.yml")
 
 @bp.route("/")
 def index():
@@ -79,19 +87,17 @@ def index():
 
 
 @bp.route("/<path:path>")
-def catch_all(path):
+def catch_all(path: str):       
     static_files_dir = "./static"
     _path = path.lower().strip()
     if path in ["", "/", None]:
         return render_template("index.html")
     elif _path.endswith(".css"):
-        return send_from_directory(static_files_dir, path, mimetype="text/css")
+        return send_from_directory(os.path.join(static_files_dir), path, mimetype="text/css")
     elif _path.endswith(".js"):
-        return send_from_directory(
-            static_files_dir, path, mimetype="application/javascript"
-        )
+        return send_from_directory(os.path.join(static_files_dir), path, mimetype="application/javascript")
     elif "." in _path:
-        return send_from_directory(static_files_dir, path)
+        return send_from_directory(os.path.join(static_files_dir), path)
     else:
         return render_template("index.html")
 
@@ -112,7 +118,6 @@ routes = [
     (jail_routes, "/api/jail"),
     (route_filter_routes, "/api/route_filter"),
     (acme_routes, "/.well-known"),
-    (health_routes, "/health"),
     (oauth_routes, "/api/oauth"),
 ]
 for route, url_prefix in routes:

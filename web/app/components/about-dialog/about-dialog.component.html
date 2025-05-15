@@ -1,38 +1,51 @@
-<mat-dialog-content>
-    <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="end" (selectedTabChange)="onTabChanged($event)">
-        <mat-tab label="About">
-            <p [innerHTML]="'content.about' |translate"></p>
-            <a href="https://github.com/liberatti/nproxy" target="_blank">
-                <img class="img-round" style="height: 36px;width: auto;" src="assets/github-mark.png"/>
-            </a>
-        </mat-tab>
-        <mat-tab label="Restore config" style="padding: 10px;">
-            <div class="loading-box" *ngIf="!restoreReady">
-                <div class="spinner"></div>
+<mat-dialog-content class="dialog-content">
+    <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="end" (selectedTabChange)="onTabChanged($event)" class="custom-tab-group">
+        <mat-tab label="About" class="about-tab">
+            <div class="about-content">
+                <p [innerHTML]="'content.about' |translate" class="about-text"></p>
+                <div class="links-container">
+                    <a href="https://github.com/liberatti/nproxy" target="_blank" class="link-button">
+                        <img class="img-round github-icon" src="assets/github-mark.png" alt="GitHub"/>
+                        <span>GitHub</span>
+                    </a>
+                    <a class="link-button" href="{{_REST_API_URL}}/api-docs" target="_blank">
+                        <mat-icon>description</mat-icon>
+                        <span>API</span>
+                    </a>
+                </div>
             </div>
-            <form enctype="multipart/form-data" *ngIf="restoreReady" #fileForm>
-                <p [innerHTML]="'content.restore_notice' |translate"></p>
-                <input class="form-control" type="file" id="uploadConfig"
-                       accept="application/zip, .zip" (change)="onFileSelected($event)">
-            </form>
+        </mat-tab>
+        <mat-tab label="Restore config" class="restore-tab">
+            <div class="restore-content">
+                <div class="loading-box" *ngIf="!restoreReady">
+                    <div class="spinner"></div>
+                </div>
+                <form enctype="multipart/form-data" *ngIf="restoreReady" #fileForm class="restore-form">
+                    <p [innerHTML]="'content.restore_notice' |translate" class="restore-notice"></p>
+                    <div class="file-upload-container">
+                        <input class="file-input" type="file" id="uploadConfig"
+                               accept="application/zip, .zip" (change)="onFileSelected($event)">
+                        <label for="uploadConfig" class="file-upload-label">
+                            <mat-icon>upload_file</mat-icon>
+                            <span>Choose file</span>
+                        </label>
+                    </div>
+                </form>
+            </div>
         </mat-tab>
     </mat-tab-group>
 </mat-dialog-content>
-<mat-dialog-actions align="end">
-    <button *ngIf="currentTab==1" mat-raised-button color="warn" (click)="onSubmit()" [disabled]="!restoreReady">
-        <mat-icon>
-            restore
-        </mat-icon>
-        Restore
+<mat-dialog-actions align="end" class="dialog-actions">
+    <button *ngIf="currentTab==1" mat-raised-button color="warn" (click)="onSubmit()" [disabled]="!restoreReady" class="action-button">
+        <mat-icon>restore</mat-icon>
+        <span>Restore</span>
     </button>
-    <button *ngIf="currentTab==0" mat-raised-button color="primary" (click)="downloadConfig()">
-        <mat-icon>
-            file_download
-        </mat-icon>
-        Config
+    <button *ngIf="currentTab==0" mat-raised-button color="primary" (click)="downloadConfig()" class="action-button">
+        <mat-icon>file_download</mat-icon>
+        <span>Config</span>
     </button>
-    <button (click)="onDismiss()" mat-raised-button>
+    <button (click)="onDismiss()" mat-raised-button class="action-button">
         <mat-icon>exit_to_app</mat-icon>
-        {{ 'actions.close'|translate }}
+        <span>{{ 'actions.close'|translate }}</span>
     </button>
 </mat-dialog-actions>

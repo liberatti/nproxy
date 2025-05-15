@@ -10,7 +10,7 @@ routes = Blueprint("rulecat", __name__)
 
 
 @routes.route("/<cat_id>", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def get(cat_id: str) -> Response:
     """
     Retrieve a specific rule category by ID.
@@ -33,7 +33,7 @@ def get(cat_id: str) -> Response:
 
 
 @routes.route("/by_name/<cat_name>", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def get_by_name(cat_name: str) -> Response:
     """
     Retrieve a rule category by name.
@@ -56,7 +56,7 @@ def get_by_name(cat_name: str) -> Response:
 
 
 @routes.route("", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def search() -> Response:
     """
     Search rule categories by name and phases.

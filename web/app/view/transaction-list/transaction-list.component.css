@@ -3,7 +3,7 @@
 }
 
 
-.pass {
+.passed {
     background-color: var(--passed-color) !important;
 }
 
@@ -41,4 +41,26 @@ mat-accordion {
     max-width: 90px;
     align-items: center;
     text-align: center;
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.flex-col {
+    flex: 1;
+    min-width: 200px;
+}
+
+.flex-col-lg {
+    flex: 2;
+}
+
+app-datetime-field {
+    display: block;
+    margin-top: 4px;
 }

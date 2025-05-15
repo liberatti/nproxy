@@ -33,7 +33,6 @@ export interface NodeStatus {
     scn: string;
     version: string;
     role: string;
-    online: boolean;
     net_send: number;
     net_recv: number;
     healthy: boolean;

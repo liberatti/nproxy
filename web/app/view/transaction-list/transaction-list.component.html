@@ -8,21 +8,32 @@
             </mat-card-actions>
         </mat-card-header>
         <mat-card-content>
-            <div class="flex-row">
-                <mat-form-field class="flex-col-lg">
-                    <mat-label>Enter filter</mat-label>
-                    <input matInput [(ngModel)]="input_regex">
+            <div class="flex-row" style="display: flex; align-items: center; gap: 8px">
+                <mat-form-field class="flex-col-lg" style="margin-bottom: -1.25em">
+                    <mat-label>Query filter</mat-label>
+                    <input matInput [(ngModel)]="input_regex" placeholder='Example: {"action": "PASSED"} or {"http.request.method": "GET"}'>
                     <button id="btn-add-sans" matSuffix mat-icon-button (click)="onAddFilter()">
                         <mat-icon>add</mat-icon>
                     </button>
+                    <mat-hint>Enter a MongoDB query filter as JSON</mat-hint>
                 </mat-form-field>
-                <mat-form-field class="flex-col">
-                    <mat-label>Time Filter</mat-label>
-                    <input type="text" matInput readonly
-                           value="{{form.value.start |dateFormat}}->{{form.value.end|dateFormat}}">
-                    <mat-icon matSuffix (click)="openDatePicker()">calendar_month</mat-icon>
-                </mat-form-field>
-                <button mat-icon-button color="primary" (click)="onSearch()" style="margin-top: 4px">
+                <app-datetime-field
+                    class="flex-col"
+                    style="margin-bottom: -1.0em"
+                    label="Data/Hora Inicial"
+                    placeholder="Selecione a data/hora inicial"
+                    (confirm)="onDateTimeConfirm($event,'start')"
+                    #startField>
+                </app-datetime-field>
+                <app-datetime-field
+                    class="flex-col"
+                    style="margin-bottom: -1.0em"
+                    label="Data/Hora Final"
+                    placeholder="Selecione a data/hora final"
+                    (confirm)="onDateTimeConfirm($event,'end')"
+                    #endField>
+                </app-datetime-field>
+                <button mat-icon-button color="primary" (click)="onSearch()">
                     <mat-icon>refresh</mat-icon>
                 </button>
             </div>

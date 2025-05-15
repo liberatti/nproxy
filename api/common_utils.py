@@ -175,16 +175,19 @@ def gen_random_string(length=16):
     return "".join(random.choice(letters) for i in range(length))
 
 
-def has_any_authority(_authorities):
+def has_any_authority(authorities=None,_internal=False):
     def wrapper(fn):
         @wraps(fn)
         def decorator(*args, **kwargs):
             if not SECURITY_ENABLED:
                 return fn(*args, **kwargs)
+            if "main" in NODE_ROLE and _internal:
+                if NODE_KEY == request.headers.get("x-cluster-key"):
+                    return fn(*args, **kwargs)
             try:
                 token = jwt_get()
                 payload = jwt_decode(token)
-                if any(a in payload.get("authorities", []) for a in _authorities):
+                if any(a in payload.get("authorities", []) for a in authorities):
                     return fn(*args, **kwargs)
             except ExpiredSignatureError:
                 return ResponseBuilder.error_401(
@@ -199,23 +202,6 @@ def has_any_authority(_authorities):
         return decorator
 
     return wrapper
-
-
-def has_integration_key():
-    def wrapper(fn):
-        @wraps(fn)
-        def decorator(*args, **kwargs):
-            if not SECURITY_ENABLED:
-                return fn(*args, **kwargs)
-            if "main" in NODE_ROLE:
-                if NODE_KEY == request.headers.get("x-cluster-key"):
-                    return fn(*args, **kwargs)
-            return ResponseBuilder.error_403(message="Integration not authorized")
-
-        return decorator
-
-    return wrapper
-
 
 def replace_tz(not_valid_before):
     if not_valid_before.tzinfo is None:

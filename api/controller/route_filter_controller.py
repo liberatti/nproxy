@@ -35,7 +35,7 @@ def after(response: Response) -> Response:
 
 
 @routes.route("", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def search() -> Response:
     """
     Search and list all route filters.
@@ -49,7 +49,7 @@ def search() -> Response:
 
 
 @routes.route("/<route_filter_id>", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def get(route_filter_id: str) -> Response:
     """
     Retrieve a specific route filter by ID.
@@ -66,7 +66,7 @@ def get(route_filter_id: str) -> Response:
 
 
 @routes.route("", methods=["POST"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def save() -> Response:
     """
     Create a new route filter.
@@ -84,7 +84,7 @@ def save() -> Response:
 
 
 @routes.route("/<route_filter_id>", methods=["PUT"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def update(route_filter_id: str) -> Response:
     """
     Update an existing route filter.
@@ -105,7 +105,7 @@ def update(route_filter_id: str) -> Response:
 
 
 @routes.route("/<route_filter_id>", methods=["DELETE"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def delete(route_filter_id: str) -> Response:
     """
     Delete a route filter.

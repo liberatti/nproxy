@@ -9,7 +9,7 @@ routes = Blueprint("rulesec", __name__)
 
 
 @routes.route("/by_code/<rule_code>", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def get(rule_code: str) -> Response:
     """
     Retrieve a security rule by its code.

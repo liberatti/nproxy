@@ -31,26 +31,40 @@ import {TranslateModule} from "@ngx-translate/core";
     ],
 })
 
-export class ApplyDialogComponent implements OnInit{
-    error:any;
-    applyReady: boolean = true;
+export class ApplyDialogComponent implements OnInit {
+    error: string = "";
+    applyReady: boolean = false;
+    success: boolean = false;
+
     constructor(
         public dialogRef: MatDialogRef<ApplyDialogComponent>,
         private clusterService: ClusterService
     ) {
-        this.error="";
+
     }
 
     ngOnInit(): void {
-        this.applyReady = false;
-        this.clusterService.applyConfig().subscribe({
-            next: (data) => {
-                this.applyReady = true;
-                this.dialogRef.close(false);
-            },
-            error: (err) => {
-                this.dialogRef.close(false);
+        this.clusterService.healthCheck().subscribe(data => {
+            this.applyReady = !data.apply_active;
+            if (this.applyReady) {
+                this.applyReady = false;
+                this.clusterService.applyConfig().subscribe({
+                    next: (data) => {
+                        this.applyReady = true;
+                        this.success = true;
+                    },
+                    error: (err) => {
+                        this.applyReady = true;
+                        this.success = false;
+                        this.error = err.message || 'An error occurred during configuration';
+                    }
+                });
             }
         });
+
+    }
+
+    closeDialog() {
+        this.dialogRef.close(this.success);
     }
 }

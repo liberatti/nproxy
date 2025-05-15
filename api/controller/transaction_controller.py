@@ -10,7 +10,7 @@ routes = Blueprint("trn", __name__)
 
 
 @routes.route("/stats/tpm", methods=["POST"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def st_tpm():
     req = request.json
     st_date = replace_tz(datetime.strptime(req.pop("logtime_start"), DATETIME_FMT))
@@ -41,7 +41,7 @@ def st_tpm():
 
 
 @routes.route("/<trn_id>", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def get(trn_id):
     dao = TransactionDao()
     trn = dao.get_by_id(trn_id)
@@ -53,7 +53,7 @@ def get(trn_id):
 
 
 @routes.route("", methods=["POST"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def search():
     dao = TransactionDao()
     st_date = replace_tz(datetime.strptime(

@@ -1,5 +1,3 @@
-from typing import Dict, List, Optional, Union
-
 from flask import Blueprint, request, Response
 from marshmallow import ValidationError
 
@@ -36,7 +34,7 @@ def after(response: Response) -> Response:
 
 
 @routes.route("/<service_id>", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def get(service_id: str) -> Response:
     """
     Retrieve a specific service by ID.
@@ -53,7 +51,7 @@ def get(service_id: str) -> Response:
 
 
 @routes.route("", methods=["POST"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def save() -> Response:
     """
     Create a new service.
@@ -77,7 +75,7 @@ def save() -> Response:
 
 
 @routes.route("", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def search() -> Response:
     """
     Search and list all services.
@@ -91,7 +89,7 @@ def search() -> Response:
 
 
 @routes.route("/<service_id>", methods=["PATCH"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def partial_update(service_id: str) -> Response:
     """
     Partially update a service with specific fields.
@@ -113,7 +111,7 @@ def partial_update(service_id: str) -> Response:
 
 
 @routes.route("/<service_id>", methods=["PUT"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def update(service_id: str) -> Response:
     """
     Update an existing service.
@@ -139,7 +137,7 @@ def update(service_id: str) -> Response:
 
 
 @routes.route("/<service_id>", methods=["DELETE"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def delete(service_id: str) -> Response:
     """
     Delete a service.
