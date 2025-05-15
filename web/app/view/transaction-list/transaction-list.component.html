@@ -22,7 +22,7 @@
                     style="margin-bottom: -1.0em"
                     label="Data/Hora Inicial"
                     placeholder="Selecione a data/hora inicial"
-                    (confirm)="onDateTimeConfirm($event)"
+                    (confirm)="onDateTimeConfirm($event,'start')"
                     #startField>
                 </app-datetime-field>
                 <app-datetime-field
@@ -30,14 +30,13 @@
                     style="margin-bottom: -1.0em"
                     label="Data/Hora Final"
                     placeholder="Selecione a data/hora final"
-                    (confirm)="onDateTimeConfirm($event)"
+                    (confirm)="onDateTimeConfirm($event,'end')"
                     #endField>
                 </app-datetime-field>
                 <button mat-icon-button color="primary" (click)="onSearch()">
                     <mat-icon>refresh</mat-icon>
                 </button>
             </div>
-            {{ form.get('start')?.value | dateFormat }}
             <mat-chip-listbox>
                 <mat-chip-row *ngFor="let p of form.value.filters" (removed)="onRemoveFilter(p)">
                     {{ p }}

@@ -134,7 +134,7 @@ export class TransactionListComponent implements OnInit {
                             const xAxis = chartUpdate['chart'].scales['x'];
                             this.form.get('start')?.setValue(xAxis.min);
                             this.form.get('end')?.setValue(xAxis.max);
-                            this.updateGridTable();
+                            this.onSearch();
                         },
                     }
                 }
@@ -201,10 +201,10 @@ export class TransactionListComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.updateGridTable();
+        this.onSearch();
     }
 
-    updateGridTable() {
+    onSearch() {
         let filter = this.form.value as TransactionFilter;
         this.transactionService.getTpm(filter).subscribe(data => {
             if (this.chart != null) {
@@ -235,7 +235,7 @@ export class TransactionListComponent implements OnInit {
     nextPage(event: PageEvent) {
         this.transactionPA.page = event.pageIndex + 1;
         this.transactionPA.per_page = event.pageSize;
-        this.updateGridTable();
+        this.onSearch();
     }
 
     resolveClass(code: number) {
@@ -248,19 +248,15 @@ export class TransactionListComponent implements OnInit {
         return "deny";
     }
 
-    onSearch() {
-        this.updateGridTable();
-    }
-
     onShowRAW(trn: TransactionLog) {
-        const dialogRef = this.confirmDialog.open(TransactionRAWDialogComponent, {
+        this.confirmDialog.open(TransactionRAWDialogComponent, {
             data: trn
         });
     }
 
     onShowRuleDetails(rule_code: number) {
         this.ruleService.get_by_code(rule_code).subscribe(data => {
-            const dialogRef = this.confirmDialog.open(RuleDetailsDialogComponent, {
+            this.confirmDialog.open(RuleDetailsDialogComponent, {
                 data: data
             });
         });
@@ -326,12 +322,7 @@ export class TransactionListComponent implements OnInit {
         }
     }
 
-    onDateTimeConfirm(event: any) {
-        this.form.get('start')?.setValue(event.toDate());
-        let filter = this.form.value as TransactionFilter;
-
-        console.log(filter);
-        
-        this.updateGridTable();
+    onDateTimeConfirm(event: any,form_field: string) {
+        this.form.get(form_field)?.setValue(event.toDate());
     }
 }

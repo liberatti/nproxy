@@ -138,7 +138,7 @@ export class AdminLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         this.clusterService.healthCheck().subscribe(data => {
             if (data.apply_pendding) {
                 this.changes = data.apply_pendding;
-                if (this.changes.length > 0) {
+                if (this.changes && this.changes.length > 0) {
                     this.trackingEvt = true;
                 }
             }
@@ -201,7 +201,7 @@ export class AdminLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         });
         this.clusterService.healthCheck().subscribe(data => {
                 this.changes = data.apply_pendding;
-                if (this.changes.length > 0) {
+                if (this.changes && this.changes.length > 0) {
                     this.trackingEvt = true;
                 }
                 if (data.apply_active) {
