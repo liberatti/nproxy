@@ -1,41 +1,36 @@
 <div id="sign-layout" class="login-background">
     <mat-card class="login-card">
         <div class="mat-row">
-            <div class="mat-col-6" style="text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <div class="mat-col-12" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
                 <img ngSrc="assets/logo-w-white.png"
-                     style="height: 86px; width: auto; object-fit: contain;"
+                     class="login-logo"
                      height="218" width="205" alt="logo"/>
-                <h2 style="color: var(--primary-color); font-weight: bold; font-size: 2rem;">Nproxy</h2>
-                <small>A user-friendly admin interface for the sophisticated Nginx solution with ModSecurity.</small>
+                <h2 class="login-title">Nproxy</h2>
+                <p class="login-subtitle">A user-friendly admin interface for the sophisticated Nginx solution with ModSecurity.</p>
             </div>
-            <div class="mat-col-6">
-                <form [formGroup]="form" id="login-form">
-                    <mat-card-content>
-                        <mat-form-field class="full-width" style="margin-top: 64px">
-                            <input id="email" matInput placeholder="Email" formControlName="email"
-                                   autocomplete="email" type="text">
-                        </mat-form-field>
-                        <mat-form-field class="full-width">
-                            <input id="password" matInput placeholder="Password" formControlName="password" type="password"
-                                   autocomplete="current-password">
-                        </mat-form-field>
-                        <!--
-                        <mat-form-field class="full-width">
-                            <mat-label>Locale</mat-label>
-                            <mat-select formControlName="locale">
-                                @for (l of locales; track l) {
-                                    <mat-option [value]="l.id">
-                                        {{l.name}}
-                                    </mat-option>
-                                }
-                            </mat-select>
-                        </mat-form-field>
-                        -->
-                    </mat-card-content>
-                    <mat-card-actions>
-                        <button mat-raised-button id="login" color="primary" (click)="login()">
-                            <mat-icon>login</mat-icon>Login</button>
-                    </mat-card-actions>
+            
+            <div class="login-divider"></div>
+            
+            <div class="mat-col-12">
+                <form [formGroup]="form" id="login-form" class="login-form">
+                    <mat-form-field class="full-width">
+                        <mat-label>Email</mat-label>
+                        <input id="email" matInput formControlName="email"
+                               autocomplete="email" type="text">
+                        <mat-icon matSuffix>email</mat-icon>
+                    </mat-form-field>
+                    
+                    <mat-form-field class="full-width">
+                        <mat-label>Password</mat-label>
+                        <input id="password" matInput formControlName="password" 
+                               type="password" autocomplete="current-password">
+                        <mat-icon matSuffix>lock</mat-icon>
+                    </mat-form-field>
+                    
+                    <button mat-raised-button id="login" color="primary" class="login-button" (click)="login()">
+                        <mat-icon>login</mat-icon>
+                        <span>Sign In</span>
+                    </button>
                 </form>
             </div>
         </div>

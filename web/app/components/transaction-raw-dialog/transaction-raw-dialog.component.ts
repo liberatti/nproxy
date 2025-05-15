@@ -32,8 +32,7 @@ import { HighlightModule } from 'ngx-highlightjs';
         MatDialogActions,
         MatTabsModule, MatIconModule,
         HighlightModule
-    ],
-    styleUrls: ['./transaction-raw-dialog.component.css']
+    ]
 })
 
 export class TransactionRAWDialogComponent {

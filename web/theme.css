@@ -1,14 +1,14 @@
 :root {
-    --primary-color: #009639;
-    --primary-light-color: #33b16c;
-    --primary-dark-color: #007a2f;
-    --accent-color: #00a859;
+    --primary-color: #2E7D32;
+    --primary-light-color: #4CAF50;
+    --primary-dark-color: #1B5E20;
+    --accent-color: #388E3C;
     --background-color: rgba(255, 255, 255, 0.92);
     --text-color: #333333;
     --text-secondary-color: #666666;
     --mdc-chip-label-text-color: #333333;
     --toolbar-background: #1a1a1a;
-    --footer-background: #009639;
+    --footer-background: #2E7D32;
     --footer-text-color: #ffffff;
     --warn-color: #f44336;
     --rejected-color: #f77676;
@@ -31,9 +31,8 @@ html {
 }
 
 .mat-toolbar.mat-primary {
-    background: linear-gradient(135deg, #00688c, #02a103);
-    /*background-color: var(--toolbar-background);*/
-    box-shadow: 0 1px 1px -1px #007a2f, 0 1px 5px -2px #00a859;
+    background: linear-gradient(135deg, #1B5E20, #2E7D32);
+    box-shadow: 0 1px 1px -1px #1B5E20, 0 1px 5px -2px #388E3C;
     height: 36px;
     z-index: 2;
 }
@@ -136,3 +135,19 @@ mat-form-field.mat-primary .mat-form-field-outline {
     color: var(--text-color);
     font-weight: 600;
 }
+
+    .hljs {
+        background: #1e1e1e;
+        padding: 1rem;
+        border-radius: 4px;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        white-space: pre;
+        overflow-x: auto;
+    }
+    .hljs-attr { color: #9cdcfe; }
+    .hljs-string { color: #ce9178; }
+    .hljs-number { color: #b5cea8; }
+    .hljs-literal { color: #569cd6; }
+    .hljs-punctuation { color: #d4d4d4; }

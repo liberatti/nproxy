@@ -5,7 +5,7 @@
 .footer {
   background: var(--footer-background);
   color: var(--footer-text-color);
-  padding: 2px;
+  padding: 7px;
   margin-top: auto;
   text-align: center;
   font-size: small;
@@ -128,7 +128,6 @@ a.mat-list-item.active {
 mat-sidenav-content {
   display: flex;
   flex-direction: column;
-  padding: 5px;
   background-color: #fafafa;
 }
 
@@ -136,8 +135,8 @@ mat-sidenav-content > div {
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  padding: 24px;
-  margin-bottom: 24px;
+  padding: 10px;
+  margin-bottom: 10px;
 }
 
 mat-mdc-card-header {
