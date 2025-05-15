@@ -125,8 +125,8 @@ class NodeStatusSchema(Schema):
     last_check = fields.DateTime(format=DATETIME_FMT, allow_none=True, required=False)
     net_recv = fields.Integer(required=False)  # Virtual
     net_send = fields.Integer(required=False)  # Virtual
-    online = fields.Boolean()  # Virtual
-
+    apply_active = fields.Boolean(required=False, dump_default=False)
+    apply_pendding = fields.List(fields.String(), required=False)
 
 class NodeStatusDao(MongoDAO):
     """

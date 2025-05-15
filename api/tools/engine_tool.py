@@ -27,6 +27,7 @@ from model.service_model import ServiceDao
 from model.upstream_model import UpstreamDao
 from tools.ruleset_tool import RuleSetParser
 from config import APP_BASE, CLUSTER_ENDPOINT, ENGINE_BASE, NODE_ROLE, NODE_KEY
+from tools.network_tool import NetworkTool
 
 
 # noinspection PyMethodMayBeStatic
@@ -653,11 +654,30 @@ class EngineManager:
                 else:
                     cookie_path = "/"
                 sb.append(f"  sticky name={cookie_name} path={cookie_path} hash=md5;")
+
+            valid_servers = []
             for t in upstream["targets"]:
-                sb.append(
-                    f"  server {t['host']}:{t['port']} max_fails={upstream['retry']} weight={t['weight']} fail_timeout={upstream['retry_timeout']};"
+                host = t['host']
+                # Try to resolve hostname if it's not an IP address
+                if not NetworkTool.is_host(host):
+                    resolved_ip = NetworkTool.hostbyname(host)
+                    if resolved_ip:
+                        host = resolved_ip
+                    else:
+                        logger.warning(f"Skipping server configuration for unresolvable hostname {host}")
+                        continue
+                
+                valid_servers.append(
+                    f"  server {host}:{t['port']} max_fails={upstream['retry']} weight={t['weight']} fail_timeout={upstream['retry_timeout']};"
                 )
 
+            if not valid_servers:
+                logger.warning(f"No valid servers found for upstream {upstream['name']}, adding default server")
+                valid_servers.append(
+                    f"  server 127.0.0.1:65535 down; # Default server when no valid targets found"
+                )
+
+            sb.extend(valid_servers)
             sb.append(f" }}")
 
         return "\n".join(sb)

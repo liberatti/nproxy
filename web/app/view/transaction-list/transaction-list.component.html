@@ -10,11 +10,12 @@
         <mat-card-content>
             <div class="flex-row">
                 <mat-form-field class="flex-col-lg">
-                    <mat-label>Enter filter</mat-label>
-                    <input matInput [(ngModel)]="input_regex">
+                    <mat-label>Query filter</mat-label>
+                    <input matInput [(ngModel)]="input_regex" placeholder='Example: {"action": "PASSED"} or {"http.request.method": "GET"}'>
                     <button id="btn-add-sans" matSuffix mat-icon-button (click)="onAddFilter()">
                         <mat-icon>add</mat-icon>
                     </button>
+                    <mat-hint>Enter a MongoDB query filter as JSON</mat-hint>
                 </mat-form-field>
                 <mat-form-field class="flex-col">
                     <mat-label>Time Filter</mat-label>

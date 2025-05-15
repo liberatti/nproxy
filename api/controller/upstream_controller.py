@@ -21,7 +21,7 @@ def after(response):
 
 
 @routes.route("", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def search():
     dao = UpstreamDao()
     result = dao.get_all(pagination=get_pagination())
@@ -34,7 +34,7 @@ def search():
         return ResponseBuilder.error_404()
 
 @routes.route("/<upstream_id>", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def get(upstream_id):
     dao = UpstreamDao()
     upstream = dao.get_by_id(upstream_id)
@@ -46,7 +46,7 @@ def get(upstream_id):
         return ResponseBuilder.error_404()
 
 @routes.route("", methods=["POST"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def save():
     dao = UpstreamDao()
     try:
@@ -68,7 +68,7 @@ def save():
         return ResponseBuilder.error_parse(err)
 
 @routes.route("/<upstream_id>", methods=["PUT"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def update(upstream_id):
     dao = UpstreamDao()
     try:
@@ -90,7 +90,7 @@ def update(upstream_id):
         return ResponseBuilder.error_parse(err)
 
 @routes.route("/<upstream_id>", methods=["DELETE"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def delete(upstream_id):
     dao = UpstreamDao()
     r = dao.delete_by_id(upstream_id)

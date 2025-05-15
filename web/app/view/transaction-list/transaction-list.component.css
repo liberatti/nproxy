@@ -3,7 +3,7 @@
 }
 
 
-.pass {
+.passed {
     background-color: var(--passed-color) !important;
 }
 

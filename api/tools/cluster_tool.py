@@ -3,6 +3,7 @@ import pickle
 import socket
 import subprocess
 import traceback
+import time
 from datetime import datetime, timedelta
 
 import psutil
@@ -27,6 +28,7 @@ from config import (
 
 class ClusterTool:
     CONFIG = None
+    APPLY_ACTIVE = False
     service_watchers = []
 
     @classmethod
@@ -174,6 +176,7 @@ class ClusterTool:
                     "version": ENGINE_VERSION,
                     "role": NODE_ROLE,
                     "last_check": datetime.now(),
+                    "apply_active": cls.APPLY_ACTIVE
                 }
             )
 
@@ -275,7 +278,9 @@ class ClusterTool:
 
     @classmethod
     def apply_config(cls, reconfigure=False):
-        logger.info(f"Start on {get_server_id()}")
+        cls.APPLY_ACTIVE = True
+        logger.info(f"[{cls.APPLY_ACTIVE}] start on {get_server_id()}")
+        
         try:
             manager = EngineManager()
             if reconfigure:
@@ -290,8 +295,11 @@ class ClusterTool:
                     pickle.dump(cls.CONFIG, f)  # SAVE START_CONFIG
             else:
                 logger.error(f"Engine failed, {restart_result['message']}")
+            cls.APPLY_ACTIVE = False
+            logger.info(f"[{cls.APPLY_ACTIVE}] end on {get_server_id()}")
             return restart_result
         except Exception as e:
+            cls.APPLY_ACTIVE = False
             stack_trace = traceback.format_exc()
-            logger.error(f"Error executing command: {stack_trace}")
+            logger.error(f"[{cls.APPLY_ACTIVE}] end on {get_server_id()}: {stack_trace}")
             return {"succeed": False, "message": str(e), "details": stack_trace}

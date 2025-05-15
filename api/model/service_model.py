@@ -120,7 +120,7 @@ class ServiceSchema(Schema):
     ssl_protocols = fields.List(fields.String())
     certificate = fields.Nested(CertificateSchema)
     ssl_client_ca = fields.String()
-    ssl_client_auth = fields.Boolean(default=False)
+    ssl_client_auth = fields.Boolean(load_default=False, dump_default=False)
 
 
 class RouteFilterDao(MongoDAO):

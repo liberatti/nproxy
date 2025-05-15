@@ -12,7 +12,7 @@ import * as moment from 'moment';
 import {Subject, takeUntil} from 'rxjs';
 import {FrontendConfig, MenuLink} from 'app/models/shared';
 import {LocalStorageService} from 'app/services/localstorage.service';
-import {MatDialog} from '@angular/material/dialog';
+import {MatDialog, MatDialogRef} from '@angular/material/dialog';
 import {AboutDialogComponent} from 'app/components/about-dialog/about-dialog.component';
 import {ApplyDialogComponent} from 'app/components/apply-dialog/apply-dialog.component';
 import {ClusterService} from 'app/services/cluster.service';
@@ -57,10 +57,10 @@ export class AdminLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     ]);
     protected httpClient: HttpClient
     menu: Array<MenuLink> = [];
-    changes: Array<any> = []
+    changes: Array<string> = []
     socket: any;
     trackingEvt: boolean = false;
-
+    applyDialogRef: MatDialogRef<ApplyDialogComponent> | null = null;
     constructor(
         private changeDetectorRef: ChangeDetectorRef,
         protected oauth: OAuthService,
@@ -134,23 +134,24 @@ export class AdminLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             this.localStorage.set('ui_config', this.config)
         }
     }
-
-    checkPending() {
-        this.clusterService.getPending().subscribe(data => {
-            if (data.metadata) {
-                this.changes = data.data;
-                this.trackingEvt = true;
+    healthCheck() {
+        this.clusterService.healthCheck().subscribe(data => {
+            if (data.apply_pendding) {
+                this.changes = data.apply_pendding;
+                if (this.changes.length > 0) {
+                    this.trackingEvt = true;
+                }
             }
         });
     }
 
     ngOnInit(): void {
         this.translate.setDefaultLang('en_US');
-        // this.tourService.initialize(this.steps, {});
         this.httpClient.get<any>("assets/main.menu.json").subscribe(data => {
             this.menu = data;
             this.toggleSubMenu(undefined);
         });
+        this.healthCheck();
     }
 
     showAbout() {
@@ -160,15 +161,9 @@ export class AdminLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     onApply() {
-        const dialogRef = this.applyDialog.open(ApplyDialogComponent, {
-            width: '450px'
-        });
-        dialogRef.afterClosed().subscribe(() => {
-            this.clusterService.getPending().subscribe(data => {
-                if (!data.metadata) {
-                    this.trackingEvt = false;
-                }
-            });
+        this.applyDialogRef = this.applyDialog.open(ApplyDialogComponent, {
+            width: '450px',
+            disableClose: true
         });
     }
 
@@ -202,8 +197,17 @@ export class AdminLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         });
         this.socket.on('tracking_aply', () => {
             this.trackingEvt = false;
+            this.applyDialogRef?.close();
         });
-        this.checkPending();
+        this.clusterService.healthCheck().subscribe(data => {
+                this.changes = data.apply_pendding;
+                if (this.changes.length > 0) {
+                    this.trackingEvt = true;
+                }
+                if (data.apply_active) {
+                    this.onApply();
+                }
+        });
     }
 
     ngOnDestroy() {

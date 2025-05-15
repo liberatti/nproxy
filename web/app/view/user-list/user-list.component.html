@@ -1,16 +1,18 @@
-<ng-container>
-    <mat-card>
-        <mat-card-header>
-            <mat-card-title>{{ 'view.user.title'|translate }}</mat-card-title>
-            <mat-card-subtitle>{{ 'view.user.subtitle'|translate }}</mat-card-subtitle>
-            <mat-card-actions class="align-right">
+<div class="container">
+    <div class="list-section">
+        <div class="list-header">
+            <div class="list-title">
+                <h2>{{ 'view.user.title'|translate }}</h2>
+                <p class="subtitle">{{ 'view.user.subtitle'|translate }}</p>
+            </div>
+            <div class="list-actions">
                 <button mat-button color="primary" [routerLink]="['add']" *ngIf="oauth.isRole('superuser')">
                     <mat-icon>add</mat-icon>
                     {{ 'actions.create'|translate }}
                 </button>
-            </mat-card-actions>
-        </mat-card-header>
-        <mat-card-content>
+            </div>
+        </div>
+        <div class="list-content">
             <table mat-table [dataSource]="userDS" matSort>
                 <tr mat-header-row *matHeaderRowDef="userDC"></tr>
                 <tr mat-row *matRowDef="let row; columns: userDC;"></tr>
@@ -57,6 +59,6 @@
             </table>
             <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" [pageSize]="userPA.per_page"
                            [length]="userPA.total_elements" (page)="nextPage($event)"></mat-paginator>
-        </mat-card-content>
-    </mat-card>
-</ng-container>
+        </div>
+    </div>
+</div>

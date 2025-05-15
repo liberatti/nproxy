@@ -1,7 +1,4 @@
 import os
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Union
-
 from flask import Blueprint, request, send_file, Response
 from marshmallow import ValidationError
 
@@ -9,13 +6,12 @@ from common_utils import (
     ResponseBuilder,
     has_any_authority,
     print_request,
-    has_integration_key,
     socketio,
 )
 from model.config_model import ChangeDao, ConfigDao
 from model.rbl_model import RBLDao
 from model.transaction_model import TransactionDao
-from model.upstream_model import NodeStatusDao
+from model.upstream_model import NodeStatusDao, NodeStatusSchema
 from tools.acme_tool import AcmeTool
 from tools.cluster_tool import ClusterTool
 from tools.feed_tool import SecurityFeedTool
@@ -44,7 +40,7 @@ def after(response: Response) -> Response:
 
 
 @routes.route("/backup", methods=["POST"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def restore() -> Response:
     """
     Restore cluster configuration from a backup file.
@@ -72,7 +68,7 @@ def restore() -> Response:
 
 
 @routes.route("/backup", methods=["GET"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def backup() -> Response:
     """
     Create a backup of the cluster configuration.
@@ -85,6 +81,7 @@ def backup() -> Response:
 
 
 @routes.route("/nodes", methods=["GET"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def get_node_status() -> Response:
     """
     Retrieve the status of all cluster nodes including health and telemetry data.
@@ -96,13 +93,8 @@ def get_node_status() -> Response:
     trn_dao = TransactionDao()
     result = dao.get_all()
 
-    cut_date = datetime.now() - timedelta(minutes=1)
     if result["metadata"]["total_elements"] > 0:
         for node in result["data"]:
-            # Update online status
-            node["online"] = "last_check" in node and cut_date < node["last_check"]
-            
-            # Update health status
             if node["upstreams"]:
                 node["healthy"] = True
                 for upstream in node["upstreams"]:
@@ -113,8 +105,6 @@ def get_node_status() -> Response:
                             break
             else:
                 node["healthy"] = False
-
-            # Update telemetry data
             telemetry = trn_dao.get_node_bandwidth(node["name"])
             node.update({
                 "net_recv": telemetry[0]["net_recv"] if telemetry else 0,
@@ -125,7 +115,7 @@ def get_node_status() -> Response:
 
 
 @routes.route("/config", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def get_config() -> Response:
     """
     Retrieve the active cluster configuration.
@@ -139,7 +129,7 @@ def get_config() -> Response:
 
 
 @routes.route("/config", methods=["PUT"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def save() -> Response:
     """
     Update the cluster configuration.
@@ -156,22 +146,26 @@ def save() -> Response:
         return ResponseBuilder.error_parse(err)
 
 
-@routes.route("/changes", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
-def config_changes() -> Response:
+@routes.route("/health", methods=["GET"])
+@has_any_authority(authorities=["viewer", "superuser"])
+def health_check() -> Response:
     """
-    Retrieve all configuration changes.
+    Retrieve the health status of the node.
     
     Returns:
-        Response: JSON response containing configuration changes or 404 error
+        Response: JSON response containing the node health status information
     """
+    st=ClusterTool.node_monitor()
+    
     dao = ChangeDao()
     result = dao.get_all()
-    return ResponseBuilder.data(result) if result["metadata"]["total_elements"] > 0 else ResponseBuilder.error_404()
+    if result["metadata"]["total_elements"] > 0:
+        st["apply_pendding"] = [x["name"] for x in result["data"]]
 
+    return ResponseBuilder.data(st, NodeStatusSchema())
 
 @routes.route("/apply", methods=["GET"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def apply() -> Response:
     """
     Apply pending configuration changes and handle certificate auto-renewal.
@@ -198,7 +192,7 @@ def apply() -> Response:
 
 
 @routes.route("/geoip_info/<ipaddr>", methods=["GET"])
-@has_integration_key()
+@has_any_authority( _internal=True)
 def geoip_info(ipaddr: str) -> Response:
     """
     Retrieve GeoIP information for a given IP address.
@@ -217,7 +211,7 @@ def geoip_info(ipaddr: str) -> Response:
 
 
 @routes.route("/rbl/blocked/<sensor_id>/<ipaddr>", methods=["GET"])
-@has_integration_key()
+@has_any_authority( _internal=True)
 def rbl_status(ipaddr: str, sensor_id: str) -> Response:
     """
     Check if an IP address is blocked by RBL for a specific sensor.

@@ -9,7 +9,7 @@
         </a>
         <span class="navbar-spacer"></span>
         <div *ngIf="trackingEvt">
-            <button mat-button [matMenuTriggerFor]="notificationMenu" (click)="checkPending()">
+            <button mat-button [matMenuTriggerFor]="notificationMenu" (click)="healthCheck()">
                 <mat-icon matBadge matBadgeColor="accent" [matBadge]="null">notifications</mat-icon>
             </button>
             <mat-menu #notificationMenu="matMenu" xPosition="before" yPosition="above" [overlapTrigger]="false">
@@ -19,8 +19,8 @@
                     </mat-card-header>
                     <mat-card-content>
                         <mat-chip-listbox>
-                            @for (p of changes; track p.name) {
-                                <mat-chip-row>{{ 'view.' + p.name + '.link' |translate }}</mat-chip-row>
+                            @for (p of changes; track p) {
+                                <mat-chip-row>{{ 'view.' + p + '.link' |translate }}</mat-chip-row>
                             }
                         </mat-chip-listbox>
                     </mat-card-content>

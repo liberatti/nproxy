@@ -9,7 +9,7 @@ routes = Blueprint("user", __name__)
 
 
 @routes.route("/<user_id>", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def get(user_id):
     dao = UserDao()
     user = dao.get_by_id(user_id)
@@ -22,7 +22,7 @@ def get(user_id):
 
 
 @routes.route("", methods=["POST"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def save():
     dao = UserDao()
     try:
@@ -38,7 +38,7 @@ def save():
 
 
 @routes.route("", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def search():
     dao = UserDao()
     result = dao.get_all(pagination=get_pagination())
@@ -52,7 +52,7 @@ def search():
 
 
 @routes.route("/<user_id>/account", methods=["PUT"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def account_update(user_id):
     dao = UserDao()
     try:
@@ -72,7 +72,7 @@ def account_update(user_id):
 
 
 @routes.route("/<user_id>", methods=["PUT"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def update(user_id):
     dao = UserDao()
     try:
@@ -87,7 +87,7 @@ def update(user_id):
 
 
 @routes.route("/<user_id>", methods=["DELETE"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def delete(user_id):
     dao = UserDao()
     r = dao.delete_by_id(user_id)

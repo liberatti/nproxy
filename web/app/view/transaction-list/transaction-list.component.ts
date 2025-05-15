@@ -45,6 +45,10 @@ import {MatRipple} from "@angular/material/core";
 import {DatetimePickerDialogComponent} from "../../components/datetime-picker-dialog/datetime-picker-dialog.component";
 import {RuleDetailsDialogComponent} from "../../components/rule-details-dialog/rule-details-dialog.component";
 import {RuleService} from "../../services/sensor.service";
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatSnackBarModule} from '@angular/material/snack-bar';
+import { HighlightModule } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 
 @Component({
     selector: 'app-transaction-list',
@@ -66,7 +70,7 @@ import {RuleService} from "../../services/sensor.service";
         MatListModule, MatCardModule, MatProgressBarModule, MatInputModule,
         MatTableModule, MatMenuModule, MatSortModule, MatExpansionModule,
         MatTooltipModule, MatSelectModule, MatPaginatorModule, MatSlideToggleModule,
-        MatFormFieldModule, MatChipsModule, MatRipple, FormsModule],
+        MatFormFieldModule, MatChipsModule, MatRipple, FormsModule, MatSnackBarModule],
     templateUrl: './transaction-list.component.html',
     styleUrl: './transaction-list.component.css',
 
@@ -167,7 +171,8 @@ export class TransactionListComponent implements OnInit {
         private responsive: BreakpointObserver,
         private formatService: FormaterService,
         private dateTimePickerDialog: MatDialog,
-        private ruleService: RuleService
+        private ruleService: RuleService,
+        private snackBar: MatSnackBar
     ) {
         Chart.register(ChartDataLabels);
         Chart.register(Zoom);
@@ -283,10 +288,42 @@ export class TransactionListComponent implements OnInit {
     }
 
     onAddFilter(): void {
-        if (this.form.value.filters != null) {
-            this.form.value.filters?.push(this.input_regex);
+        if (!this.input_regex.trim()) {
+            return;
         }
-        this.input_regex = "";
+        try {
+            const filter = JSON.parse(this.input_regex);
+            if (typeof filter !== 'object' || filter === null) {
+                throw new Error('Filter must be a JSON object');
+            }
+            if (this.form.value.filters != null) {
+                const existingFilters = this.form.value.filters.map(f => JSON.parse(f));
+                const newKeys = Object.keys(filter);
+                
+                for (const existingFilter of existingFilters) {
+                    const existingKeys = Object.keys(existingFilter);
+                    const duplicates = newKeys.filter(key => existingKeys.includes(key));
+                    
+                    if (duplicates.length > 0) {
+                        throw new Error(`Duplicate keys found: ${duplicates.join(', ')}`);
+                    }
+                }
+
+                this.form.value.filters.push(JSON.stringify(filter));
+            }
+            this.input_regex = "";
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Invalid filter format. Please enter a valid JSON object.';
+            this.snackBar.open(
+                errorMessage,
+                'Close', 
+                {
+                    duration: 5000,
+                    horizontalPosition: 'center',
+                    verticalPosition: 'bottom',
+                }
+            );
+        }
     }
 
     onRemoveFilter(keyword: any): void {

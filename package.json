@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@types/highlight.js": "^9.12.4",
+    "highlight.js": "^11.11.1"
+  }
+}

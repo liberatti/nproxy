@@ -28,7 +28,7 @@ class CertificateSchema(Schema):
     not_after = fields.DateTime(format=DATETIME_FMT, allow_none=True, required=False)
     status = fields.String(required=False)
     provider = fields.String(required=False)
-    force_renew = fields.Boolean(required=False, default=False)
+    force_renew = fields.Boolean(required=False, load_default=False, dump_default=False)
 
 
 class CertificateDao(MongoDAO):

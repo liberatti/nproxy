@@ -497,6 +497,7 @@ class TransactionDao(MongoDAO):
                 {"$sort": {"_id": 1}},
             ]
             if filters:
+                filters = self.translate_filters(filters)
                 for f in filters:
                     query[0]["$match"].update(f)
             logger.debug(query)
@@ -505,7 +506,20 @@ class TransactionDao(MongoDAO):
         except Exception as e:
             logger.error(f"Error retrieving TPM statistics: {str(e)}")
             raise
-
+    def translate_filters(self, filters: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Translates filters to MongoDB query format.
+        
+        Args:
+            filters (List[Dict[str, Any]]): List of filters 
+        """
+        for f in filters:
+            if "service.name" in f:
+                dao = ServiceDao()
+                service = dao.get_by_name(f.pop("service.name"))
+                f.update({"service_id": ObjectId(service["_id"])})
+        return filters
+    
     def get_last_n_minutes(self, minutes: int, sensor_ids: Optional[List[str]] = None) -> List[Dict[str, Any]]:
         """
         Retrieves transactions from the last N minutes for specific sensors.
@@ -581,10 +595,11 @@ class TransactionDao(MongoDAO):
             else:
                 query.append({"$facet": {"data": []}})
             if filters:
+                filters = self.translate_filters(filters)
                 for f in filters:
                     query[0]["$match"].update(f)
 
-            logger.debug(query)
+            logger.info(query)
             rs = list(self.collection.aggregate(query))[0]
             return self._fetch_all(rs, pagination=pagination)
         except Exception as e:

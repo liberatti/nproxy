@@ -4,8 +4,9 @@
     --primary-dark-color: #007a2f;
     --accent-color: #00a859;
     --background-color: rgba(255, 255, 255, 0.92);
-    --text-color: #e0e0e0; /* Texto claro */
-    --mdc-chip-label-text-color: #e0e0e0;
+    --text-color: #333333;
+    --text-secondary-color: #666666;
+    --mdc-chip-label-text-color: #333333;
     --toolbar-background: #1a1a1a;
     --footer-background: #009639;
     --footer-text-color: #ffffff;
@@ -93,6 +94,7 @@ mat-nav-list mat-nav-list {
 mat-nav-list a {
     font-size: 12px !important;
     color: var(--text-color);
+    font-weight: 500;
 }
 
 mat-nav-list a:hover {
@@ -113,4 +115,24 @@ mat-form-field.mat-primary .mat-form-field-outline {
 
 .mat-mdc-standard-chip:not(.mdc-evolution-chip--disabled) .mdc-evolution-chip__text-label {
     color: #f8f9fa !important;
+}
+
+.nodes-section h2 {
+    color: var(--text-color);
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+.node-item small {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.node-details {
+    color: var(--text-secondary-color);
+}
+
+.node-details b {
+    color: var(--text-color);
+    font-weight: 600;
 }

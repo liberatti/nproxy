@@ -18,7 +18,6 @@ from model.service_model import ServiceDao
 from tools.ssl_tool import SSLTool
 from config import TZ
 
-# Create a Blueprint for certificate-related routes
 routes = Blueprint("certificate", __name__)
 
 @routes.after_request
@@ -40,7 +39,7 @@ def after(response: Response) -> Response:
     return response
 
 @routes.route("/<certificate_id>", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def get(certificate_id: str) -> Response:
     """
     Retrieve a specific certificate by ID.
@@ -56,7 +55,7 @@ def get(certificate_id: str) -> Response:
     return ResponseBuilder.data(certificate, schema=dao.schema) if certificate else ResponseBuilder.error_404()
 
 @routes.route("", methods=["GET"])
-@has_any_authority(["viewer", "superuser"])
+@has_any_authority(authorities=["viewer", "superuser"])
 def search() -> Response:
     """
     Search and list all certificates with their current status.
@@ -75,7 +74,7 @@ def search() -> Response:
     return ResponseBuilder.error_404()
 
 @routes.route("", methods=["POST"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def save() -> Response:
     """
     Create a new certificate.
@@ -125,7 +124,7 @@ def save() -> Response:
         return ResponseBuilder.error_parse(err)
 
 @routes.route("/<certificate_id>", methods=["PUT"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def update(certificate_id: str) -> Response:
     """
     Update an existing certificate.
@@ -172,7 +171,7 @@ def update(certificate_id: str) -> Response:
         return ResponseBuilder.error_parse(err)
 
 @routes.route("/<certificate_id>", methods=["PATCH"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def partial_update(certificate_id: str) -> Response:
     """
     Partially update a certificate with specific fields.
@@ -195,7 +194,7 @@ def partial_update(certificate_id: str) -> Response:
         return ResponseBuilder.error(msg=str(err))
 
 @routes.route("/<certificate_id>", methods=["DELETE"])
-@has_any_authority(["superuser"])
+@has_any_authority(authorities=["superuser"])
 def delete(certificate_id: str) -> Response:
     """
     Delete a certificate if it's not in use by any service.

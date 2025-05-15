@@ -132,7 +132,7 @@ class SecRule(SecBaseSchema):
     multi_match = fields.Boolean(allow_none=True)
     status = fields.Integer(allow_none=True)
     files = fields.List(fields.Nested(DataObjectSchema), allow_none=True)
-    chain_starter = fields.Boolean(allow_none=False, default=False)
+    chain_starter = fields.Boolean(allow_none=False, load_default=False, dump_default=False)
     chain = fields.Nested("SecRule", many=True, allow_none=True)
 
 

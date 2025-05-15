@@ -4,6 +4,7 @@ import {Observable} from "rxjs";
 import {Page} from "../models/shared";
 import {HttpHeaders} from "@angular/common/http";
 import {NodeStatus} from "../models/upstream";
+import { getActiveConsumer } from "@angular/core/weak_ref.d-DWHPG08n";
 
 @Injectable({
     providedIn: 'root'
@@ -15,9 +16,12 @@ export class ClusterService extends APIService<any, string> {
     ) {
         super(injector, 'cluster')
     }
+    healthCheck(): Observable<any> {
+        return this.httpClient.get<any>(this.END_POINT + "/health");
+    }
 
-    getPending(): Observable<Page> {
-        return this.httpClient.get<Page>(this.END_POINT + "/changes");
+    getPending(): Observable<any> {
+        return this.httpClient.get<any>(this.END_POINT + "/changes");
     }
 
     applyConfig(): Observable<any> {

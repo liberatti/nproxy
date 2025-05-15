@@ -7,8 +7,8 @@ import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { JwtInterceptor } from './interceptors/jwt.interceptor';
 import { environment } from 'environments/environment';
-import {DateAdapter} from "@angular/material/core";
-import {MomentDateAdapter, provideMomentDateAdapter} from "@angular/material-moment-adapter";
+import { provideMomentDateAdapter} from "@angular/material-moment-adapter";
+import { provideHighlightOptions } from 'ngx-highlightjs';
 
 export const REST_API_URL = new InjectionToken<string>('REST_API_URL');
 export const API_DATA_FORMAT = new InjectionToken<string>('API_DATA_FORMAT');
@@ -19,6 +19,13 @@ export function HttpLoaderFactory(http: HttpClient) {
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideHighlightOptions({
+      coreLibraryLoader: () => import('highlight.js/lib/core'),
+      lineNumbersLoader: () => import('ngx-highlightjs/line-numbers'), // Optional, add line numbers if needed
+      languages: {
+        json: () => import('highlight.js/lib/languages/json')
+      }
+    }),
     provideMomentDateAdapter(undefined, {useUtc: true}),
     { provide: REST_API_URL, useValue: environment.apiUrl },
     { provide: API_DATA_FORMAT, useValue: environment.apiDateFormat},
