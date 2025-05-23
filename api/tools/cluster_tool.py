@@ -9,7 +9,8 @@ from datetime import datetime, timedelta
 import psutil
 import requests
 
-from common_utils import logger, get_server_id, API_HEADERS
+from config import DATETIME_FMT
+from common_utils import logger, get_server_id, API_HEADERS, replace_tz
 from model.config_model import ConfigDao
 from model.telemetry_model import TelemetryTrnDao
 from model.transaction_model import TransactionDao
@@ -74,56 +75,31 @@ class ClusterTool:
 
     @classmethod
     def send_telemetry(cls):
-        logger.info(f"Sending telemetry, thanks for helping our community.")
-        dao = TelemetryTrnDao()
-        result = dao.get_by_logtime(datetime.now(TZ) - timedelta(hours=24))
-        if result:
-            cdao = ConfigDao()
-            c = cdao.get_active()
-            tlm = {
-                "cluster_id": c["cluster_id"],
-                "net_recv": result[0]["net_recv"],
-                "net_send": result[0]["net_send"],
-                "req_total": result[0]["req_total"],
-                "latency": result[0]["latency"],
-            }
+        dao = TransactionDao()
+        trn_telemetry = dao.get_trn_telemetry(datetime.now(TZ) - timedelta(minutes=TELEMETRY_INTERVAL))
+        if trn_telemetry:
+            for t in trn_telemetry:
+                t.update({"cluster_id": cls.CONFIG["config"]["cluster_id"]})
+                t.update({"logtime": t['logtime'].strftime(DATETIME_FMT)})
             try:
+                API_HEADERS.update({"Content-Type": "application/json"})
                 response = requests.post(
                     f"{TELEMETRY_URL}/api/usage",
-                    json=tlm,
+                    json=trn_telemetry,
                     headers=API_HEADERS,
                     timeout=10,
                 )
                 if response.status_code in [200, 201]:
-                    logger.info(response.status_code)
+                    logger.info(f"[{response.status_code}] Thanks for helping our community.")
                 else:
                     logger.warn(
-                        f"Failed with code {response.status_code}, disable with TELEMETRY_ENABLE=false"
+                        f"[{response.status_code}] Failed to send telemetry, disable with TELEMETRY_ENABLE=false"
                     )
             except Exception as e:
-                logger.error(f"Failed to send telemetry {e}")
-
-    @classmethod
-    def collect_telemetry(cls):
-        dao = TransactionDao()
-        tl_dao = TelemetryTrnDao()
-        trn_telemetry = dao.get_trn_telemetry(datetime.now(TZ))
-        if trn_telemetry:
-            for ct in trn_telemetry:
-                tl_dao.persist(ct)
+                logger.error(f"Failed to send telemetry, {e}")
         else:
-            tl_dao.persist(
-                {
-                    "net_recv": 0,
-                    "net_send": 0,
-                    "req_total": 0,
-                    "latency": 0.0,
-                    "logtime": datetime.now(TZ),
-                    "server_id": get_server_id(),
-                }
-            )
-        tl_dao.delete_before(datetime.now(TZ) - timedelta(days=7))
-
+            logger.info(f"No telemetry to send")
+    
     @classmethod
     def auto_replicate_config(cls):
         if cls.APPLY_ACTIVE:
@@ -289,9 +265,7 @@ class ClusterTool:
 
     @classmethod
     def apply_config(cls, reconfigure=False):
-        cls.APPLY_ACTIVE = True
-        logger.info(f"[{cls.APPLY_ACTIVE}] start on {get_server_id()}")
-        
+        cls.APPLY_ACTIVE = True       
         try:
             manager = EngineManager()
             if reconfigure:

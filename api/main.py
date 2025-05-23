@@ -153,13 +153,12 @@ with app.app_context():
         schedule.every(60).seconds.do(LogArchiverTool.auto_archive)
         schedule.every(10).seconds.do(JailTool.calc_process_jails)
         schedule.every(10).seconds.do(ClusterTool.auto_apply_config)
-        schedule.every(TELEMETRY_INTERVAL).minutes.do(ClusterTool.collect_telemetry)
         if TELEMETRY_ENABLE:
-            schedule.every().hour.at(":00").do(ClusterTool.send_telemetry)
+            schedule.every(TELEMETRY_INTERVAL).minutes.do(ClusterTool.send_telemetry)
     else:
         schedule.every(10).seconds.do(ClusterTool.auto_replicate_config)
     schedule.every(10).seconds.do(ClusterTool().node_monitor)
-
+    
     try:
         ClusterTool.apply_config(reconfigure=True)
         if "main" in NODE_ROLE:
