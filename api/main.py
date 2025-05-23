@@ -142,7 +142,6 @@ with app.app_context():
 
     if "main" in NODE_ROLE:
         if not config:
-            app.logger.info("App not installed, starting installation process.")
             install()
             config = dao.get_active()
         if "cluster_id" not in config:
@@ -153,13 +152,10 @@ with app.app_context():
         schedule.every().day.at(MAINTENANCE_WINDOW).do(AcmeTool.auto_renew)
         schedule.every(60).seconds.do(LogArchiverTool.auto_archive)
         schedule.every(10).seconds.do(JailTool.calc_process_jails)
-        schedule.every(10).seconds.do(ClusterTool.auto_flush_feeds)
-        if boolean(TELEMETRY_ENABLE):
-            app.logger.info(f"Telemetry is enabled, thanks for helping our community.")
-            schedule.every().day.at(MAINTENANCE_WINDOW).do(ClusterTool.send_telemetry)
-            schedule.every(int(TELEMETRY_INTERVAL)).minutes.do(
-                ClusterTool.collect_telemetry
-            )
+        schedule.every(10).seconds.do(ClusterTool.auto_apply_config)
+        schedule.every(TELEMETRY_INTERVAL).minutes.do(ClusterTool.collect_telemetry)
+        if TELEMETRY_ENABLE:
+            schedule.every().hour.at(":00").do(ClusterTool.send_telemetry)
     else:
         schedule.every(10).seconds.do(ClusterTool.auto_replicate_config)
     schedule.every(10).seconds.do(ClusterTool().node_monitor)
@@ -172,6 +168,5 @@ with app.app_context():
         app.logger.error(f"Failed to apply configuration: {e}")
         app.logger.error(traceback.format_exc())
 
-    app.logger.info(f"System is up and running")
     scheduler_thread = threading.Thread(target=_scheduler, daemon=True)
     scheduler_thread.start()

@@ -358,7 +358,7 @@ class SSLLetsEncryptTool:
                 certificate_dict.update(SSLTool.extract_info_from_crt(crt))
                 return certificate_dict
             except Exception:
-                logger.error(f"{order} retry in 10 seconds")
+                logger.error(f"Order status: {order.body.status} - retry in 10 seconds")
                 time.sleep(10)
         return None
 

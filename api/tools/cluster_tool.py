@@ -23,6 +23,7 @@ from config import (
     NODE_ROLE,
     TZ,
     TELEMETRY_URL,
+    TELEMETRY_INTERVAL,
 )
 
 
@@ -42,11 +43,16 @@ class ClusterTool:
             return False
 
     @classmethod
-    def auto_flush_feeds(cls):
+    def auto_apply_config(cls):
+        if cls.APPLY_ACTIVE:
+            logger.info(f"Apply active, skip apply config")
+            return
         try:
             manager = EngineManager()
             if manager.CONFIG:
                 if not cls.CONFIG or manager.CONFIG["scn"] not in cls.CONFIG["scn"]:
+                    if not "scn" in cls.CONFIG:
+                        cls.CONFIG["scn"] = None
                     logger.info(
                         f"Flush feeds {cls.CONFIG['scn']} -> {manager.CONFIG['scn']}"
                     )
@@ -68,6 +74,7 @@ class ClusterTool:
 
     @classmethod
     def send_telemetry(cls):
+        logger.info(f"Sending telemetry, thanks for helping our community.")
         dao = TelemetryTrnDao()
         result = dao.get_by_logtime(datetime.now(TZ) - timedelta(hours=24))
         if result:
@@ -115,9 +122,13 @@ class ClusterTool:
                     "server_id": get_server_id(),
                 }
             )
+        tl_dao.delete_before(datetime.now(TZ) - timedelta(days=7))
 
     @classmethod
     def auto_replicate_config(cls):
+        if cls.APPLY_ACTIVE:
+            logger.info(f"Apply active, skip flush config")
+            return
         manager = EngineManager()
         if manager.CONFIG:
             if not cls.CONFIG or manager.CONFIG["scn"] not in cls.CONFIG["scn"]:
@@ -296,7 +307,6 @@ class ClusterTool:
             else:
                 logger.error(f"Engine failed, {restart_result['message']}")
             cls.APPLY_ACTIVE = False
-            logger.info(f"[{cls.APPLY_ACTIVE}] end on {get_server_id()}")
             return restart_result
         except Exception as e:
             cls.APPLY_ACTIVE = False

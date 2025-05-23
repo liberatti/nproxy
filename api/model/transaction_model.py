@@ -599,7 +599,7 @@ class TransactionDao(MongoDAO):
                 for f in filters:
                     query[0]["$match"].update(f)
 
-            logger.info(query)
+            logger.debug(query)
             rs = list(self.collection.aggregate(query))[0]
             return self._fetch_all(rs, pagination=pagination)
         except Exception as e:

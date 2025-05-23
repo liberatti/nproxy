@@ -191,7 +191,7 @@ class LogParserTool:
                                 }
                             )
                             # Internal messages
-                            if msg["rule_code"] in ["99"]:
+                            if msg["rule_code"] in ["99"] and len(d["data"]) > 0:
                                 record.update({"score": int(d["data"])})
                         if not msg["rule_code"] in ["949110", "959100", "99"]:
                             messages.append(msg)

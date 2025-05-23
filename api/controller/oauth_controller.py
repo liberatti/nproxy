@@ -1,3 +1,4 @@
+import traceback
 import bcrypt
 from typing import Dict, List, Optional, Union
 
@@ -37,18 +38,20 @@ def refresh_token() -> Response:
         Response: New access token or error response
     """
     r_token = jwt_get_refresh()
-    payload = jwt_decode(r_token)
-    user_dao = UserDao()
-    user = user_dao.get_by_id(payload['sub'])
-    
-    if not user:
-        return ResponseBuilder.error_500(msg=f"Authorization failed for {payload['sub']}")
-        
-    return {
-        "access_token": jwt_create_access_token(user["_id"], authorities=[user["role"]], profile=user),
-        "expires_in": JWT_EXPIRE,
-        "token_type": 'bearer'
-    }
+    try:
+        payload = jwt_decode(r_token)
+        user_dao = UserDao()
+        user = user_dao.get_by_id(payload['sub'])
+        if not user:
+            return ResponseBuilder.error_500(msg=f"Authorization failed for {payload['sub']}")
+            
+        return {
+            "access_token": jwt_create_access_token(user["_id"], authorities=[user["role"]], profile=user),
+            "expires_in": JWT_EXPIRE,
+            "token_type": 'bearer'
+        }
+    except Exception as e:
+        return ResponseBuilder.error_500(msg=f"Authorization failed for {r_token}",details=traceback.format_exc())
 
 
 def _create_oidc_token(user: Dict) -> Dict:
