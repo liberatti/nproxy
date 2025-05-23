@@ -1,9 +1,11 @@
 {
   "name": "Core Rule Sets",
+  "description": "Core Rule Sets",
   "slug": "coreruleset",
   "provider": "crs",
   "protected": false,
   "version": "3.3.6",
+  "update_interval": "None",
   "type": "ruleset",
   "source": "https://github.com/coreruleset/coreruleset/archive/refs/tags/v3.3.6.zip",
   "config": [

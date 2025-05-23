@@ -72,3 +72,25 @@ class TelemetryTrnDao(MongoDAO):
         except Exception as e:
             logger.error(f"Error retrieving telemetry by logtime: {str(e)}")
             raise
+
+    def delete_before(self, purge_date: datetime) -> int:
+        """
+        Deletes telemetry records older than the specified date.
+        
+        Args:
+            purge_date (datetime): Cutoff date for deletion
+            
+        Returns:
+            int: Number of documents deleted
+            
+        Raises:
+            PyMongoError: If an error occurs during the deletion operation
+        """
+        try:
+            query = {"logtime": {"$lt": purge_date}}
+            rs = self.collection.delete_many(query)
+            logger.debug(f"Deleted {rs.deleted_count} telemetry records before {purge_date}")
+            return rs.deleted_count
+        except Exception as e:
+            logger.error(f"Error deleting telemetry records: {str(e)}")
+            raise

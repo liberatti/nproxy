@@ -35,6 +35,7 @@ def initialize_db():
     ca = SSLTool.gen_ca("Internal-CA", crt_org="NProxy")
     config_dao.persist(
         {
+            "scn":None,
             "cluster_id": f"{gen_random_string(64)}",
             "maxmind_key": "",
             "iblocklist_username": "",

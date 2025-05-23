@@ -131,10 +131,11 @@ class RuleSetTool:
     def update(cls):
         feed_dao = FeedDao()
         for feed in feed_dao.get_by_type("ruleset"):
-            cls._download_crs(feed)
+            logger.info(f"Updating ruleset {feed['slug']}")
             total_rules = 0
             serializer = None
             if "crs" in feed["provider"]:
+                cls._download_crs(feed)
                 serializer = RuleSetParser(
                     f"{APP_BASE}/data/{feed['slug']}-{feed['version']}/rules"
                 )

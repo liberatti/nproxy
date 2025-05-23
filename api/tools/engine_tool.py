@@ -10,6 +10,7 @@ import requests
 from marshmallow import ValidationError
 
 from common_utils import (
+    gen_random_string,
     hash_dict,
     logger,
     get_server_id,
@@ -178,14 +179,15 @@ class EngineManager:
         policy_file = f"{ruleset_path}/crs.policy"
         sensor_sb = []
         for cat in self.CONFIG["categories"]:
-            for rule in cat["rules"]:
-                if rule and rule["schema_type"] != "SecComponentSignature":
-                    try:
-                        sensor_sb.append(RuleSetParser.as_seclang(rule, ruleset_path))
-                    except Exception as e:
-                        logger.error("Failed to parse rule: %s %s", rule, e)
-                        stack_trace = traceback.format_exc()
-                        logger.error(stack_trace)
+            if "rules" in cat and cat["rules"]:
+                for rule in cat["rules"]:
+                    if rule and rule["schema_type"] != "SecComponentSignature":
+                        try:
+                            sensor_sb.append(RuleSetParser.as_seclang(rule, ruleset_path))
+                        except Exception as e:
+                            logger.error("Failed to parse rule: %s %s", rule, e)
+                            stack_trace = traceback.format_exc()
+                            logger.error(stack_trace)
 
         with open(policy_file, "w") as f:
             f.write("\n".join(sensor_sb))
