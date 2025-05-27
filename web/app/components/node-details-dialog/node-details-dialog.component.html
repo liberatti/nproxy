@@ -5,12 +5,12 @@
 </h2>
 <mat-dialog-content>
     <small><strong>Last Check:</strong> {{ data.last_check | date:'short' }}</small>
-    <mat-expansion-panel *ngFor="let upstream of data.upstreams">
+    <mat-expansion-panel *ngFor="let upstream of data.upstreams" id="upstream-panel-{{upstream.name}}">
         <mat-expansion-panel-header *ngIf="!isHealthy(upstream)">
             <mat-panel-title>{{ upstream.name }}</mat-panel-title>
         </mat-expansion-panel-header>
         <div *ngIf="!isHealthy(upstream)">
-            <div *ngFor="let target of upstream.targets">
+            <div *ngFor="let target of upstream.targets" id="target-info-{{target.endpoint}}">
                 <strong>Target:</strong> {{ target.endpoint }}
                 @if (!data.healthy) {
                     <mat-icon color="warn">warning_amber</mat-icon>
@@ -20,7 +20,7 @@
     </mat-expansion-panel>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-    <button mat-raised-button color="primary" (click)="onDismiss()">
+    <button mat-raised-button color="primary" (click)="onDismiss()" id="node-details-close-btn">
         <mat-icon>exit_to_app</mat-icon>
         Close
     </button>

@@ -1,0 +1,18 @@
+  # /etc/sysctl.conf
+  # vm.max_map_count=262144
+   
+services:
+  demo:
+    image: liberatti/nproxy:latest
+    environment:
+      NODE_ROLE: "main"
+      SERVERID: "dev-node"
+      PYTHONUNBUFFERED: 1
+      MONGO_DB: "nproxy_demo"
+    network_mode: "host"
+    init: true
+    deploy:
+      resources:
+        limits:
+          memory: 1512M
+

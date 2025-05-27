@@ -10,12 +10,12 @@
                     <form [formGroup]="form">
                         <mat-form-field class="full-width">
                             <mat-label>Name</mat-label>
-                            <input matInput formControlName="name" [readonly]="!isAddMode">
+                            <input matInput formControlName="name" [readonly]="!isAddMode" id="certificate-name-input">
                         </mat-form-field>
                         <mat-form-field>
                             <mat-label>Certificate Provider</mat-label>
-                            <mat-select id="provider" formControlName="provider">
-                                <mat-option id="p-{{i}}"
+                            <mat-select id="certificate-provider-select" formControlName="provider">
+                                <mat-option id="provider-option-{{i}}"
                                             *ngFor="let ut of _supportedProviders;  let i = index"
                                             [value]="ut">
                                     {{ ut }}
@@ -27,18 +27,18 @@
                                 <mat-label>Certificate</mat-label>
                                 <textarea matInput cdkTextareaAutosize #autosize="cdkTextareaAutosize"
                                           cdkAutosizeMinRows="6" cdkAutosizeMaxRows="15"
-                                          formControlName="certificate"></textarea>
+                                          formControlName="certificate" id="certificate-textarea"></textarea>
                             </mat-form-field>
                             <mat-form-field class="full-width">
                                 <mat-label>Certificate Key</mat-label>
                                 <textarea matInput cdkTextareaAutosize cdkAutosizeMinRows="6" cdkAutosizeMaxRows="15"
-                                          formControlName="private_key"></textarea>
+                                          formControlName="private_key" id="certificate-key-textarea"></textarea>
                             </mat-form-field>
                             <mat-form-field class="full-width">
                                 <mat-label>Certificate Authority</mat-label>
                                 <textarea matInput cdkTextareaAutosize #autosize="cdkTextareaAutosize"
                                           cdkAutosizeMinRows="6" cdkAutosizeMaxRows="15"
-                                          formControlName="chain"></textarea>
+                                          formControlName="chain" id="certificate-chain-textarea"></textarea>
                             </mat-form-field>
                         }
 
@@ -48,12 +48,12 @@
         </mat-card-content>
         <mat-card-actions align="end">
             <button type="button" mat-raised-button color="primary"
-                    *ngIf="form.enabled"
+                    *ngIf="form.enabled" id="save-certificate-btn"
                     (click)="onSubmit()">
                 <mat-icon>save</mat-icon>
                 {{ 'actions.save'|translate }}
             </button>
-            <button mat-mini-fab [routerLink]="['/certificate']">
+            <button mat-mini-fab [routerLink]="['/certificate']" id="back-certificate-btn">
                 <mat-icon>keyboard_return</mat-icon>
             </button>
         </mat-card-actions>

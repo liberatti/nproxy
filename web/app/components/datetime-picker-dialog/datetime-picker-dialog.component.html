@@ -3,19 +3,19 @@
         <div class="flex-row">
                 <mat-form-field class="flex-col-lg">
                     <mat-label>Start Date Range</mat-label>
-                    <input matInput [matDatepicker]="startDatePicker"  formControlName="startDate"/>
-                    <mat-datepicker-toggle matIconSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+                    <input matInput [matDatepicker]="startDatePicker"  formControlName="startDate" id="start-date-input"/>
+                    <mat-datepicker-toggle matIconSuffix [for]="startDatePicker" id="start-date-toggle"></mat-datepicker-toggle>
                     <mat-datepicker #startDatePicker>
                         <mat-datepicker-actions>
-                            <button mat-button matDatepickerCancel>Cancel</button>
-                            <button mat-raised-button matDatepickerApply>Apply</button>
+                            <button mat-button matDatepickerCancel id="date-cancel-btn">Cancel</button>
+                            <button mat-raised-button matDatepickerApply id="date-apply-btn">Apply</button>
                         </mat-datepicker-actions>
                     </mat-datepicker>
                 </mat-form-field>
                 <mat-form-field class="flex-col">
                     <mat-label>Pick a time</mat-label>
-                    <input matInput [matTimepicker]="startTimepicker" formControlName="startTime">
-                    <mat-timepicker-toggle matIconSuffix [for]="startTimepicker"/>
+                    <input matInput [matTimepicker]="startTimepicker" formControlName="startTime" id="start-time-input">
+                    <mat-timepicker-toggle matIconSuffix [for]="startTimepicker" id="start-time-toggle"/>
                     <mat-timepicker #startTimepicker/>
                 </mat-form-field>
         </div>

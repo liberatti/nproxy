@@ -3,12 +3,12 @@
   {{message}}
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button mat-raised-button color="warn" (click)="onConfirm()" cdkFocusInitial>
+  <button mat-raised-button color="warn" (click)="onConfirm()" cdkFocusInitial id="confirm-dialog-confirm-btn">
     <mat-icon>
       check
     </mat-icon>Confirm
   </button>
-  <button mat-raised-button color="primary" (click)="onDismiss()">
+  <button mat-raised-button color="primary" (click)="onDismiss()" id="confirm-dialog-cancel-btn">
     <mat-icon>
       exit_to_app
     </mat-icon>Cancel

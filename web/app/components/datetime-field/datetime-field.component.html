@@ -7,8 +7,10 @@
                    [(ngModel)]="dateInput"
                    (dateChange)="onDateChange($event)"
                    [placeholder]="placeholder"
-                   readonly>
-            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                   readonly
+                   id="datetime-date-input">
+            <mat-datepicker-toggle matIconSuffix [for]="picker"
+                                  id="datetime-date-toggle"></mat-datepicker-toggle>
             <mat-datepicker #picker>
               <mat-datepicker-actions>
                 <div class="time-selection" style="padding-bottom: 25px;">
@@ -34,6 +36,7 @@
                 <button mat-raised-button color="primary" 
                         style="position: absolute; right: 10px;bottom: 5px;"
                         (click)="onConfirm()"
+                        id="datetime-confirm-btn"
                         matDatepickerApply>
                     Confirmar
                 </button>

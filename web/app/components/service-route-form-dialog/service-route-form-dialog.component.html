@@ -1,21 +1,21 @@
 <h1 mat-dialog-title>{{ isAddMode ? 'Add Route' : 'Edit Route' }}</h1>
 
 <div mat-dialog-content>
-    <form [formGroup]="form">
+    <form [formGroup]="form" id="service-route-form">
 
         <!-- Name and Type -->
         <div class="mat-row">
             <div class="mat-col-8">
                 <mat-form-field class="full-width">
                     <mat-label>Name</mat-label>
-                    <input matInput formControlName="name">
+                    <input matInput formControlName="name" id="service-route-name-input">
                 </mat-form-field>
             </div>
             <div class="mat-col-4">
                 <mat-form-field class="full-width">
                     <mat-label>Type</mat-label>
-                    <mat-select formControlName="type">
-                        <mat-option *ngFor="let ut of _supportedTypes" [value]="ut">
+                    <mat-select formControlName="type" id="service-route-type-select">
+                        <mat-option *ngFor="let ut of _supportedTypes" [value]="ut" id="service-route-type-option-{{ut}}">
                             {{ ut }}
                         </mat-option>
                     </mat-select>
@@ -24,20 +24,20 @@
         </div>
 
         <!-- Path Section -->
-        <form [formGroup]="pathForm">
+        <form [formGroup]="pathForm" id="service-route-path-form">
             <mat-card>
                 <mat-form-field class="full-width">
                     <mat-label>Request Path</mat-label>
-                    <input matInput formControlName="path">
-                    <button color="primary" matSuffix mat-icon-button (click)="onAddPath()">
+                    <input matInput formControlName="path" id="service-route-path-input">
+                    <button color="primary" matSuffix mat-icon-button (click)="onAddPath()" id="add-service-route-path-btn">
                         <mat-icon>add</mat-icon>
                     </button>
                 </mat-form-field>
                 <mat-card-content>
-                    <mat-chip-listbox>
-                        <mat-chip-row *ngFor="let p of form.value.paths" (removed)="onRemovePath(p)">
+                    <mat-chip-listbox id="service-route-paths-list">
+                        <mat-chip-row *ngFor="let p of form.value.paths" (removed)="onRemovePath(p)" id="service-route-path-chip-{{p}}">
                             {{ p }}
-                            <button matChipRemove>
+                            <button matChipRemove id="remove-service-route-path-{{p}}">
                                 <mat-icon>cancel</mat-icon>
                             </button>
                         </mat-chip-row>
@@ -116,20 +116,20 @@
 
         <!-- Filters Section -->
 
-        <form [formGroup]="filterForm">
+        <form [formGroup]="filterForm" id="service-route-filter-form">
             <mat-form-field class="full-width mt-2">
                 <mat-label>Route Filter</mat-label>
-                <mat-select formControlName="filter" [compareWith]="compareFn"
+                <mat-select formControlName="filter" [compareWith]="compareFn" id="service-route-filter-select"
                             (selectionChange)="onAddFilter()">
-                    <mat-option *ngFor="let c of _filters;" [value]="c">
+                    <mat-option *ngFor="let c of _filters;" [value]="c" id="service-route-filter-option-{{c._id}}">
                         {{ c.name }}
                     </mat-option>
                 </mat-select>
             </mat-form-field>
-            <mat-chip-listbox>
-                <mat-chip-row *ngFor="let p of form.value.filters" (removed)="onRemoveFilter(p)">
+            <mat-chip-listbox id="service-route-filters-list">
+                <mat-chip-row *ngFor="let p of form.value.filters" (removed)="onRemoveFilter(p)" id="service-route-filter-chip-{{p._id}}">
                     {{ p.name }}
-                    <button matChipRemove>
+                    <button matChipRemove id="remove-service-route-filter-{{p._id}}">
                         <mat-icon>cancel</mat-icon>
                     </button>
                 </mat-chip-row>
@@ -140,15 +140,15 @@
         <mat-card class="mt-2">
             <mat-form-field class="full-width">
                 <mat-label>Security Sensor</mat-label>
-                <mat-select formControlName="sensor" [compareWith]="compareFn">
-                    <mat-option *ngFor="let c of _sensors;" [value]="c">
+                <mat-select formControlName="sensor" [compareWith]="compareFn" id="service-route-sensor-select">
+                    <mat-option *ngFor="let c of _sensors;" [value]="c" id="service-route-sensor-option-{{c._id}}">
                         {{ c.name }}
                     </mat-option>
                 </mat-select>
             </mat-form-field>
             <mat-card-actions align="end">
                 <span class="spacer"></span>
-                <mat-slide-toggle formControlName="monitor_only">Monitor Only</mat-slide-toggle>
+                <mat-slide-toggle formControlName="monitor_only" id="service-route-monitor-toggle">Monitor Only</mat-slide-toggle>
             </mat-card-actions>
         </mat-card>
 
@@ -157,11 +157,11 @@
 
 <!-- Dialog Actions -->
 <div mat-dialog-actions align="end">
-    <button type="button" mat-raised-button color="primary" (click)="onSubmit()">
+    <button type="button" mat-raised-button color="primary" (click)="onSubmit()" id="save-service-route-btn">
         <mat-icon>save</mat-icon>
         Save
     </button>
-    <button type="button" mat-mini-fab color="primary" (click)="onCancel()">
+    <button type="button" mat-mini-fab color="primary" (click)="onCancel()" id="cancel-service-route-btn">
         <mat-icon>keyboard_return</mat-icon>
     </button>
 </div>
