@@ -46,17 +46,15 @@ class ClusterTool:
     @classmethod
     def auto_apply_config(cls):
         if cls.APPLY_ACTIVE:
-            logger.info(f"Apply active, skip apply config")
+            logger.info(f"Apply active, skip auto apply config")
+            return
+        if not cls.CONFIG:
+            logger.info(f"No config, skip auto apply config")
             return
         try:
             manager = EngineManager()
             if manager.CONFIG:
-                if not cls.CONFIG or manager.CONFIG["scn"] not in cls.CONFIG["scn"]:
-                    if not "scn" in cls.CONFIG:
-                        cls.CONFIG["scn"] = None
-                    logger.info(
-                        f"Flush feeds {cls.CONFIG['scn']} -> {manager.CONFIG['scn']}"
-                    )
+                if manager.CONFIG["scn"] != cls.CONFIG["scn"]:
                     cls.CONFIG.update(
                         {
                             "scn": manager.CONFIG["scn"],

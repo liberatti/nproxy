@@ -4,6 +4,9 @@
 services:
   demo:
     image: liberatti/nproxy:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
       NODE_ROLE: "main"
       SERVERID: "dev-node"
@@ -16,3 +19,16 @@ services:
         limits:
           memory: 1512M
 
+  php-fpm:
+    image: local/php-fpm:latest
+    build:
+      context: test/php-fpm
+      dockerfile: Dockerfile
+    network_mode: "host" #port 5010
+
+  tomcat:
+    image: local/tomcat:latest
+    build:
+      context: test/tomcat
+      dockerfile: Dockerfile
+    network_mode: "host" #port 5011

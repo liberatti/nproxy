@@ -50,8 +50,8 @@
         <div *ngIf="form.value.type === 'upstream'">
             <mat-form-field class="full-width mt-2">
                 <mat-label>Upstream</mat-label>
-                <mat-select formControlName="upstream" [compareWith]="compareFn" color="accent">
-                    <mat-option *ngFor="let c of _upstreams;" [value]="c">
+                <mat-select formControlName="upstream" [compareWith]="compareFn" color="accent" id="service-route-upstream-select">
+                    <mat-option *ngFor="let c of _upstreams; let i = index" [value]="c" id="service-route-upstream-option-{{i}}">
                         {{ c.name }}
                         <mat-chip>{{ c.type }}</mat-chip>
                     </mat-option>
@@ -63,11 +63,11 @@
             <div formGroupName="redirect">
                 <mat-form-field class="full-width mt-2">
                     <mat-label>Code</mat-label>
-                    <input matInput formControlName="code">
+                    <input matInput formControlName="code" id="service-route-redirect-code-input">
                 </mat-form-field>
                 <mat-form-field class="full-width">
                     <mat-label>URL</mat-label>
-                    <input matInput formControlName="url">
+                    <input matInput formControlName="url" id="service-route-redirect-url-input">
                 </mat-form-field>
             </div>
         </div>
@@ -78,15 +78,15 @@
                 <form [formGroup]="methodForm">
                     <mat-form-field class="full-width">
                         <mat-label>Request Methods</mat-label>
-                        <input matInput formControlName="method">
-                        <button color="primary" matSuffix mat-icon-button (click)="onAddMethod()">
+                        <input matInput formControlName="method" id="service-route-method-input">
+                        <button color="primary" matSuffix mat-icon-button (click)="onAddMethod()" id="add-service-route-method-btn">
                             <mat-icon>add</mat-icon>
                         </button>
                     </mat-form-field>
-                    <mat-chip-listbox>
-                        <mat-chip-row *ngFor="let p of form.value.methods" (removed)="onRemoveMethod(p)">
+                    <mat-chip-listbox id="service-route-methods-list">
+                        <mat-chip-row *ngFor="let p of form.value.methods" (removed)="onRemoveMethod(p)" id="service-route-method-chip-{{p}}">
                             {{ p }}
-                            <button matChipRemove>
+                            <button matChipRemove id="remove-service-route-method-{{p}}">
                                 <mat-icon>cancel</mat-icon>
                             </button>
                         </mat-chip-row>
@@ -97,15 +97,15 @@
                 <form [formGroup]="cacheMethodForm">
                     <mat-form-field class="full-width">
                         <mat-label>Cache Methods</mat-label>
-                        <input matInput formControlName="cacheMethod">
-                        <button color="primary" matSuffix mat-icon-button (click)="onAddCacheMethod()">
+                        <input matInput formControlName="cacheMethod" id="service-route-cache-method-input">
+                        <button color="primary" matSuffix mat-icon-button (click)="onAddCacheMethod()" id="add-service-route-cache-method-btn">
                             <mat-icon>add</mat-icon>
                         </button>
                     </mat-form-field>
-                    <mat-chip-listbox>
-                        <mat-chip-row *ngFor="let p of form.value.cache_methods" (removed)="onRemoveCacheMethod(p)">
+                    <mat-chip-listbox id="service-route-cache-methods-list">
+                        <mat-chip-row *ngFor="let p of form.value.cache_methods" (removed)="onRemoveCacheMethod(p)" id="service-route-cache-method-chip-{{p}}">
                             {{ p }}
-                            <button matChipRemove>
+                            <button matChipRemove id="remove-service-route-cache-method-{{p}}">
                                 <mat-icon>cancel</mat-icon>
                             </button>
                         </mat-chip-row>

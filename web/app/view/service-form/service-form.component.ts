@@ -61,7 +61,11 @@ import {OAuthService} from "../../services/oauth.service";
 export class ServiceFormComponent implements OnInit {
 
     _certificates: Certificate[];
-
+    basicHeaders = [
+        <Header>{name: "X-Powered-By", content: "Nproxy"},
+        <Header>{name: "X-XSS-Protection", content: "1; mode=block"},
+        <Header>{name: "X-Frame-Options", content: "SAMEORIGIN"}
+    ];
     isAddMode: boolean;
     bindingDS: MatTableDataSource<Bind>;
     bindingDC: string[] = ['port', 'protocol', 'ssl_upgrade', 'action'];
@@ -160,15 +164,8 @@ export class ServiceFormComponent implements OnInit {
                 this.bindingDS.data = data.bindings;
             });
         } else {
-            const basicHeaders = [
-                <Header>{name: "X-Powered-By", content: "Tooka"},
-                <Header>{name: "X-XSS-Protection", content: "1; mode=block"},
-                <Header>{name: "X-Frame-Options", content: "SAMEORIGIN"},
-                // <Header>{ name: "Content-Security-Policy", value: "default-src 'self';" }
-            ];
-
-            this.form.get('headers')?.setValue(basicHeaders);
-            this.headerDS.data = basicHeaders;
+            this.form.get('headers')?.setValue(this.basicHeaders);
+            this.headerDS.data = this.basicHeaders;
         }
 
         this.certificateService.get().subscribe(data => {

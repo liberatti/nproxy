@@ -2,7 +2,6 @@ import json
 import os
 import sys
 import traceback
-import threading
 
 import bcrypt
 
@@ -45,7 +44,7 @@ def initialize_db():
             "acme_directory_url": "https://acme-v02.letsencrypt.org/directory",
         }
     )
-    logger.info("Create admin user")
+    logger.debug("Create admin user")
     user_model = UserDao()
     user_model.persist(
         {
@@ -54,15 +53,14 @@ def initialize_db():
             "role": "superuser",
         }
     )
+
     reset_password(email="admin@local",psw="admin")
     logger.info("Initialize DB completed")
-
 
 def install():
     logger.info(f"Installation started")
     initialize_db()
-    update_async()
-
+    update()
 
 def update():
     feed_dao = FeedDao()
@@ -93,16 +91,6 @@ def update():
     SecurityFeedTool.update()
     logger.info(f"Update done")
 
-
-def update_async():
-    """Run the update method in a new thread"""
-    thread = threading.Thread(target=update)
-    thread.daemon = True  # This makes the thread exit when the main program exits
-    thread.start()
-    logger.info("Update started in background thread")
-    return thread
-
-
 def reset_password(email=None,psw=None):
     if not email:
         email = input("Enter email: ")
@@ -117,7 +105,7 @@ def reset_password(email=None,psw=None):
     user_model.update_by_id(
         user["_id"], {"password": hashed.decode("utf-8"), "role": "superuser"}
     )
-    logger.info(f"User: {user['name']} reset is ok")
+    logger.debug(f"User: {user['name']} reset is ok")
 
    
 

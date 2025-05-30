@@ -31,9 +31,9 @@
                 </ng-container>
                 <ng-container matColumnDef="routes">
                     <th mat-header-cell *matHeaderCellDef> {{ 'attr.routes'|translate }}</th>
-                    <td mat-cell *matCellDef="let element" id="service-routes-{{element._id}}">
+                    <td mat-cell *matCellDef="let element; let i = index" id="service-routes-{{i}}">
                         <mat-chip-listbox>
-                            <mat-chip-row *ngFor='let r of element.routes;' id="service-route-{{element._id}}-{{r._id}}">
+                            <mat-chip-row *ngFor='let r of element.routes;' id="service-route-{{i}}">
                                 {{ r.name }}
                             </mat-chip-row>
                         </mat-chip-listbox>
@@ -41,22 +41,22 @@
                 </ng-container>
                 <ng-container matColumnDef="action">
                     <th mat-header-cell *matHeaderCellDef></th>
-                    <td mat-cell *matCellDef="let element;let i = index;">
+                    <td mat-cell *matCellDef="let element; let i = index">
                         <div class="table-cell-actions">
                             <div style="border:none" class="toggle-container">
                                 <mat-slide-toggle [checked]="element.active"
-                                                  (change)="toggleServiceActive(i,$event)" id="service-active-toggle-{{element._id}}">{{ 'attr.active'|translate }}
+                                                  (change)="toggleServiceActive(i,$event)" id="service-active-toggle-{{i}}">{{ 'attr.active'|translate }}
                                 </mat-slide-toggle>
-                                <mat-button mat-button [matMenuTriggerFor]="menu" id="service-menu-{{element._id}}">
+                                <mat-button mat-button [matMenuTriggerFor]="menu" id="service-menu-{{i}}">
                                     <mat-icon>more_vert</mat-icon>
                                 </mat-button>
                                 <mat-menu #menu="matMenu" xPosition="before">
-                                    <button mat-menu-item type="button" [routerLink]="['edit',element._id]" id="edit-service-{{element._id}}">
+                                    <button mat-menu-item type="button" [routerLink]="['edit',element._id]" id="edit-service-{{i}}">
                                         <mat-icon>edit</mat-icon>
                                         {{ 'actions.edit'|translate }}
                                     </button>
                                     <button mat-menu-item type="button" (click)="onRemove(element)"
-                                            *ngIf="oauth.isRole('superuser')" id="delete-service-{{element._id}}">
+                                            *ngIf="oauth.isRole('superuser')" id="delete-service-{{i}}">
                                         <mat-icon>delete</mat-icon>
                                         {{ 'actions.remove'|translate }}
                                     </button>

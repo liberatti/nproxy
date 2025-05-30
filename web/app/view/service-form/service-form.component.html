@@ -115,7 +115,7 @@
                                         <mat-card-subtitle>Service Port Bindings</mat-card-subtitle>
                                         <div style="flex: auto">
                                             <button style="float: right" mat-icon-button color="primary"
-                                                    *ngIf="form.enabled" (click)="onAddBind()">
+                                                    *ngIf="form.enabled" (click)="onAddBind()" id="service-form-add-bind-button">
                                                 <mat-icon>add</mat-icon>
                                             </button>
                                         </div>
@@ -154,12 +154,12 @@
                                                         </button>
                                                         <mat-menu #menu="matMenu" xPosition="before"
                                                                   [overlapTrigger]="true">
-                                                            <button mat-menu-item type="button" (click)="onEditBind(i)">
+                                                            <button mat-menu-item type="button" (click)="onEditBind(i)" id="edit-bind-{{i}}">
                                                                 <mat-icon>edit</mat-icon>
                                                                 Edit
                                                             </button>
                                                             <button mat-menu-item type="button"
-                                                                    *ngIf="form.enabled" (click)="onBindRemove(i)">
+                                                                    *ngIf="form.enabled" (click)="onBindRemove(i)" id="remove-bind-{{i}}">
                                                                 <mat-icon>delete</mat-icon>
                                                                 Delete
                                                             </button>
@@ -229,7 +229,8 @@
                             </div>
                         </div>
                         <div class="mat-mdc-card-actions">
-                            <button mat-raised-button color="primary" matStepperNext>Next</button>
+                            <button mat-raised-button matStepperPrevious id="stepper-details-back-button">Back</button>
+                            <button mat-raised-button color="primary" matStepperNext id="stepper-details-next-button">Next</button>
                         </div>
                     </mat-step>
                     <mat-step label="Overrides">
@@ -239,7 +240,7 @@
                                     <mat-card-subtitle>Headers</mat-card-subtitle>
                                     <div style="flex: auto">
                                         <button style="float: right" mat-icon-button color="primary"
-                                                *ngIf="form.enabled" (click)="onAddHeader()">
+                                                *ngIf="form.enabled" (click)="onAddHeader()" id="add-header-button">
                                             <mat-icon>add</mat-icon>
                                         </button>
                                     </div>
@@ -269,7 +270,7 @@
                                                     </button>
                                                     <mat-menu #menu="matMenu" xPosition="before"
                                                               [overlapTrigger]="true">
-                                                        <button mat-menu-item type="button" (click)="onRemoveHeader(i)">
+                                                        <button mat-menu-item type="button" (click)="onRemoveHeader(i)" id="remove-header-{{i}}">
                                                             <mat-icon>delete</mat-icon>
                                                             Delete
                                                         </button>
@@ -283,8 +284,8 @@
 
                         </div>
                         <div class="mat-mdc-card-actions">
-                            <button mat-raised-button matStepperPrevious>Back</button>
-                            <button mat-raised-button color="primary" matStepperNext>Next</button>
+                            <button mat-raised-button matStepperPrevious id="stepper-overrides-back-button">Back</button>
+                            <button mat-raised-button color="primary" matStepperNext id="stepper-overrides-next-button">Next</button>
                         </div>
                     </mat-step>
                     <mat-step label="Routes">
@@ -294,7 +295,7 @@
                                     <mat-card-subtitle>Routes</mat-card-subtitle>
                                     <div style="flex: auto">
                                         <button style="float: right" mat-icon-button color="primary"
-                                                *ngIf="form.enabled" (click)="onAddRoute()">
+                                                *ngIf="form.enabled" (click)="onAddRoute()" id="add-route-button">
                                             <mat-icon>add</mat-icon>
                                         </button>
                                     </div>
@@ -343,11 +344,11 @@
                                                     </button>
                                                     <mat-menu #menu="matMenu" xPosition="before"
                                                               [overlapTrigger]="true">
-                                                        <button mat-menu-item type="button" (click)="onEditRoute(i)">
+                                                        <button mat-menu-item type="button" (click)="onEditRoute(i)" id="edit-route-{{i}}">
                                                             <mat-icon>edit</mat-icon>
                                                             Edit
                                                         </button>
-                                                        <button mat-menu-item type="button" (click)="onRemoveRoute(i)">
+                                                        <button mat-menu-item type="button" (click)="onRemoveRoute(i)" id="remove-route-{{i}}">
                                                             <mat-icon>delete</mat-icon>
                                                             Delete
                                                         </button>
@@ -361,13 +362,13 @@
                             </mat-card>
                         </div>
                         <div class="mat-mdc-card-actions">
-                            <button mat-raised-button matStepperPrevious>Back</button>
+                            <button mat-raised-button matStepperPrevious id="stepper-routes-back-button">Back</button>
                             <button mat-raised-button color="primary"
-                                    *ngIf="form.enabled" (click)="onSubmit()">
+                                    *ngIf="form.enabled" (click)="onSubmit()" id="stepper-routes-save-button">
                                 <mat-icon>save</mat-icon>
                                 {{ 'actions.save' | translate }}
                             </button>
-                            <button mat-mini-fab [routerLink]="['/service']">
+                            <button mat-mini-fab [routerLink]="['/service']" id="stepper-routes-cancel-button">
                                 <mat-icon>keyboard_return</mat-icon>
                             </button>
                         </div>

@@ -210,18 +210,9 @@ def delete(certificate_id: str) -> Response:
     
     # Check if certificate is in use by any HTTPS service
     service_list = dao_service.get_all()
-    in_use = False
     if "data" in service_list:
         for service in service_list["data"]:
-            for binding in service['bindings']:
-                if binding['protocol'] == 'HTTPS' and certificate_id in binding["certificate"]["_id"]:
-                    in_use = True
-                    break
-            if in_use:
-                break
-    
-    if in_use:
-        return ResponseBuilder.error_500("Certificate in use")
-    
+                if certificate_id in service["certificate"]["_id"]:
+                    return ResponseBuilder.error_500("Certificate in use")
     result = dao.delete_by_id(certificate_id)
     return ResponseBuilder.data_removed(certificate_id) if result else ResponseBuilder.error_404()

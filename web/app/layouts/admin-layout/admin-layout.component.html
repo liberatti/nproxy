@@ -84,7 +84,7 @@
                             </mat-icon>
                         </a>
                         <mat-nav-list *ngIf="link.expanded" class="expanded-sub">
-                            <a mat-list-item *ngFor="let subLink of link.menu"
+                            <a mat-list-item *ngFor="let subLink of link.menu; let i = index"
                                [id]="'nav-sub-link-' + subLink.label" class="icon-link sub-1"
                                [routerLink]="[subLink.route]" routerLinkActive="active">
                                 <mat-icon mat-list-icon>{{ subLink.icon }}</mat-icon>
