@@ -41,13 +41,10 @@ import {MatExpansionModule} from '@angular/material/expansion';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 import {TimeFormatPipe} from 'app/pipes/format_time.pipe';
 import {TransactionRAWDialogComponent} from 'app/components/transaction-raw-dialog/transaction-raw-dialog.component';
-import {MatRipple} from "@angular/material/core";
 import {RuleDetailsDialogComponent} from "../../components/rule-details-dialog/rule-details-dialog.component";
 import {RuleService} from "../../services/sensor.service";
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
-import {HighlightModule} from 'ngx-highlightjs';
-import {HighlightLineNumbers} from 'ngx-highlightjs/line-numbers';
 import {DatetimeFieldComponent} from '../../components/datetime-field/datetime-field.component';
 
 @Component({
@@ -70,7 +67,7 @@ import {DatetimeFieldComponent} from '../../components/datetime-field/datetime-f
         MatListModule, MatCardModule, MatProgressBarModule, MatInputModule,
         MatTableModule, MatMenuModule, MatSortModule, MatExpansionModule,
         MatTooltipModule, MatSelectModule, MatPaginatorModule, MatSlideToggleModule,
-        MatFormFieldModule, MatChipsModule, MatRipple, FormsModule, MatSnackBarModule,
+        MatFormFieldModule, MatChipsModule, FormsModule, MatSnackBarModule,
         DatetimeFieldComponent],
     templateUrl: './transaction-list.component.html',
     styleUrl: './transaction-list.component.css',

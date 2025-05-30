@@ -3,6 +3,7 @@ import json
 from flask import Blueprint, request
 from marshmallow import ValidationError
 
+from model.service_model import ServiceDao
 from common_utils import ResponseBuilder, has_any_authority, get_pagination
 from common_utils import socketio
 from model.config_model import ChangeDao
@@ -93,6 +94,14 @@ def update(upstream_id):
 @has_any_authority(authorities=["superuser"])
 def delete(upstream_id):
     dao = UpstreamDao()
+    service_dao = ServiceDao()
+    service_list = service_dao.get_all()
+    if "data" in service_list:
+        for service in service_list["data"]:
+            if "routes" in service:
+                for route in service["routes"]:
+                    if upstream_id in route["upstream"]["_id"]:
+                        return ResponseBuilder.error_500("Upstream in use")
     r = dao.delete_by_id(upstream_id)
     if r:
         return ResponseBuilder.data_removed(upstream_id)
