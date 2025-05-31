@@ -1,5 +1,5 @@
 <ng-container>
-    <mat-card id="transaction-list-card">
+    <mat-card>
         <mat-card-header>
             <mat-card-title>{{ 'view.transaction.title'|translate }}</mat-card-title>
             <mat-card-subtitle>{{ 'view.transaction.subtitle'|translate }}</mat-card-subtitle>
@@ -11,8 +11,8 @@
             <div class="flex-row" style="display: flex; align-items: center; gap: 8px">
                 <mat-form-field class="flex-col-lg" style="margin-bottom: -1.25em">
                     <mat-label>Query filter</mat-label>
-                    <input id="transaction-filter-input" matInput [(ngModel)]="input_regex" placeholder='Example: {"action": "PASSED"} or {"http.request.method": "GET"}'>
-                    <button id="add-transaction-filter-btn" matSuffix mat-icon-button (click)="onAddFilter()">
+                    <input matInput [(ngModel)]="input_regex" placeholder='Example: {"action": "PASSED"} or {"http.request.method": "GET"}'>
+                    <button id="btn-add-sans" matSuffix mat-icon-button (click)="onAddFilter()">
                         <mat-icon>add</mat-icon>
                     </button>
                     <mat-hint>Enter a MongoDB query filter as JSON</mat-hint>
@@ -23,8 +23,7 @@
                     label="Data/Hora Inicial"
                     placeholder="Selecione a data/hora inicial"
                     (confirm)="onDateTimeConfirm($event,'start')"
-                    #startField
-                    id="transaction-start-date">
+                    #startField>
                 </app-datetime-field>
                 <app-datetime-field
                     class="flex-col"
@@ -32,51 +31,52 @@
                     label="Data/Hora Final"
                     placeholder="Selecione a data/hora final"
                     (confirm)="onDateTimeConfirm($event,'end')"
-                    #endField
-                    id="transaction-end-date">
+                    #endField>
                 </app-datetime-field>
-                <button id="refresh-transaction-btn" mat-icon-button color="primary" (click)="onSearch()">
+                <button mat-icon-button color="primary" (click)="onSearch()">
                     <mat-icon>refresh</mat-icon>
                 </button>
             </div>
-            <mat-chip-listbox id="transaction-filter-chips">
-                <mat-chip-row *ngFor="let p of form.value.filters" (removed)="onRemoveFilter(p)" id="transaction-filter-chip-{{p}}">
+            <mat-chip-listbox>
+                <mat-chip-row *ngFor="let p of form.value.filters" (removed)="onRemoveFilter(p)">
                     {{ p }}
-                    <button matChipRemove id="remove-filter-chip-{{p}}">
+                    <button matChipRemove>
                         <mat-icon>cancel</mat-icon>
                     </button>
                 </mat-chip-row>
             </mat-chip-listbox>
         </mat-card-content>
-        <div class="chart-container">
-            <canvas id="transaction-chart">{{ chart }}</canvas>
+        <div class="chart-container ">
+            <canvas id="trn-chart">{{ chart }}</canvas>
         </div>
-        <table mat-table [dataSource]="transactionDS" multiTemplateDataRows=true id="transaction-table">
+        <table mat-table [dataSource]="transactionDS" multiTemplateDataRows=true>
             <ng-container matColumnDef="expand">
                 <mat-header-cell *matHeaderCellDef></mat-header-cell>
                 <mat-cell *matCellDef="let element; let row">
-                    <button id="expand-transaction-{{element._id}}" mat-icon-button (click)="expandCollapse(row)">
+                    <button mat-icon-button (click)="expandCollapse(row)">
                         @if (element.isExpanded) {
                             <mat-icon>keyboard_arrow_up</mat-icon>
                         } @else {
                             <mat-icon>keyboard_arrow_down</mat-icon>
                         }
                     </button>
-                    <button id="show-raw-{{element._id}}" mat-icon-button (click)="onShowRAW(row)">
+                    <button mat-icon-button (click)="onShowRAW(row)">
                         <mat-icon>raw_on</mat-icon>
                     </button>
+
                 </mat-cell>
             </ng-container>
 
+
             <ng-container matColumnDef="logtime">
                 <mat-header-cell *matHeaderCellDef> Time</mat-header-cell>
-                <mat-cell *matCellDef="let element" id="transaction-time-{{element._id}}">
+                <mat-cell *matCellDef="let element">
                     <p class="no-wrap">{{ element.logtime |dateFormat }}</p>
                 </mat-cell>
             </ng-container>
             <ng-container matColumnDef="score">
                 <mat-header-cell *matHeaderCellDef> Score</mat-header-cell>
-                <mat-cell *matCellDef="let element" id="transaction-score-{{element._id}}">
+                <mat-cell *matCellDef="let element">
                     <mat-chip class="score_chip {{element.action|lowercase}}">
                         {{ element.score }}
                     </mat-chip>
@@ -84,7 +84,7 @@
             </ng-container>
             <ng-container matColumnDef="source">
                 <mat-header-cell *matHeaderCellDef> Source</mat-header-cell>
-                <mat-cell *matCellDef="let element" style="text-wrap: nowrap;" id="transaction-source-{{element._id}}">
+                <mat-cell *matCellDef="let element" style="text-wrap: nowrap;">
                     @if (element.source) {
                         {{ element.source.ip }}
                         <span class="fi fi-{{element.source.geo.country|lowercase}}"
@@ -98,7 +98,7 @@
 
             <ng-container matColumnDef="service">
                 <mat-header-cell *matHeaderCellDef> Service</mat-header-cell>
-                <mat-cell *matCellDef="let element" id="transaction-service-{{element._id}}">
+                <mat-cell *matCellDef="let element">
                     @if (element.service) {
                         <p matTooltip="Node: {{element.server_id}}"
                            matTooltipPosition="below">
@@ -110,7 +110,7 @@
 
             <ng-container matColumnDef="request_line" class="mat-expanded-row">
                 <mat-header-cell *matHeaderCellDef> Request</mat-header-cell>
-                <mat-cell *matCellDef="let element" id="transaction-request-{{element._id}}">
+                <mat-cell *matCellDef="let element">
                     @if (element.http) {
                         <p class="text-wrap">{{ element.http.request_line }}</p>
                     }
@@ -118,14 +118,14 @@
             </ng-container>
             <ng-container matColumnDef="duration">
                 <mat-header-cell *matHeaderCellDef> Duration</mat-header-cell>
-                <mat-cell *matCellDef="let element" id="transaction-duration-{{element._id}}">
+                <mat-cell *matCellDef="let element">
                     {{ element.http.duration |timeFormat }}
                 </mat-cell>
             </ng-container>
             <ng-container matColumnDef="expandedDetail">
-                <mat-cell *matCellDef="let element" class="exp-panel {{element.action|lowercase}}" style="flex: 1;" id="transaction-details-{{element._id}}">
+                <mat-cell *matCellDef="let element" class="exp-panel {{element.action|lowercase}}" style="flex: 1;">
                     <mat-accordion style="padding: 10px">
-                        <mat-expansion-panel id="transaction-request-panel-{{element._id}}">
+                        <mat-expansion-panel>
                             <mat-expansion-panel-header>
                                 <mat-panel-title>Request
                                     @if (element.http && element.http.request) {
@@ -147,17 +147,18 @@
                                         <small class="exp-panel-token">
                                             <b>RBL:</b> {{ element.rbl_status }}
                                         </small>
+
                                     }
                                 </mat-panel-title>
                             </mat-expansion-panel-header>
                             <div class="mat-row">
                                 <div class="mat-col-12">
-                                    <p id="transaction-user-agent-{{element._id}}">
+                                    <p>
                                         <b>User Agent:</b> {{ element.user_agent.family }},
                                         {{ element.user_agent.major }}
                                     </p>
                                     @if (element.source) {
-                                        <p id="transaction-source-details-{{element._id}}">
+                                        <p>
                                             <b>Source IP:</b> {{ element.source.ip }}:{{ element.source.port }}
                                             <b>ASN:</b> {{ element.source.geo.ans_number }}
                                             {{ element.source.geo.organization }}
@@ -165,21 +166,20 @@
                                     }
 
                                     @if (element.upstream) {
-                                        <p id="transaction-upstream-{{element._id}}">
+                                        <p>
                                             <b>Upstream:</b>{{ element.upstream.name }}
                                         </p>
                                     }
                                     @if (element.route_name) {
-                                        <p id="transaction-route-{{element._id}}">
+                                        <p>
                                             <b>Route:</b>{{ element.route_name }}
                                         </p>
                                     }
                                     <strong>headers</strong>
-                                    <mat-chip-listbox id="transaction-request-headers-{{element._id}}">
+                                    <mat-chip-listbox>
                                         @if (element.http && element.http.request) {
                                             <mat-chip-row [matTooltip]="p.content"
-                                                          *ngFor="let p of element.http.request.headers"
-                                                          id="transaction-request-header-{{element._id}}-{{p.name}}">
+                                                          *ngFor="let p of element.http.request.headers">
                                                 <small><b>{{ p.name }}</b>:
                                                     @if (p.content.length > 32) {
                                                         {{ p.content.substring(0, 32) + '...' }}
@@ -189,14 +189,15 @@
                                                 </small>
                                             </mat-chip-row>
                                         }
+
                                     </mat-chip-listbox>
+
                                 </div>
                             </div>
                         </mat-expansion-panel>
                         @if (element.http && element.http.response) {
                             <mat-expansion-panel (opened)="panelOpenState.set(true)"
-                                                 (closed)="panelOpenState.set(false)"
-                                                 id="transaction-response-panel-{{element._id}}">
+                                                 (closed)="panelOpenState.set(false)">
                                 <mat-expansion-panel-header>
                                     <mat-panel-title> Response
                                         <small class="exp-panel-token"><b>Size: </b>{{
@@ -210,10 +211,10 @@
                                 <div class="mat-row">
                                     <div class="mat-col-12">
                                         <strong>headers</strong>
-                                        <mat-chip-listbox id="transaction-response-headers-{{element._id}}">
+                                        <mat-chip-listbox>
+
                                             <mat-chip-row [matTooltip]="p.content"
-                                                          *ngFor="let p of element.http.response.headers"
-                                                          id="transaction-response-header-{{element._id}}-{{p.name}}">
+                                                          *ngFor="let p of element.http.response.headers">
                                                 <small><b>{{ p.name }}</b>:
                                                     @if (p.content.length > 32) {
                                                         {{ p.content.substring(0, 32) + '...' }}
@@ -222,38 +223,55 @@
                                                     }
                                                 </small>
                                             </mat-chip-row>
+
                                         </mat-chip-listbox>
                                     </div>
                                 </div>
                             </mat-expansion-panel>
                         }
                         @if (element.audit) {
-                            <mat-expansion-panel id="transaction-audit-panel-{{element._id}}">
+                            <mat-expansion-panel>
                                 <mat-expansion-panel-header>
                                     <mat-panel-title> Inspection</mat-panel-title>
                                     <mat-panel-description>
                                         {{ element.audit.engine }}
                                     </mat-panel-description>
                                 </mat-expansion-panel-header>
-                                <table mat-table [dataSource]="element.audit.messages" class="mat-elevation-z8" id="transaction-audit-table-{{element._id}}">
+                                <table mat-table [dataSource]="element.audit.messages" class="mat-elevation-z8">
+                                    <!-- Position Column -->
                                     <ng-container matColumnDef="code">
                                         <th mat-header-cell *matHeaderCellDef> No.</th>
                                         <td mat-cell *matCellDef="let e1">
                                             <button mat-button
-                                                    (click)="onShowRuleDetails(e1.rule_code)"
-                                                    id="show-rule-details-{{element._id}}-{{e1.rule_code}}">
-                                                {{ e1.rule_code }}
+                                                    (click)="onShowRuleDetails(e1.rule_code)">{{ e1.rule_code }}
                                             </button>
                                         </td>
                                     </ng-container>
+
+                                    <!-- Name Column -->
+                                    <ng-container matColumnDef="text">
+                                        <th mat-header-cell *matHeaderCellDef> Name</th>
+                                        <td mat-cell *matCellDef="let e1"> {{ e1.text }}</td>
+                                    </ng-container>
+
+                                    <tr mat-header-row *matHeaderRowDef="['code','text']"></tr>
+                                    <tr mat-row *matRowDef="let row; columns: ['code','text'];"></tr>
                                 </table>
                             </mat-expansion-panel>
                         }
                     </mat-accordion>
                 </mat-cell>
             </ng-container>
+
+            <mat-header-row *matHeaderRowDef="transactionDC"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: transactionDC;" matRipple class="element-row"
+                     [class.expanded]="row.isExpanded"></mat-row>
+            <mat-row *matRowDef="let row; columns: ['expandedDetail'];"
+                     [@detailExpand]="row.isExpanded == true ? 'expanded' : 'collapsed'" style="overflow: hidden">
+            </mat-row>
         </table>
         <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" [pageSize]="transactionPA.per_page"
                        [length]="transactionPA.total_elements" (page)="nextPage($event)"></mat-paginator>
+
     </mat-card>
 </ng-container>
