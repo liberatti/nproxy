@@ -79,7 +79,7 @@ export class ServiceRouteFormDialogComponent implements OnInit {
             url: new FormControl<string>('')
         }),
         paths: new FormControl<Array<string>>([]),
-        methods: new FormControl<Array<string>>(['GET', 'POST', 'PATCH', 'DELETE']),
+        methods: new FormControl<Array<string>>(['GET', 'POST','PUT', 'PATCH', 'DELETE']),
         monitor_only: new FormControl<boolean>(false),
         sensor: new FormControl<Sensor>(<Sensor>{}),
         cache_methods: new FormControl<Array<string>>([]),

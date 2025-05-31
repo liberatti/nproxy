@@ -7,12 +7,12 @@
         <mat-card-content>
             <form [formGroup]="form">
                 <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="end">
-                    <mat-tab label="Config">
+                    <mat-tab label="Config" id="config-tab">
                         <div class="mat-row">
                             <div class="mat-col-12">
                                 <mat-form-field class="full-width">
                                     <mat-label>Name</mat-label>
-                                    <input matInput formControlName="name">
+                                    <input matInput formControlName="name" id="sensor-name-input">
                                 </mat-form-field>
                             </div>
                         </div>
@@ -20,7 +20,7 @@
                             <div class="mat-col-12">
                                 <mat-form-field class="full-width">
                                     <mat-label>Description</mat-label>
-                                    <textarea matInput formControlName="description"></textarea>
+                                    <textarea matInput formControlName="description" id="sensor-description-input"></textarea>
                                 </mat-form-field>
                             </div>
                         </div>
@@ -32,10 +32,10 @@
                                             <mat-form-field style="flex-grow: 1;">
                                                 <mat-label>Transaction Analyzer Jail</mat-label>
                                                 <mat-select formControlName="jail" [compareWith]="compareFn"
-                                                            (selectionChange)="onAddJail($event)">
+                                                            (selectionChange)="onAddJail($event)" id="sensor-jail-select">
                                                     <mat-option
                                                             *ngFor="let c of formater.filterActive(_jails,form.value?.jails);"
-                                                            [value]="c">
+                                                            [value]="c" id="jail-option-{{c._id}}">
                                                         {{ c.name }}
                                                     </mat-option>
                                                 </mat-select>
@@ -47,9 +47,9 @@
                                     <div class="mat-col-12">
                                         <mat-chip-listbox>
                                             <mat-chip-row *ngFor="let p of form.value.jails"
-                                                          (removed)="onRemoveJail(p)">
+                                                          (removed)="onRemoveJail(p)" id="jail-chip-{{p._id}}">
                                                 {{ p.name }}
-                                                <button matChipRemove *ngIf="form.enabled">
+                                                <button matChipRemove *ngIf="form.enabled" id="remove-jail-{{p._id}}">
                                                     <mat-icon>cancel</mat-icon>
                                                 </button>
                                             </mat-chip-row>
@@ -60,9 +60,9 @@
                             <div class="mat-col-6">
                                 <mat-form-field class="full-width">
                                     <mat-label>Geo Blocked Countries</mat-label>
-                                    <mat-select (selectionChange)="onAddGeo($event)">
-                                        <mat-option *ngFor="let country of filterActiveGeo(_geo_countries)"
-                                                    [value]="country">
+                                    <mat-select (selectionChange)="onAddGeo($event)" id="geo-countries-select">
+                                        <mat-option *ngFor="let country of filterActiveGeo(_geo_countries);let i = index"
+                                                    [value]="country" id="geo-country-option-{{i}}">
                                             {{ country }}
                                         </mat-option>
                                     </mat-select>
@@ -80,25 +80,25 @@
                             </div>
                         </div>
                     </mat-tab>
-                    <mat-tab label="IP Reputation">
+                    <mat-tab label="IP Reputation" id="ip-reputation-tab">
                         <div class="mat-row">
                             <div class="mat-col-6">
                                 <mat-form-field class="full-width">
                                     <mat-label>RBL Blocking Feed</mat-label>
                                     <mat-select [compareWith]="compareFn"
-                                                (selectionChange)="onAddBlock($event)">
+                                                (selectionChange)="onAddBlock($event)" id="rbl-block-select">
                                         <mat-option
-                                                *ngFor="let c of  filterActiveFeed(_rbl_feeds)"
-                                                [value]="c">
+                                                *ngFor="let c of  filterActiveFeed(_rbl_feeds); let i = index"
+                                                [value]="c" id="block-option-{{i}}">
                                             {{ c.name }}
                                         </mat-option>
                                     </mat-select>
                                 </mat-form-field>
                                 <mat-chip-listbox class="full-width" [multiple]="false" [selectable]="true">
                                     <mat-chip-option *ngFor="let p of form.value.block; let i = index"
-                                                     class="small-chip" (removed)="onRemoveBlock(p)">
+                                                     class="small-chip" (removed)="onRemoveBlock(p)" id="block-chip-{{p._id}}">
                                         {{ p.name }}
-                                        <button matChipRemove>
+                                        <button matChipRemove id="remove-block-{{p._id}}">
                                             <mat-icon>cancel</mat-icon>
                                         </button>
                                     </mat-chip-option>
@@ -108,19 +108,19 @@
                                 <mat-form-field class="full-width">
                                     <mat-label>RBL ByPass</mat-label>
                                     <mat-select [compareWith]="compareFn"
-                                                (selectionChange)="onAddPermit($event)">
+                                                (selectionChange)="onAddPermit($event)" id="rbl-permit-select">
                                         <mat-option
                                                 *ngFor="let c of  filterActiveFeed(_rbl_feeds)"
-                                                [value]="c">
+                                                [value]="c" id="permit-option-{{c._id}}">
                                             {{ c.name }}
                                         </mat-option>
                                     </mat-select>
                                 </mat-form-field>
                                 <mat-chip-listbox class="full-width" [multiple]="false" [selectable]="true">
                                     <mat-chip-option *ngFor="let p of form.value.permit; let i = index"
-                                                     class="small-chip" (removed)="onRemovePermit(p)">
+                                                     class="small-chip" (removed)="onRemovePermit(p)" id="permit-chip-{{p._id}}">
                                         {{ p.name }}
-                                        <button matChipRemove>
+                                        <button matChipRemove id="remove-permit-{{p._id}}">
                                             <mat-icon>cancel</mat-icon>
                                         </button>
                                     </mat-chip-option>
@@ -128,20 +128,20 @@
                             </div>
                         </div>
                     </mat-tab>
-                    <mat-tab label="Security Inspection">
+                    <mat-tab label="Security Inspection" id="security-inspection-tab">
                         <mat-form-field class="full-width  mt-2">
                             <mat-label>Category</mat-label>
-                            <mat-select [compareWith]="compareFn" (selectionChange)="onAddCategory($event)">
+                            <mat-select [compareWith]="compareFn" (selectionChange)="onAddCategory($event)" id="category-select">
                                 <mat-option
                                         *ngFor="let c of filterActiveCategory(_categories,form.value.categories)"
-                                        [value]="c">
+                                        [value]="c" id="category-option-{{c.name}}">
                                     {{ c.name }}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
                         <mat-chip-listbox [multiple]="false" [selectable]="true">
                             <mat-chip-option *ngFor="let p of form.value.categories; let i = index" class="small-chip"
-                                             (removed)="onRemoveCategory(p)" (click)="onSelectCategory(p)">
+                                             (removed)="onRemoveCategory(p)" (click)="onSelectCategory(p)" id="category-chip-{{p}}">
                                 {{ p }}
                                 <button matChipRemove>
                                     <mat-icon>cancel</mat-icon>
@@ -208,11 +208,11 @@
         </mat-card-content>
         <mat-card-actions align="end">
             <button type="button" mat-raised-button color="primary"
-                    *ngIf="form.enabled" (click)="onSave()">
+                    *ngIf="form.enabled" (click)="onSave()" id="save-sensor-button">
                 <mat-icon>save</mat-icon>
                 Save
             </button>
-            <button mat-mini-fab [routerLink]="['/sensor']">
+            <button mat-mini-fab [routerLink]="['/sensor']" id="return-sensor-button">
                 <mat-icon>keyboard_return</mat-icon>
             </button>
         </mat-card-actions>

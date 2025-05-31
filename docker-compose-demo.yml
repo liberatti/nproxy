@@ -2,7 +2,7 @@
   # vm.max_map_count=262144
    
 services:
-  proxy:
+  demo:
     image: liberatti/nproxy:latest
     build:
       context: .
@@ -11,25 +11,24 @@ services:
       NODE_ROLE: "main"
       SERVERID: "dev-node"
       PYTHONUNBUFFERED: 1
+      MONGO_DB: "nproxy_demo"
     network_mode: "host"
     init: true
-    volumes:
-      - ./api:/opt/nproxy/admin
-      - ./config:/opt/nproxy/admin/config
-      - ./lualib:/opt/nproxy/lualib/share/lua/5.4/nproxy
     deploy:
       resources:
         limits:
           memory: 1512M
 
-  export:
-    image: liberatti/nproxy:export
+  php-fpm:
+    image: local/php-fpm:latest
     build:
-      context: .
+      context: test/php-fpm
       dockerfile: Dockerfile
-      target: engine
-    entrypoint: [ '/bin/bash','-c' ]
-    command: [ 'cp /root/rpmbuild/RPMS/*/*.rpm /target' ]
-    volumes:
-      - ./target:/target
+    network_mode: "host" #port 5010
 
+  tomcat:
+    image: local/tomcat:latest
+    build:
+      context: test/tomcat
+      dockerfile: Dockerfile
+    network_mode: "host" #port 5011

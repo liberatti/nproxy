@@ -1,11 +1,11 @@
 <h1 mat-dialog-title>Upstream Target</h1>
 <div mat-dialog-content>
-    <form [formGroup]="form">
+    <form [formGroup]="form" id="upstream-target-form">
         <div class="row">
             <div class="col">
                 <mat-form-field class='full-width'>
                     <mat-label>Network Address</mat-label>
-                    <input id="target.host" matInput formControlName="host">
+                    <input id="upstream-target-host" matInput formControlName="host">
                 </mat-form-field>
             </div>
         </div>
@@ -13,23 +13,23 @@
             <div class="col">
                 <mat-form-field class='full-width'>
                     <mat-label>Target Port</mat-label>
-                    <input id="target.port" matInput formControlName="port">
+                    <input id="upstream-target-port" matInput formControlName="port">
                 </mat-form-field>
             </div>
             <div class="col">
                 <mat-form-field class='full-width'>
                     <mat-label>Distribution Weight</mat-label>
-                    <input matInput formControlName="weight">
+                    <input id="upstream-target-weight" matInput formControlName="weight">
                 </mat-form-field>
             </div>
         </div>
     </form>
 </div>
-<div mat-dialog-actions align="end">
-    <button id="target-save-btn" type="button" (click)="onSubmit()" mat-raised-button color="primary" cdkFocusInitial>
+<div mat-dialog-actions align="end" class="dialog-actions">
+    <button id="save-upstream-target-btn" type="button" (click)="onSubmit()" mat-raised-button color="primary" cdkFocusInitial>
         <mat-icon>save</mat-icon> Save
     </button>
-    <button mat-mini-fab type="button" color="primary" (click)="cancel()">
+    <button id="cancel-upstream-target-btn" mat-mini-fab type="button" color="primary" (click)="cancel()">
         <mat-icon>keyboard_return</mat-icon>
     </button>
 </div>

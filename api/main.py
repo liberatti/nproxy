@@ -36,7 +36,7 @@ from config import (
     NODE_ROLE,
     MAINTENANCE_WINDOW,
     TELEMETRY_ENABLE,
-    TELEMETRY_INTERVAL,
+    TELEMETRY_INTERVAL
 )
 
 app = Flask(__name__)
@@ -143,7 +143,8 @@ with app.app_context():
     if "main" in NODE_ROLE:
         if not config:
             install()
-            config = dao.get_active()
+        config = dao.get_active()
+            
         if "cluster_id" not in config:
             dao.update_by_id(config["_id"], {"cluster_id": f"{gen_random_string(64)}"})
 

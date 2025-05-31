@@ -58,7 +58,7 @@ export class CertificateFormComponent implements OnInit {
         password: new FormControl<string>(''),
         not_before: new FormControl<Date>(new Date()),
         not_after: new FormControl<Date>(new Date()),
-        provider: new FormControl<CertificateProviderType>(CertificateProviderType.EXTERNAL),
+        provider: new FormControl<CertificateProviderType>(CertificateProviderType.MANAGED),
     });
 
     constructor(

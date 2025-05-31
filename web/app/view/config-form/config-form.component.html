@@ -6,21 +6,21 @@
         <mat-card-content class="mt-2">
             <form [formGroup]="form">
                 <mat-accordion>
-                    <mat-expansion-panel>
+                    <mat-expansion-panel id="general-config-panel">
                         <mat-expansion-panel-header>
                             <mat-panel-title>General configuration</mat-panel-title>
                         </mat-expansion-panel-header>
 
                         <mat-form-field class="full-width">
                             <mat-label>Maxmind Integration key</mat-label>
-                            <input matInput formControlName="maxmind_key">
+                            <input matInput formControlName="maxmind_key" id="maxmind-key-input">
                         </mat-form-field>
                         <mat-form-field class="full-width">
                             <mat-label>acme_directory_url</mat-label>
-                            <input matInput formControlName="acme_directory_url">
+                            <input matInput formControlName="acme_directory_url" id="acme-directory-url-input">
                         </mat-form-field>
                     </mat-expansion-panel>
-                    <mat-expansion-panel>
+                    <mat-expansion-panel id="ca-config-panel">
                         <mat-expansion-panel-header>
                             <mat-panel-title> Certification Authority</mat-panel-title>
                         </mat-expansion-panel-header>
@@ -37,7 +37,7 @@
                         </mat-form-field>
                     </mat-expansion-panel>
 
-                    <mat-expansion-panel>
+                    <mat-expansion-panel id="transaction-policy-panel">
                         <mat-expansion-panel-header>
                             <mat-panel-title>Transaction Policy</mat-panel-title>
                         </mat-expansion-panel-header>
@@ -82,7 +82,7 @@
                                             <div class="mat-col-12">
                                                 <mat-form-field class="full-width">
                                                     <mat-label>Url</mat-label>
-                                                    <input id="upstream.host" matInput formControlName="url">
+                                                    <input id="elasticsearch-url-input" matInput formControlName="url">
                                                 </mat-form-field>
                                             </div>
                                         </div>
@@ -90,11 +90,11 @@
                                             <div class="mat-col-12">
                                                 <mat-form-field>
                                                     <mat-label>username</mat-label>
-                                                    <input id="upstream.username" matInput formControlName="username">
+                                                    <input id="elasticsearch-username-input" matInput formControlName="username">
                                                 </mat-form-field>
                                                 <mat-form-field>
                                                     <mat-label>password</mat-label>
-                                                    <input id="upstream.password" matInput formControlName="password">
+                                                    <input id="elasticsearch-password-input" matInput formControlName="password">
                                                 </mat-form-field>
                                             </div>
                                         </div>
