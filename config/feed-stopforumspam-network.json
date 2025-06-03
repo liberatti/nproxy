@@ -1,0 +1,13 @@
+{
+  "name": "stopforumspam",
+  "slug": "stopforumspam",
+  "provider": "stopforumspam",
+  "restricted": false,
+  "version": "latest",
+  "type": "network",
+  "action": "deny",
+  "source": "https://www.stopforumspam.com/downloads/toxic_ip_cidr.txt",
+  "update_interval": "day",
+  "description": "Stop Forum Spam is a free service that tracks spam reports from forums, blogs, and wikis, providing automated access to block suspected spammers. It offers a specialized solution to prevent abuse beyond traditional CAPTCHA methods.",
+  "format": "cdir_text"
+}

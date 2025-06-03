@@ -1,0 +1,28 @@
+<div id="account-view">
+    <form [formGroup]="form" id="account-form">
+        <div class="form-section">
+            <h2>Account</h2>
+            <p class="subtitle">Manage account</p>
+            <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="end" id="account-tabs">
+                <mat-tab label="About">
+                    <mat-form-field class="full-width">
+                        <input id="account-name-input" matInput placeholder="Display Name" formControlName="name"
+                               type="text">
+                    </mat-form-field>
+                    <mat-form-field class="full-width">
+                        <input id="account-email-input" matInput placeholder="E-Mail" formControlName="email" type="text">
+                    </mat-form-field>
+                </mat-tab>
+                <mat-tab label="Security">
+                    <mat-form-field class="full-width">
+                        <input id="account-password-input" matInput placeholder="Password" formControlName="password" type="password"
+                               autocomplete="current-password">
+                    </mat-form-field>
+                </mat-tab>
+            </mat-tab-group>
+            <div  class="form-actions mat-mdc-card-actions bottom-actions">
+                <button mat-raised-button id="save-account-btn" color="primary" (click)="onSubmit()">Save</button>
+            </div>
+        </div>
+    </form>
+</div>

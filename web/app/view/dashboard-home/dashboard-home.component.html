@@ -1,0 +1,38 @@
+<div class="container" id="dashboard-container">
+    <div class="nodes-section" id="dashboard-nodes-section">
+        <h2>Nodes</h2>
+        <div *ngFor="let n of nodeList" class="node-item" id="node-item-{{n.name}}">
+            <div class="node-header">
+                <small> <b>{{ n.name }}</b>
+                    <mat-chip id="node-role-{{n.name}}">
+                        {{ n.role }}
+                    </mat-chip>
+                </small>
+                <div class="status-actions">
+                    <button *ngIf="!n.healthy" mat-flat-button color="warn" (click)="show_details(n)"
+                            class="warn-button" id="node-details-btn-{{n.name}}">
+                        <mat-icon>warning_amber</mat-icon>
+                        Details
+                    </button>
+                </div>
+            </div>
+            <div class="node-details" id="node-details-{{n.name}}">
+                <div class="status" id="node-status-{{n.name}}">
+                    <mat-icon>monitor_heart</mat-icon>
+                    {{ n.last_check | dateFormat }}
+                </div>
+                <div class="version" id="node-version-{{n.name}}">
+                    <mat-icon>system_update_alt</mat-icon>
+                    <small>{{ n.version }}</small>
+                </div>
+                <div class="synchronization" id="node-sync-{{n.name}}">
+                    <b>Synchronization:</b> {{ n.scn }}
+                    <mat-icon>cloud_download</mat-icon>
+                    {{ n.net_recv |byteFormat }}/s
+                    <mat-icon>cloud_upload</mat-icon>
+                    {{ n.net_send|byteFormat }}/s
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

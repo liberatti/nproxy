@@ -1,0 +1,164 @@
+[
+  {
+    "index_name": "nproxy_trn",
+    "properties": {
+      "logtime": {
+        "type": "date",
+        "format": "strict_date_time"
+      },
+      "unique_id": {
+        "type": "keyword"
+      },
+      "server_id": {
+        "type": "keyword"
+      },
+      "action": {
+        "type": "keyword"
+      },
+      "limit_req_status": {
+        "type": "text"
+      },
+      "user_agent": {
+        "properties": {
+          "family": {
+            "type": "keyword"
+          },
+          "major": {
+            "type": "integer"
+          },
+          "minor": {
+            "type": "integer"
+          }
+        }
+      },
+      "source": {
+        "properties": {
+          "ip": {
+            "type": "ip"
+          },
+          "port": {
+            "type": "integer"
+          },
+          "geo": {
+            "properties": {
+              "addr": {
+                "type": "ip"
+              },
+              "range_start": {
+                "type": "ip"
+              },
+              "range_end": {
+                "type": "ip"
+              },
+              "ans_number": {
+                "type": "keyword"
+              },
+              "organization": {
+                "type": "keyword"
+              },
+              "country": {
+                "type": "keyword"
+              }
+            }
+          }
+        }
+      },
+      "destination": {
+        "properties": {
+          "ip": {
+            "type": "ip"
+          },
+          "port": {
+            "type": "integer"
+          }
+        }
+      },
+      "http": {
+        "properties": {
+          "duration": {
+            "type": "integer"
+          },
+          "request_line": {
+            "type": "text"
+          },
+          "request": {
+            "properties": {
+              "method": {
+                "type": "keyword"
+              },
+              "bytes": {
+                "type": "long",
+                "index": false
+              },
+              "uri": {
+                "type": "keyword"
+              },
+              "headers": {
+                "type": "flattened"
+              }
+            }
+          },
+          "response": {
+            "properties": {
+              "status_code": {
+                "type": "integer"
+              },
+              "bytes": {
+                "type": "long",
+                "index": false
+              },
+              "headers": {
+                "type": "flattened"
+              }
+            }
+          }
+        }
+      },
+      "version": {
+        "type": "float"
+      },
+      "route_name": {
+        "type": "keyword"
+      },
+      "sync": {
+        "type": "keyword"
+      },
+      "sensor_id": {
+        "type": "keyword"
+      },
+      "upstream_id": {
+        "type": "keyword"
+      },
+      "service_id": {
+        "type": "keyword"
+      },
+      "audit": {
+        "properties": {
+          "engine": {
+            "type": "keyword"
+          },
+          "connector": {
+            "type": "keyword"
+          },
+          "mode": {
+            "type": "keyword"
+          },
+          "messages": {
+            "type": "nested",
+            "properties": {
+              "text": {
+                "type": "text"
+              },
+              "rule_code": {
+                "type": "keyword"
+              },
+              "severity": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+]

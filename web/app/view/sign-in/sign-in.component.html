@@ -1,0 +1,38 @@
+<div id="sign-layout" class="login-background">
+    <mat-card class="login-card" id="sign-in-card">
+        <div class="mat-row">
+            <div class="mat-col-12" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <img ngSrc="assets/logo-w-white.png"
+                     class="login-logo"
+                     height="218" width="205" alt="logo" id="sign-in-logo"/>
+                <h2 class="login-title" id="sign-in-title">Nproxy</h2>
+                <p class="login-subtitle" id="sign-in-subtitle">A user-friendly admin interface for the sophisticated Nginx solution with ModSecurity.</p>
+            </div>
+            
+            <div class="login-divider" id="sign-in-divider"></div>
+            
+            <div class="mat-col-12">
+                <form [formGroup]="form" id="sign-in-form" class="login-form">
+                    <mat-form-field class="full-width">
+                        <mat-label>Email</mat-label>
+                        <input id="sign-in-email" matInput formControlName="email"
+                               autocomplete="email" type="text">
+                        <mat-icon matSuffix>email</mat-icon>
+                    </mat-form-field>
+                    
+                    <mat-form-field class="full-width">
+                        <mat-label>Password</mat-label>
+                        <input id="sign-in-password" matInput formControlName="password" 
+                               type="password" autocomplete="current-password">
+                        <mat-icon matSuffix>lock</mat-icon>
+                    </mat-form-field>
+                    
+                    <button mat-raised-button id="sign-in-button" color="primary" class="login-button" (click)="login()">
+                        <mat-icon>login</mat-icon>
+                        <span>Sign In</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </mat-card>
+</div>

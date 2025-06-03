@@ -1,0 +1,47 @@
+<div class="datetime-field-container" style="display: flex; flex-direction: column; gap: 8px">
+    <div style="display: flex; gap: 8px">
+        <mat-form-field>
+            <mat-label>{{ label }}</mat-label>
+            <input matInput
+                   [matDatepicker]="picker"
+                   [(ngModel)]="dateInput"
+                   (dateChange)="onDateChange($event)"
+                   [placeholder]="placeholder"
+                   readonly
+                   id="datetime-date-input">
+            <mat-datepicker-toggle matIconSuffix [for]="picker"
+                                  id="datetime-date-toggle"></mat-datepicker-toggle>
+            <mat-datepicker #picker>
+              <mat-datepicker-actions>
+                <div class="time-selection" style="padding-bottom: 25px;">
+                  <mat-form-field class="time-field" >
+                    <mat-label>Hora</mat-label>
+                    <mat-select [(ngModel)]="selectedHour" (selectionChange)="onTimeChange()">
+                      <mat-option *ngFor="let hour of hours" [value]="hour">{{hour}}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field class="time-field">
+                    <mat-label>Minuto</mat-label>
+                    <mat-select [(ngModel)]="selectedMinute" (selectionChange)="onTimeChange()">
+                      <mat-option *ngFor="let minute of minutes" [value]="minute">{{minute}}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field class="time-field">
+                    <mat-label>Segundo</mat-label>
+                    <mat-select [(ngModel)]="selectedSecond" (selectionChange)="onTimeChange()">
+                      <mat-option *ngFor="let second of seconds" [value]="second">{{second}}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                <button mat-raised-button color="primary" 
+                        style="position: absolute; right: 10px;bottom: 5px;"
+                        (click)="onConfirm()"
+                        id="datetime-confirm-btn"
+                        matDatepickerApply>
+                    Confirmar
+                </button>
+              </mat-datepicker-actions>
+            </mat-datepicker>
+        </mat-form-field>
+    </div>
+</div>

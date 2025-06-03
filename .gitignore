@@ -1,0 +1,81 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/web/node_modules
+/web/.angular
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite
+*.log
+*.bak
+*.swp
+
+# Virtual environments
+/venv/
+/env/
+/.venv/
+/env.bak/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs
+/logs
+/server.pid
+/server.conf
+
+# Generated files and temporary build folders
+/packages/generated
+/target
+.lualib
+
+# Static files generated during build
+/static/**/*
+/templates/**/*
+redoc-static.html
+
+# Miscellaneous
+test.py
+easy-rsa
+/data
+/lualib/test*

@@ -1,0 +1,12 @@
+<h2 mat-dialog-title>Rule Details</h2>
+<mat-dialog-content class="mat-typography">
+    <pre><code [highlight]="jsonData" language="json" id="rule-details-code"></code></pre>
+</mat-dialog-content>
+<mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-raised-button color="primary" (click)="onDismiss()" id="rule-details-close-btn">
+        <mat-icon>
+            exit_to_app
+        </mat-icon>
+        Close
+    </button>
+</mat-dialog-actions>

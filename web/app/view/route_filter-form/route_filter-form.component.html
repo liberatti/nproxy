@@ -1,0 +1,70 @@
+<ng-container>
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title>{{ 'view.route_filter.title'|translate }}</mat-card-title>
+            <mat-card-subtitle>{{ (isAddMode ? 'actions.create' : 'actions.edit')| translate }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <form [formGroup]="form" id="route-filter-form">
+                <div class="mat-row">
+                    <div class="mat-col-7">
+                        <mat-form-field class='full-width'>
+                            <mat-label>Name</mat-label>
+                            <input id="route-filter-name" matInput formControlName="name">
+                        </mat-form-field>
+                    </div>
+                    <div class="mat-col-5">
+                        <mat-form-field class="full-width">
+                            <mat-label>Type</mat-label>
+                            <mat-select formControlName="type" id="route-filter-type-select">
+                                <mat-option *ngFor="let ut of _types" [value]="ut" id="route-filter-type-option-{{ut}}" style="text-transform: capitalize">
+                                    {{ ut }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                </div>
+                <div class="mat-row">
+                    <div class="mat-col-12">
+                        <mat-form-field class="full-width">
+                            <mat-label>Description</mat-label>
+                            <textarea id="route-filter-description" matInput formControlName="description"></textarea>
+                        </mat-form-field>
+                    </div>
+                </div>
+                @if (form.value.type == 'LDAP_BASIC_AUTH') {
+                    <mat-form-field class='full-width'>
+                        <mat-label>ldap_host</mat-label>
+                        <input id="route-filter-ldap-host" matInput formControlName="ldap_host">
+                    </mat-form-field>
+                    <mat-form-field class='full-width'>
+                        <mat-label>ldap_base_dn</mat-label>
+                        <input id="route-filter-ldap-base-dn" matInput formControlName="ldap_base_dn">
+                    </mat-form-field>
+                    <mat-form-field class='full-width'>
+                        <mat-label>ldap_bind_dn</mat-label>
+                        <input id="route-filter-ldap-bind-dn" matInput formControlName="ldap_bind_dn">
+                    </mat-form-field>
+                    <mat-form-field class='full-width'>
+                        <mat-label>ldap_bind_password</mat-label>
+                        <input type="password" id="route-filter-ldap-bind-password" matInput formControlName="ldap_bind_password">
+                    </mat-form-field>
+                    <mat-form-field class='full-width'>
+                        <mat-label>ldap_group_dn</mat-label>
+                        <input id="route-filter-ldap-group-dn" matInput formControlName="ldap_group_dn">
+                    </mat-form-field>
+                }
+            </form>
+        </mat-card-content>
+        <mat-card-actions align="end" class="mat-mdc-card-actions bottom-actions">
+            <button id="save-route-filter-btn" type="button" mat-raised-button color="primary"
+                    *ngIf="form.enabled" (click)="onSubmit()">
+                <mat-icon>save</mat-icon>
+                {{ 'actions.save' | translate }}
+            </button>
+            <button mat-mini-fab [routerLink]="['/route_filter']" id="route-filter-form-back-btn">
+                <mat-icon>keyboard_return</mat-icon>
+            </button>
+        </mat-card-actions>
+    </mat-card>
+</ng-container>

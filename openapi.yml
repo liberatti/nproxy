@@ -1,0 +1,926 @@
+openapi: 3.0.0
+info:
+  title: NProxy API
+  version: v1.0.2-rc
+  description: API specification for NProxy application
+
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        status_code:
+          type: integer
+
+    Upstream:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        url:
+          type: string
+        active:
+          type: boolean
+
+    RuleCategory:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        phase:
+          type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        active:
+          type: boolean
+
+    Cluster:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        config:
+          type: object
+        active:
+          type: boolean
+
+    Jail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        ip:
+          type: string
+        status:
+          type: string
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    Sensor:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+
+    Feed:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        url:
+          type: string
+        active:
+          type: boolean
+
+tags:
+  - name: Transaction
+    description: Transaction management and monitoring
+  - name: Service
+    description: Service analytics and management
+  - name: Upstream
+    description: Upstream configuration and management
+  - name: Sensor
+    description: Sensor monitoring and configuration
+  - name: System
+    description: System management including certificates, jails, route filters, feeds and users
+  - name: Authentication
+    description: User authentication and authorization endpoints
+
+paths:
+  /oauth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Authenticate user and get OIDC tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /upstream:
+    post:
+      tags:
+        - Upstream
+      summary: Create a new upstream
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Upstream'
+      responses:
+        '201':
+          description: Upstream created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Upstream'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /upstream/{upstream_id}:
+    put:
+      tags:
+        - Upstream
+      summary: Update an upstream
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: upstream_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Upstream'
+      responses:
+        '200':
+          description: Upstream updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Upstream'
+        '404':
+          description: Upstream not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /rulecat/{cat_id}:
+    get:
+      tags:
+        - Sensor
+      summary: Get rule category by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: cat_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Rule category found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleCategory'
+        '404':
+          description: Rule category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /rulecat/by_name/{cat_name}:
+    get:
+      tags:
+        - Sensor
+      summary: Get rule category by name
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: cat_name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Rule category found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleCategory'
+        '404':
+          description: Rule category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /rulecat:
+    get:
+      tags:
+        - Sensor
+      summary: Search rule categories
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: name
+          in: query
+          schema:
+            type: string
+        - name: phase
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of rule categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RuleCategory'
+
+  /replica/scn:
+    get:
+      tags:
+        - System
+      summary: Get System Change Number (SCN)
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Current SCN
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  scn:
+                    type: string
+
+  /replica/config:
+    get:
+      tags:
+        - System
+      summary: Get cluster configuration
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Cluster configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  config:
+                    type: object
+
+  /user:
+    post:
+      tags:
+        - Authentication
+      summary: Create a new user
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      tags:
+        - Authentication
+      summary: List all users
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+  /user/{user_id}:
+    delete:
+      tags:
+        - Authentication
+      summary: Delete a user
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: User deleted successfully
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /cluster/backup:
+    post:
+      tags:
+        - System
+      summary: Restore cluster configuration from backup
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Configuration restored successfully
+        '400':
+          description: Invalid backup file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      tags:
+        - System
+      summary: Create cluster configuration backup
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Backup file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+  /cluster/config:
+    get:
+      tags:
+        - System
+      summary: Get cluster configuration
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Current cluster configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cluster'
+
+    put:
+      tags:
+        - System
+      summary: Update cluster configuration
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cluster'
+      responses:
+        '200':
+          description: Configuration updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cluster'
+        '400':
+          description: Invalid configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /cluster/apply:
+    get:
+      tags:
+        - System
+      summary: Apply pending configuration changes
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Changes applied successfully
+        '400':
+          description: Failed to apply changes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /jail:
+    post:
+      tags:
+        - System
+      summary: Create a new jail
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Jail'
+      responses:
+        '201':
+          description: Jail created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Jail'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      tags:
+        - System
+      summary: List all jails
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of jails
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Jail'
+
+  /jail/{jail_id}:
+    get:
+      tags:
+        - System
+      summary: Get jail by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: jail_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Jail found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Jail'
+        '404':
+          description: Jail not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /transaction/{trn_id}:
+    get:
+      tags:
+        - Transaction
+      summary: Get transaction by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: trn_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transaction found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '404':
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /acme-challenge/{key}:
+    get:
+      tags:
+        - System
+      summary: Get ACME challenge
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Challenge response
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          description: Challenge not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /sensor:
+    post:
+      tags:
+        - Sensor
+      summary: Create a new sensor
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Sensor'
+      responses:
+        '201':
+          description: Sensor created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sensor'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      tags:
+        - Sensor
+      summary: List all sensors
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of sensors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sensor'
+
+  /sensor/{sensor_id}:
+    get:
+      tags:
+        - Sensor
+      summary: Get sensor by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: sensor_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sensor found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sensor'
+        '404':
+          description: Sensor not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /feed:
+    get:
+      tags:
+        - System
+      summary: List all feeds
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of feeds
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Feed'
+
+  /certificate:
+    get:
+      tags:
+        - System
+      summary: List all certificates
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of certificates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    domain:
+                      type: string
+                    status:
+                      type: string
+                    expires_at:
+                      type: string
+                      format: date-time
+
+    post:
+      tags:
+        - System
+      summary: Create a new certificate
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                domain:
+                  type: string
+      responses:
+        '201':
+          description: Certificate created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  domain:
+                    type: string
+                  status:
+                    type: string
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /route_filter:
+    get:
+      tags:
+        - System
+      summary: List all route filters
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of route filters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    name:
+                      type: string
+                    pattern:
+                      type: string
+                    action:
+                      type: string
+                    active:
+                      type: boolean
+
+    post:
+      tags:
+        - System
+      summary: Create a new route filter
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                pattern:
+                  type: string
+                action:
+                  type: string
+                active:
+                  type: boolean
+      responses:
+        '201':
+          description: Route filter created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  pattern:
+                    type: string
+                  action:
+                    type: string
+                  active:
+                    type: boolean
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /service:
+    get:
+      tags:
+        - Service
+      summary: Get service analytics
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Service analytics data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_requests:
+                    type: integer
+                  active_connections:
+                    type: integer
+                  response_time:
+                    type: number
+                  error_rate:
+                    type: number
+                  status:
+                    type: string
+
+    post:
+      tags:
+        - Service
+      summary: Update service configuration
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                max_connections:
+                  type: integer
+                timeout:
+                  type: integer
+                retry_limit:
+                  type: integer
+      responses:
+        '200':
+          description: Service configuration updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  max_connections:
+                    type: integer
+                  timeout:
+                    type: integer
+                  retry_limit:
+                    type: integer
+        '400':
+          description: Invalid configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

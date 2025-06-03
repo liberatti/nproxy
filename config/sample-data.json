@@ -1,0 +1,27 @@
+{
+    "upstreams": [
+        {
+            "name": "hello",
+            "script_path": "/var/www/html",
+            "type": "static",
+            "description": "",
+            "protocol": "HTTP",
+            "retry": 3,
+            "retry_timeout": 10,
+            "conn_timeout": 10,
+            "targets": [],
+            "persist": {
+              "type": "NONE",
+              "cookie_name": "",
+              "cookie_path": ""
+            },
+            "index": "index.html",
+            "content": {
+              "$binary": {
+                "base64": "UEsDBBQACAAIADWBPVoAAAAAAAAAAGYAAAAKACAAaW5kZXguaHRtbFVUDQAHB4uaZwmLmmcIi5pndXgLAAEE6AMAAARkAAAAs8koyc2x41JQsEnKT6kEMYDMDEO78NSc5PzcVIWSfAW/gKL8ikpFG32gMES+wC4kIxUqrlCcWZKqUJxYWayQkQlUVAA2TB9iGlAP2HgAUEsHCAjvd2ZOAAAAZgAAAFBLAQIUAxQACAAIADWBPVoI73dmTgAAAGYAAAAKACAAAAAAAAAAAACkgQAAAABpbmRleC5odG1sVVQNAAcHi5pnCYuaZwiLmmd1eAsAAQToAwAABGQAAABQSwUGAAAAAAEAAQBYAAAApgAAAAAA",
+                "subType": "00"
+              }
+            }
+        }
+    ]
+}

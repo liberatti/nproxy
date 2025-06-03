@@ -1,0 +1,15 @@
+<h2 mat-dialog-title>{{title}}</h2>
+<mat-dialog-content class="mat-typography" class="dialog-content">
+  {{message}}
+</mat-dialog-content>
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-raised-button color="warn" (click)="onConfirm()" cdkFocusInitial id="confirm-dialog-confirm-btn" class="action-button">
+    <mat-icon>
+      check
+    </mat-icon>Confirm
+  </button>
+  <button (click)="onDismiss()" mat-raised-button class="action-button" id="confirm-dialog-cancel-btn">
+    <mat-icon>exit_to_app</mat-icon>
+    <span>Cancel</span>
+</button>
+</mat-dialog-actions>

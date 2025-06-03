@@ -1,0 +1,63 @@
+[
+  {
+    "label": "view.dashboard.link",
+    "route": "/dashboard",
+    "icon": "dashboard"
+  },
+  {
+    "label": "view.transaction.link",
+    "route": "/trn",
+    "icon": "list_alt"
+  },
+  {
+    "label": "view.service.link",
+    "route": "/service",
+    "icon": "analytics"
+  },
+  {
+    "label": "view.upstream.link",
+    "route": "/ups",
+    "icon": "alt_route"
+  },
+  {
+    "label": "view.sensor.link",
+    "route": "/sensor",
+    "icon": "sensors"
+  },
+  {
+    "label": "view.system.link",
+    "icon": "build_circle",
+    "menu": [
+      {
+        "label": "view.certificate.link",
+        "route": "/certificate",
+        "icon": "browser_updated"
+      },
+      {
+        "label": "view.jail.link",
+        "route": "/jail",
+        "icon": "contactless"
+      },
+      {
+        "label": "view.route_filter.link",
+        "route": "/route_filter",
+        "icon": "route"
+      },
+      {
+        "label": "view.feed.link",
+        "route": "/feed",
+        "icon": "rss_feed"
+      },
+      {
+        "label": "view.user.link",
+        "route": "/users",
+        "icon": "supervised_user_circle"
+      },
+      {
+        "label": "view.config.link",
+        "route": "/config",
+        "icon": "settings"
+      }
+    ]
+  }
+]

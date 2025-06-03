@@ -1,0 +1,187 @@
+<ng-container>
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title>{{ 'view.config.title'|translate }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="mt-2">
+            <form [formGroup]="form">
+                <mat-accordion>
+                    <mat-expansion-panel id="general-config-panel">
+                        <mat-expansion-panel-header>
+                            <mat-panel-title>General configuration</mat-panel-title>
+                        </mat-expansion-panel-header>
+
+                        <mat-form-field class="full-width">
+                            <mat-label>Maxmind Integration key</mat-label>
+                            <input matInput formControlName="maxmind_key" id="maxmind-key-input">
+                        </mat-form-field>
+                        <mat-form-field class="full-width">
+                            <mat-label>acme_directory_url</mat-label>
+                            <input matInput formControlName="acme_directory_url" id="acme-directory-url-input">
+                        </mat-form-field>
+                        <mat-card appearance="outlined" formGroupName="telemetry">
+                            <mat-card-header>
+                                <span>Telemetry </span>
+                                <mat-slide-toggle labelPosition="before" style="float: right;"
+                                                  formControlName="enabled">
+                                    Enable Telemetry
+                                </mat-slide-toggle>
+                            </mat-card-header>
+                            <mat-card-content>
+                                <p>
+                                    The telemetry process involves the collection of usage data from the system to help us improve the product.
+                                </p>
+                                <div class="mat-row">
+                                    <div class="mat-col-6">
+                                        <small>
+                                            The Telemetry URL field defines the URL to send the telemetry data.
+                                        </small>
+                                    </div>
+                                    <div class="mat-col-6">
+                                        <mat-form-field>
+                                            <mat-label>Telemetry URL</mat-label>
+                                            <input id="telemetry-url-input" matInput formControlName="url">
+                                        </mat-form-field>
+                                    </div>
+                                </div>
+                            </mat-card-content>
+                        </mat-card>
+                    </mat-expansion-panel>
+                    <mat-expansion-panel id="ca-config-panel">
+                        <mat-expansion-panel-header>
+                            <mat-panel-title> Certification Authority</mat-panel-title>
+                        </mat-expansion-panel-header>
+
+                        <mat-form-field class="full-width">
+                            <mat-label>Certificate</mat-label>
+                            <textarea matInput cdkTextareaAutosize cdkAutosizeMinRows="6" cdkAutosizeMaxRows="15"
+                                      formControlName="ca_certificate"></textarea>
+                        </mat-form-field>
+                        <mat-form-field class="full-width">
+                            <mat-label>Certificate Key</mat-label>
+                            <textarea matInput cdkTextareaAutosize cdkAutosizeMinRows="6" cdkAutosizeMaxRows="15"
+                                      formControlName="ca_private"></textarea>
+                        </mat-form-field>
+                    </mat-expansion-panel>
+
+                    <mat-expansion-panel id="transaction-policy-panel">
+                        <mat-expansion-panel-header>
+                            <mat-panel-title>Transaction Policy</mat-panel-title>
+                        </mat-expansion-panel-header>
+                        <mat-card appearance="outlined" formGroupName="archive">
+                            <mat-card-header>
+                                <span>Transaction Archiving</span>
+                                <mat-slide-toggle labelPosition="before" style="float: right;"
+                                                  formControlName="enabled">
+                                    Enable Archiving
+                                </mat-slide-toggle>
+                            </mat-card-header>
+                            <mat-card-content>
+                                <p>
+                                    The user transaction archiving process involves collecting and storing transaction
+                                    data from users in an external solution.
+                                    This ensures that important transaction records are preserved securely and
+                                    efficiently, enabling easy retrieval and compliance
+                                    with regulatory requirements.
+                                </p>
+                                <div class="mat-row">
+                                    <div class="mat-col-6">
+                                        <small>
+                                            It also supports the retrieval of historical data when needed,
+                                            helping businesses maintain a comprehensive record of user activity while
+                                            optimizing system performance by offloading older
+                                            data from active databases.
+                                        </small>
+                                    </div>
+                                    <div class="mat-col-6">
+                                        <mat-form-field>
+                                            <mat-label>Archive after (minutes)</mat-label>
+                                            <input id="upstream.archive_after" matInput formControlName="archive_after">
+                                        </mat-form-field>
+                                    </div>
+                                </div>
+                                <div class="mat-row">
+                                    <div class="mat-col-6">
+                                        <small>Storage on elasticsearch</small>
+                                    </div>
+                                    <div class="mat-col-6">
+                                        <div class="mat-row">
+                                            <div class="mat-col-12">
+                                                <mat-form-field class="full-width">
+                                                    <mat-label>Url</mat-label>
+                                                    <input id="elasticsearch-url-input" matInput formControlName="url">
+                                                </mat-form-field>
+                                            </div>
+                                        </div>
+                                        <div class="mat-row">
+                                            <div class="mat-col-12">
+                                                <mat-form-field>
+                                                    <mat-label>username</mat-label>
+                                                    <input id="elasticsearch-username-input" matInput formControlName="username">
+                                                </mat-form-field>
+                                                <mat-form-field>
+                                                    <mat-label>password</mat-label>
+                                                    <input id="elasticsearch-password-input" matInput formControlName="password">
+                                                </mat-form-field>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </mat-card-content>
+                        </mat-card>
+                        <mat-card appearance="outlined" formGroupName="purge">
+                            <mat-card-header>
+                                <span>Purge </span>
+                                <mat-slide-toggle labelPosition="before" style="float: right;"
+                                                  formControlName="enabled">
+                                    Enable Purge
+                                </mat-slide-toggle>
+                            </mat-card-header>
+                            <mat-card-content>
+                                <p>
+                                    The transaction purging process involves the removal of outdated or unnecessary
+                                    transaction records from the database to improve system performance,
+                                    reduce storage costs, and ensure long-term scalability. By expiring and deleting old
+                                    data,
+                                    organizations can maintain an optimized and efficient database that can handle
+                                    current transactional
+                                    loads with greater speed and reliability.
+                                </p>
+                                <div class="mat-row">
+                                    <div class="mat-col-6">
+                                        <small>
+                                            The Maximum Data Age field defines the threshold for how long data should be
+                                            retained in
+                                            the system before it is considered outdated or eligible for purging.
+                                        </small>
+                                    </div>
+                                    <div class="mat-col-6">
+                                        <mat-form-field>
+                                            <mat-label>Maximum Data Age (days)</mat-label>
+                                            <input id="upstream.purge_after" matInput formControlName="purge_after">
+                                        </mat-form-field>
+                                    </div>
+                                </div>
+                            </mat-card-content>
+                        </mat-card>
+
+
+                        <!--
+                                   enabled: new FormControl<boolean>(false),
+                            type: new FormControl<string>('opensearch'),
+                                -->
+                    </mat-expansion-panel>
+                </mat-accordion>
+            </form>
+        </mat-card-content>
+        <mat-card-actions align="end" class="mat-mdc-card-actions bottom-actions">
+            <button id="save-btn" type="button" (click)="onSubmit()" mat-raised-button color="primary"
+                    *ngIf="oauth.isRole('superuser')">
+                <mat-icon>save</mat-icon>
+                {{ 'actions.save' | translate }}
+            </button>
+        </mat-card-actions>
+    </mat-card>
+</ng-container>

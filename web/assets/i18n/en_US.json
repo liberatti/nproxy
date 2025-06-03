@@ -1,0 +1,102 @@
+{
+  "nav": {
+    "about": "About",
+    "account": "Account",
+    "logout": "Log Out"
+  },
+  "actions": {
+    "edit": "Edit",
+    "remove": "Remove",
+    "create": "Create",
+    "save": "Save",
+    "refresh": "Refresh",
+    "close": "Close"
+  },
+  "attr": {
+    "active": "Active",
+    "name": "Name",
+    "domains": "Domains",
+    "routes": "Routes"
+  },
+  "content": {
+    "copy": "&copy; 2024 Nproxy. All rights reserved. This solution is built on top of OpenResty.",
+    "about": "This is a proxy server built on OpenResty with ModSecurity for advanced protection.",
+    "restore_notice": "Configuration Restore Notice: All existing data will be overwritten by the restored configuration."
+  },
+  "view": {
+    "backup": {
+      "link": "backup"
+    },
+    "dashboard": {
+      "link": "Dashboard",
+      "title": "Dashboard"
+    },
+    "transaction": {
+      "link": "Network Activity",
+      "title": "Transactions",
+      "subtitle": "List all transactions"
+    },
+    "service": {
+      "link": "Service",
+      "title": "Services",
+      "subtitle": "Describe all services"
+    },
+    "upstream": {
+      "link": "Upstream",
+      "title": "Upstream",
+      "subtitle": "List of all upstreams"
+    },
+    "hostname": {
+      "link": "Hostname",
+      "title": "Hostname",
+      "subtitle": "List of all Hostnames"
+    },
+    "certificate": {
+      "link": "Certificate",
+      "title": "Certificate",
+      "subtitle": "List of all certificate"
+    },
+    "feed": {
+      "link": "Security Feed",
+      "title": "Security Feed",
+      "subtitle": "List of all feeds"
+    },
+    "sensor": {
+      "link": "Sensor",
+      "title": "Sensor",
+      "subtitle": "List of all sensors"
+    },
+    "jail": {
+      "link": "Jails",
+      "title": "Jails",
+      "subtitle": "List of all Jails"
+    },
+    "route_filter": {
+      "link": "Route Filters",
+      "title": "Route Filters",
+      "subtitle": "List of all route filters"
+    },
+    "user": {
+      "link": "Users",
+      "title": "Users",
+      "subtitle": "List of all users"
+    },
+    "config": {
+      "link": "Config",
+      "title": "Config",
+      "subtitle": "List of all configs"
+    },
+    "system": {
+      "link": "System"
+    }
+  },
+  "aboutMessage": "Thanks",
+  "format": {
+    "display": {
+      "datetime": "DD/MM/YYYY HH:mm:ss",
+      "monthYearLabel": "MMM YYYY",
+      "dateA11yLabel": "LL",
+      "monthYearA11yLabel": "MMMM YYYY"
+    }
+  }
+}

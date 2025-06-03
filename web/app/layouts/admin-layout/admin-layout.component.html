@@ -1,0 +1,112 @@
+<div class="navbar-container navbar-black" [class.example-is-mobile]="isMobile()">
+    <!-- Top navbar -->
+    <mat-toolbar class="navbar" color="primary" style="align-items: center;justify-content: center;">
+        <button mat-icon-button (click)="onSidenavToggle()" id="toggle-sidenav-btn">
+            <mat-icon>menu</mat-icon>
+        </button>
+        <a class="navbar-brand" [routerLink]="['/']" matTooltip="Home" style="font-family: Bitter;" id="home-link">
+            <span style="text-transform: capitalize;">{{ title }}</span> <small class="chip-small">{{ version }}</small>
+        </a>
+        <span class="navbar-spacer"></span>
+        <div *ngIf="trackingEvt">
+            <button mat-button [matMenuTriggerFor]="notificationMenu" (click)="healthCheck()" id="notification-btn">
+                <mat-icon matBadge matBadgeColor="accent" [matBadge]="null">notifications</mat-icon>
+            </button>
+            <mat-menu #notificationMenu="matMenu" xPosition="before" yPosition="above" [overlapTrigger]="false" id="notification-menu">
+                <mat-card style="box-shadow: none">
+                    <mat-card-header>
+                        <mat-card-subtitle>Configuration changed</mat-card-subtitle>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <mat-chip-listbox id="notification-chips">
+                            @for (p of changes; track p) {
+                                <mat-chip-row id="notification-chip-{{p}}">{{ 'view.' + p + '.link' |translate }}</mat-chip-row>
+                            }
+                        </mat-chip-listbox>
+                    </mat-card-content>
+                    <mat-card-actions align="end">
+                        <button mat-button style="padding: 5px;" (click)="onApply()" *ngIf="trackingEvt" id="apply-config-btn">
+                            Apply Now
+                        </button>
+                    </mat-card-actions>
+                </mat-card>
+                <a mat-menu-item style="padding: 5px;" *ngIf="updatePending" id="update-pending-link">
+                    <span>New version is avaiable, </span>
+                    <button mat-raised-button id="show-changelog-btn">show changelog</button>
+                </a>
+            </mat-menu>
+        </div>
+        <!--
+                <button mat-icon-button (click)="openHelp()" style=" vertical-align: middle;">
+            <mat-icon >help</mat-icon>
+        </button>
+        -->
+        <button mat-button [matMenuTriggerFor]="userMenu" *ngIf="oauth.userInfo()" id="user-menu-btn">
+            <p> {{ oauth.userInfo()?.name }}
+                <mat-icon style=" vertical-align: middle;">arrow_drop_down</mat-icon>
+            </p>
+        </button>
+        <mat-menu id="userMenu" #userMenu="matMenu" xPosition="before" yPosition="above" [overlapTrigger]="false">
+            <a mat-menu-item [routerLink]="['/account']" id="account-link">
+                <mat-icon>person</mat-icon>
+                <span>Account</span>
+            </a>
+            <a id="logout_link" mat-menu-item (click)="signOut()">
+                <mat-icon>exit_to_app</mat-icon>
+                <span>Log out</span>
+            </a>
+        </mat-menu>
+    </mat-toolbar>
+    <!--     <mat-progress-bar mode="indeterminate" *ngIf="loading"></mat-progress-bar> -->
+    <mat-sidenav-container class="navbar-sidenav-container">
+
+        <!-- Side nav -->
+        <mat-sidenav [opened]="isSidenavActive()"
+                     [mode]="isMobile() ? 'over' : 'side'"
+                     (closed)="!isSidenavActive()"
+                     fixedTopGap="56" class="sidenav" id="main-sidenav">
+            <mat-nav-list>
+                <div *ngFor="let link of menu">
+                    @if (link.route) {
+                        <a mat-list-item [id]="'nav-link-' + link.label" class="icon-link"
+                           [routerLink]="[link.route]" routerLinkActive="active">
+                            <mat-icon mat-list-icon>{{ link.icon }}</mat-icon>
+                            <span>{{ link.label | translate }}</span>
+                        </a>
+                    } @else {
+                        <a mat-list-item [id]="'nav-link-' + link.label" class="icon-link"
+                           (click)="toggleSubMenu(link)">
+                            <mat-icon mat-list-icon>{{ link.icon }}</mat-icon>
+                            <span>{{ link.label | translate }}</span>
+                            <mat-icon *ngIf="link.menu && link.menu.length" class="expand-icon"
+                                      [ngClass]="{'expanded': link.expanded}">
+                                {{ link.expanded ? 'expand_less' : 'expand_more' }}
+                            </mat-icon>
+                        </a>
+                        <mat-nav-list *ngIf="link.expanded" class="expanded-sub">
+                            <a mat-list-item *ngFor="let subLink of link.menu; let i = index"
+                               [id]="'nav-sub-link-' + subLink.label" class="icon-link sub-1"
+                               [routerLink]="[subLink.route]" routerLinkActive="active">
+                                <mat-icon mat-list-icon>{{ subLink.icon }}</mat-icon>
+                                <span>{{ subLink.label | translate }}</span>
+                            </a>
+                        </mat-nav-list>
+                    }
+                </div>
+                <a id="about-link" class="icon-link" mat-list-item (click)="showAbout()">
+                    <mat-icon mat-list-icon>self_improvement</mat-icon>
+                    <span>{{ 'nav.about' | translate }}</span>
+                </a>
+            </mat-nav-list>
+        </mat-sidenav>
+        <!-- Main content -->
+        <mat-sidenav-content class="sidenav-content">
+            <router-outlet></router-outlet>
+            <footer class="footer">
+                <div class="footer-content">
+                    <small [innerHTML]="'content.copy' |translate"></small> - Enjoy {{ version }}
+                </div>
+            </footer>
+        </mat-sidenav-content>
+    </mat-sidenav-container>
+</div>

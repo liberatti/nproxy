@@ -1,0 +1,47 @@
+<h1 mat-dialog-title>
+    Bindings
+</h1>
+
+<div mat-dialog-content>
+    <form [formGroup]="form" id="service-bind-form">
+        <div class="mat-row">
+            <div class="mat-col-6">
+                <mat-form-field>
+                    <mat-label>Protocol</mat-label>
+                    <mat-select formControlName="protocol" id="service-bind-protocol-select">
+                        <mat-option *ngFor="let ut of _supportedProtocols" [value]="ut" id="service-bind-protocol-option-{{ut}}">
+                            {{ ut }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+            <div class="mat-col-6">
+                <mat-form-field>
+                    <mat-label>Port</mat-label>
+                    <input matInput type="number" formControlName="port" id="service-bind-port-input">
+                    <mat-error *ngIf=" f['port'].errors">
+                        <mat-error class="error-message" *ngIf=" f['port'].errors['required']">
+                            Required
+                        </mat-error>
+                    </mat-error>
+                </mat-form-field>
+            </div>
+        </div>
+        <div class="mat-row">
+            <div class="mat-col-12">
+                @if (form.value.protocol == 'HTTPS') {
+                    <mat-checkbox formControlName="ssl_upgrade" id="service-bind-ssl-upgrade">Force service to ssl</mat-checkbox>
+                }
+            </div>
+        </div>
+    </form>
+</div>
+<div mat-dialog-actions align="end" class="dialog-actions">
+    <button type="button" (click)="onSubmit()" mat-raised-button color="primary" id="save-service-bind-btn">
+        <mat-icon>save</mat-icon>
+        Confirm
+    </button>
+    <button type="button" mat-mini-fab color="primary" (click)="onCancel()" id="cancel-service-bind-btn">
+        <mat-icon>keyboard_return</mat-icon>
+    </button>
+</div>
