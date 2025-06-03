@@ -169,7 +169,8 @@ class ServiceDao(MongoDAO):
 
         if "certificate" in vo:
             certificate = vo.pop("certificate")
-            vo.update({"certificate_id": ObjectId(certificate["_id"])})
+            if "certificate_id" not in certificate:
+                vo.update({"certificate_id": ObjectId(certificate["_id"])})
 
         if "routes" in vo:
             for route in vo["routes"]:
