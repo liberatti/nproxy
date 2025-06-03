@@ -1,0 +1,70 @@
+<ng-container>
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title>{{ 'view.feed.title'|translate }}</mat-card-title>
+            <mat-card-subtitle>{{ 'view.feed.subtitle'|translate }}</mat-card-subtitle>
+            <mat-card-actions class="align-right">
+                <button mat-button color="primary" [routerLink]="['add']" *ngIf="oauth.isRole('superuser')" id="add-feed-btn">
+                    <mat-icon>add</mat-icon>
+                    {{ 'actions.create'|translate }}
+                </button>
+            </mat-card-actions>
+        </mat-card-header>
+        <mat-card-content>
+            <table mat-table [dataSource]="feedDS" matSort>
+                <tr mat-header-row *matHeaderRowDef="feedDC"></tr>
+                <tr mat-row *matRowDef="let row; columns: feedDC;"></tr>
+                <ng-container matColumnDef="update_interval">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Update</th>
+                    <td mat-cell *matCellDef="let element" id="feed-update-interval-{{element._id}}">
+                        <p matTooltip="{{element.updated_on |dateFormat}}">
+                            {{ element.update_interval }}
+                        </p>
+                    </td>
+                </ng-container>
+                <ng-container matColumnDef="name">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Name</th>
+                    <td mat-cell *matCellDef="let element" class="no-wrap" id="feed-name-{{element._id}}">
+                        {{ element.name }}
+                    </td>
+                </ng-container>
+                <ng-container matColumnDef="description">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> description</th>
+                    <td mat-cell *matCellDef="let element" id="feed-description-{{element._id}}">
+                        <p [innerHTML]="element.description"></p>
+                    </td>
+                </ng-container>
+                <ng-container matColumnDef="type">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Type</th>
+                    <td mat-cell *matCellDef="let element" id="feed-type-{{element._id}}">
+                        {{ element.type }}
+                    </td>
+                </ng-container>
+                <ng-container matColumnDef="action">
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat-cell *matCellDef="let element;let i = index;">
+                        <div class="table-cell-actions">
+                            <div style="border:none" class="toggle-container">
+                                <button mat-button [matMenuTriggerFor]="menu" id="feed-menu-{{element._id}}">
+                                    <mat-icon>more_vert</mat-icon>
+                                </button>
+                                <mat-menu #menu="matMenu" xPosition="before">
+                                    <button mat-menu-item [routerLink]="['edit',element._id]" id="edit-feed-{{element._id}}">
+                                        <mat-icon>edit</mat-icon>
+                                        Edit
+                                    </button>
+                                    <button mat-menu-item (click)="onRemove(element)" *ngIf="oauth.isRole('superuser')" id="delete-feed-{{element._id}}">
+                                        <mat-icon>delete</mat-icon>
+                                        Delete
+                                    </button>
+                                </mat-menu>
+                            </div>
+                        </div>
+                    </td>
+                </ng-container>
+            </table>
+            <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" [pageSize]="feedPA.per_page"
+                           [length]="feedPA.total_elements" (page)="nextPage($event)" id="feed-paginator"></mat-paginator>
+        </mat-card-content>
+    </mat-card>
+</ng-container>

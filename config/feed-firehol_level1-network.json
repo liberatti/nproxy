@@ -1,0 +1,13 @@
+{
+  "name": "firehol_level1",
+  "slug": "firehol_level1",
+  "provider": "firehol",
+  "restricted": false,
+  "version": "latest",
+  "type": "network",
+  "action": "deny",
+  "source": "https://iplists.firehol.org/files/firehol_level1.netset",
+  "update_interval": "day",
+  "description": "This IP list combines various sources to form a comprehensive blacklist for blocking malicious IPs without false positives. It integrates lists from fullbogons, Spamhaus, DShield, and malware sources, with automatic updates from FireHOL. <b>https://iplists.firehol.org/</b>",
+  "format": "cdir_text"
+}

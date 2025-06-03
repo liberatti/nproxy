@@ -1,0 +1,40 @@
+name: main-flow
+on:
+  push:
+    branches:
+      - 'v[0-9]*'
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Extract version from web/package.json
+        id: get_version
+        run: |
+          VERSION=$(jq -r .version web/package.json)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          sbom: true
+          provenance: true
+          labels: ${{ steps.docker_meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          tags: liberatti/nproxy:${{ env.VERSION }},liberatti/nproxy:latest

@@ -1,0 +1,399 @@
+{
+  "name": "Core Rule Sets",
+  "description": "Core Rule Sets",
+  "slug": "coreruleset",
+  "provider": "crs",
+  "protected": false,
+  "version": "3.3.6",
+  "update_interval": "None",
+  "type": "ruleset",
+  "source": "https://github.com/coreruleset/coreruleset/archive/refs/tags/v3.3.6.zip",
+  "config": [
+    {
+      "schema_type": "SecRule",
+      "phase": 1,
+      "code": 50,
+      "action": "deny",
+      "scope": [
+        "TX:/^MSC_/"
+      ],
+      "condition": "!@streq 0",
+      "t": [
+        "none"
+      ],
+      "msg": "'ModSecurity internal error flagged: %{MATCHED_VAR_NAME}'",
+      "logging": "nolog"
+    },
+    {
+      "schema_type": "SecRule",
+      "phase": 1,
+      "code": 51,
+      "action": "deny",
+      "scope": [
+        "MULTIPART_UNMATCHED_BOUNDARY"
+      ],
+      "condition": "!@eq 0",
+      "t": [
+        "none"
+      ],
+      "msg": "'Multipart parser detected a possible unmatched boundary.'",
+      "logging": "log"
+    },
+    {
+      "schema_type": "SecRule",
+      "phase": 1,
+      "code": 52,
+      "action": "pass",
+      "scope": [
+        "REQUEST_HEADERS:Content-Type"
+      ],
+      "condition": "(?:application(?:/soap\\+|/)|text/)xml",
+      "t": [
+        "none",
+        "lowercase"
+      ],
+      "ctl": [
+        "requestBodyProcessor=XML"
+      ],
+      "logging": "nolog"
+    },
+    {
+      "schema_type": "SecRule",
+      "phase": 1,
+      "code": 53,
+      "action": "pass",
+      "scope": [
+        "REQUEST_HEADERS:Content-Type"
+      ],
+      "condition": "(?:application(?:/json\\+|/))json",
+      "t": [
+        "none",
+        "lowercase"
+      ],
+      "ctl": [
+        "requestBodyProcessor=JSON"
+      ],
+      "logging": "nolog"
+    },
+    {
+      "schema_type": "SecRule",
+      "phase": 2,
+      "code": 55,
+      "action": "deny",
+      "scope": [
+        "REQBODY_ERROR"
+      ],
+      "condition": "!@eq 0",
+      "t": [
+        "none"
+      ],
+      "ctl": [
+        "requestBodyProcessor=JSON"
+      ],
+      "logging": "nolog",
+      "severity": "2",
+      "msg": "'Failed to parse request body.'",
+      "logdata": "'%{reqbody_error_msg}'"
+    },
+    {
+      "code": 900990,
+      "phase": 1,
+      "order": 3,
+      "action": "pass",
+      "logging": "nolog",
+      "audit_log": "noauditlog",
+      "schema_type": "SecAction",
+      "t": [
+        "none"
+      ],
+      "setvar": [
+        "tx.crs_setup_version=334"
+      ]
+    }
+  ],
+  "mapping": [
+    {
+      "name": "config",
+      "phase": 1,
+      "rules": [
+        {
+          "code": 900200,
+          "phase": 1,
+          "order": 1,
+          "action": "pass",
+          "logging": "log",
+          "audit_log": "noauditlog",
+          "schema_type": "SecAction",
+          "t": [
+            "none"
+          ],
+          "setvar": [
+            "tx.allowed_methods=GET HEAD POST PUT DELETE OPTIONS PATCH"
+          ]
+        },
+        {
+          "code": 900000,
+          "phase": 1,
+          "order": 2,
+          "schema_type": "SecAction",
+          "action": "pass",
+          "logging": "nolog",
+          "audit_log": "noauditlog",
+          "t": [
+            "none"
+          ],
+          "setvar": [
+            "tx.paranoia_level=%{TX.SENSOR_LEVEL}"
+          ]
+        },
+        {
+          "code": 900100,
+          "phase": 1,
+          "order": 4,
+          "action": "pass",
+          "logging": "nolog",
+          "audit_log": "noauditlog",
+          "schema_type": "SecAction",
+          "t": [
+            "none"
+          ],
+          "setvar": [
+            "tx.critical_anomaly_score=15",
+            "tx.error_anomaly_score=4",
+            "tx.warning_anomaly_score=3",
+            "tx.notice_anomaly_score=2"
+          ]
+        },
+        {
+          "code": 900110,
+          "phase": 1,
+          "order": 5,
+          "action": "pass",
+          "logging": "nolog",
+          "audit_log": "noauditlog",
+          "schema_type": "SecAction",
+          "t": [
+            "none"
+          ],
+          "setvar": [
+            "tx.inbound_anomaly_score_threshold=%{TX.SENSOR_ISCORE}",
+            "tx.outbound_anomaly_score_threshold=%{TX.SENSOR_OSCORE}"
+          ]
+        },
+        {
+          "code": 900220,
+          "phase": 1,
+          "order": 6,
+          "action": "pass",
+          "logging": "nolog",
+          "audit_log": "noauditlog",
+          "schema_type": "SecAction",
+          "t": [
+            "none"
+          ],
+          "setvar": [
+            "'tx.allowed_request_content_type=|application/x-www-form-urlencoded| |multipart/form-data| |multipart/related| |text/xml| |application/xml| |application/soap+xml| |application/json| |application/cloudevents+json| |application/cloudevents-batch+json|'"
+          ]
+        },
+        {
+          "code": 900230,
+          "phase": 1,
+          "order": 7,
+          "action": "pass",
+          "logging": "nolog",
+          "audit_log": "noauditlog",
+          "schema_type": "SecAction",
+          "t": [
+            "none"
+          ],
+          "setvar": [
+            "'tx.allowed_http_versions=HTTP/1.0 HTTP/1.1 HTTP/2 HTTP/2.0'"
+          ]
+        },
+        {
+          "code": 900280,
+          "phase": 1,
+          "order": 8,
+          "action": "pass",
+          "logging": "nolog",
+          "audit_log": "noauditlog",
+          "schema_type": "SecAction",
+          "t": [
+            "none"
+          ],
+          "setvar": [
+            "'tx.allowed_request_content_type_charset=utf-8|iso-8859-1|iso-8859-15|windows-1252'"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "global",
+      "phase": 2,
+      "file": "REQUEST-901-INITIALIZATION.conf",
+      "rules": []
+    },
+    {
+      "name": "global",
+      "phase": 2,
+      "file": "REQUEST-905-COMMON-EXCEPTIONS.conf",
+      "rules": []
+    },
+    {
+      "name": "METHOD-ENFORCEMENT",
+      "phase": 3,
+      "file": "REQUEST-911-METHOD-ENFORCEMENT.conf",
+      "rules": []
+    },
+    {
+      "name": "SCANNER-DETECTION",
+      "phase": 3,
+      "file": "REQUEST-913-SCANNER-DETECTION.conf",
+      "rules": []
+    },
+    {
+      "name": "PROTOCOL-ENFORCEMENT",
+      "phase": 3,
+      "file": "REQUEST-920-PROTOCOL-ENFORCEMENT.conf",
+      "rules": [],
+      "exclusions": [
+        920420,
+        920272
+      ]
+    },
+    {
+      "name": "PROTOCOL-ATTACK",
+      "phase": 3,
+      "file": "REQUEST-921-PROTOCOL-ATTACK.conf",
+      "rules": []
+    },
+    {
+      "name": "PROTOCOL-ATTACK",
+      "phase": 3,
+      "file": "REQUEST-922-MULTIPART-ATTACK.conf",
+      "rules": []
+    },
+    {
+      "name": "APPLICATION-ATTACK-LFI",
+      "phase": 3,
+      "file": "REQUEST-930-APPLICATION-ATTACK-LFI.conf",
+      "rules": []
+    },
+    {
+      "name": "APPLICATION-ATTACK-RFI",
+      "phase": 3,
+      "file": "REQUEST-931-APPLICATION-ATTACK-RFI.conf",
+      "rules": []
+    },
+    {
+      "name": "APPLICATION-ATTACK-RCE",
+      "phase": 3,
+      "file": "REQUEST-932-APPLICATION-ATTACK-RCE.conf",
+      "rules": []
+    },
+    {
+      "name": "APPLICATION-ATTACK-PHP",
+      "phase": 3,
+      "file": "REQUEST-933-APPLICATION-ATTACK-PHP.conf",
+      "rules": []
+    },
+    {
+      "name": "APPLICATION-ATTACK-NODEJS",
+      "phase": 3,
+      "file": "REQUEST-934-APPLICATION-ATTACK-NODEJS.conf",
+      "rules": []
+    },
+    {
+      "name": "APPLICATION-ATTACK-XSS",
+      "phase": 3,
+      "file": "REQUEST-941-APPLICATION-ATTACK-XSS.conf",
+      "rules": []
+    },
+    {
+      "name": "APPLICATION-ATTACK-SQLI",
+      "phase": 3,
+      "file": "REQUEST-942-APPLICATION-ATTACK-SQLI.conf",
+      "rules": []
+    },
+    {
+      "name": "APPLICATION-ATTACK-SESSION-FIXATION",
+      "phase": 3,
+      "file": "REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION.conf",
+      "rules": []
+    },
+    {
+      "name": "APPLICATION-ATTACK-JAVA",
+      "phase": 3,
+      "file": "REQUEST-944-APPLICATION-ATTACK-JAVA.conf",
+      "rules": []
+    },
+    {
+      "name": "global",
+      "phase": 4,
+      "file": "REQUEST-949-BLOCKING-EVALUATION.conf",
+      "rules": []
+    },
+    {
+      "name": "DATA-LEAKAGES",
+      "phase": 5,
+      "file": "RESPONSE-950-DATA-LEAKAGES.conf",
+      "rules": []
+    },
+    {
+      "name": "DATA-LEAKAGES-SQL",
+      "phase": 5,
+      "file": "RESPONSE-951-DATA-LEAKAGES-SQL.conf",
+      "rules": []
+    },
+    {
+      "name": "DATA-LEAKAGES-JAVA",
+      "phase": 5,
+      "file": "RESPONSE-952-DATA-LEAKAGES-JAVA.conf",
+      "rules": []
+    },
+    {
+      "name": "DATA-LEAKAGES-PHP",
+      "phase": 5,
+      "file": "RESPONSE-953-DATA-LEAKAGES-PHP.conf",
+      "rules": []
+    },
+    {
+      "name": "DATA-LEAKAGES-IIS",
+      "phase": 5,
+      "file": "RESPONSE-954-DATA-LEAKAGES-IIS.conf",
+      "rules": []
+    },
+    {
+      "name": "global",
+      "phase": 6,
+      "file": "RESPONSE-959-BLOCKING-EVALUATION.conf",
+      "rules": []
+    },
+    {
+      "name": "global",
+      "phase": 6,
+      "file": "RESPONSE-980-CORRELATION.conf",
+      "rules": []
+    },
+    {
+      "name": "global",
+      "phase": 6,
+      "rules": [
+        {
+          "schema_type": "SecRule",
+          "scope": [
+            "REQUEST_METHOD"
+          ],
+          "condition": "@rx ^.*$",
+          "code": 99,
+          "order": 1,
+          "phase": 5,
+          "action": "pass",
+          "logging": "nolog",
+          "audit_log": "auditlog",
+          "logdata": "'%{tx.anomaly_score}'"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+<ng-container>
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title>{{ 'view.upstream.title'|translate }}</mat-card-title>
+            <mat-card-subtitle>{{ 'view.upstream.subtitle'|translate }}</mat-card-subtitle>
+            <mat-card-actions class="align-right">
+                <button id="add-upstream-btn" mat-button color="primary" [routerLink]="['add']"
+                        *ngIf="oauth.isRole('superuser')">
+                    <mat-icon>add</mat-icon>
+                    {{ 'actions.create'|translate }}
+                </button>
+            </mat-card-actions>
+        </mat-card-header>
+        <mat-card-content>
+            <table mat-table [dataSource]="upstreamDS" matSort>
+                <tr mat-header-row *matHeaderRowDef="upstreamDC"></tr>
+                <tr mat-row *matRowDef="let row; columns: upstreamDC;"></tr>
+                <ng-container matColumnDef="name">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Name</th>
+                    <td mat-cell *matCellDef="let element" id="upstream-name-{{element._id}}">
+                        {{ element.name }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="protocol">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Protocol</th>
+                    <td mat-cell *matCellDef="let element" id="upstream-protocol-{{element._id}}"> {{ element.protocol }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="description">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Description</th>
+                    <td mat-cell *matCellDef="let element" id="upstream-description-{{element._id}}"> {{ element.description }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="targetCount">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Targets</th>
+                    <td mat-cell *matCellDef="let element" id="upstream-target-count-{{element._id}}">
+                        <div *ngIf="element.targets">{{ element.targets.length }}</div>
+                    </td>
+                </ng-container>
+                <ng-container matColumnDef="action">
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat-cell *matCellDef="let element;let i = index;">
+                        <div class="table-cell-actions">
+                            <div style="border:none" class="toggle-container">
+                                <button mat-button [matMenuTriggerFor]="menu" id="upstream-menu-{{element._id}}">
+                                    <mat-icon>more_vert</mat-icon>
+                                </button>
+                                <mat-menu #menu="matMenu" xPosition="before">
+                                    <button mat-menu-item [routerLink]="['edit',element._id]" id="edit-upstream-{{element._id}}">
+                                        <mat-icon>edit</mat-icon>
+                                        Edit
+                                    </button>
+                                    <button mat-menu-item (click)="onRemove(element)" *ngIf="oauth.isRole('superuser')" id="delete-upstream-{{element._id}}">
+                                        <mat-icon>delete</mat-icon>
+                                        Delete
+                                    </button>
+                                </mat-menu>
+                            </div>
+                        </div>
+                    </td>
+                </ng-container>
+            </table>
+            <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" [pageSize]="upstreamPA.per_page"
+                           [length]="upstreamPA.total_elements" (page)="nextPage($event)" id="upstream-paginator"></mat-paginator>
+        </mat-card-content>
+    </mat-card>
+</ng-container>

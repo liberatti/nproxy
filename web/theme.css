@@ -1,0 +1,317 @@
+:root {
+    --primary-color: #2E7D32;
+    --primary-light-color: #4CAF50;
+    --primary-dark-color: #1B5E20;
+    --accent-color: #388E3C;
+    --background-color: rgba(255, 255, 255, 0.98);
+    --text-color: #2c3e50;
+    --text-secondary-color: #546e7a;
+    --mdc-chip-label-text-color: #ffffff;
+    --toolbar-background: #1a1a1a;
+    --footer-background: #2E7D32;
+    --footer-text-color: #ffffff;
+    --warn-color: #f44336;
+    --rejected-color: #f77676;
+    --warning-color: #f79c03;
+    --passed-color: #4caf50;
+    --mdc-list-list-item-one-line-container-height: 40px;
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --card-hover-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+html {
+    --mat-app-background-color: var(--background-color);
+}
+
+.mat-primary {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+}
+
+.mat-mdc-mini-fab.mat-accent {
+    background-color: var(--primary-light-color);
+}
+
+.mat-toolbar.mat-primary {
+    background: linear-gradient(135deg, #1B5E20, #2E7D32);
+    box-shadow: 0 1px 1px -1px #1B5E20, 0 1px 5px -2px #388E3C;
+    height: 36px;
+    z-index: 2;
+}
+
+.mat-mdc-form-field-icon-suffix,
+.mat-mdc-form-field-icon-prefix {
+    color: var(--primary-dark-color) !important;
+}
+
+.mat-horizontal-stepper-header-container .mat-primary {
+    background-color: transparent !important;
+    color: #1a1a1a !important;
+}
+
+
+.mat-mdc-select-panel {
+    background-color: var(--background-color) !important;
+}
+
+.mat-app-background {
+    margin: 0px;
+    padding: 0px;
+}
+
+.mat-mdc-raised-button.mat-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 8px;
+    padding: 8px 24px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.mat-mdc-raised-button.mat-primary:hover {
+    background-color: var(--primary-dark-color);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.mat-mdc-card-header-text {
+    color: var(--text-color);
+    text-wrap: nowrap;
+}
+
+.mat-mdc-card-actions {
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    justify-content: flex-end;
+    /* background: rgba(0, 0, 0, 0.02); */
+    /* border-top: 1px solid rgba(0, 0, 0, 0.08); */
+}
+
+.mat-mdc-card-header .mat-mdc-card-actions {
+    margin-left: auto;
+    width: 100%;
+}
+
+.mat-sidenav {
+    min-width: 180px !important;
+    border-right: 1px solid #444444;
+    box-shadow: 6px 0 6px rgba(0, 0, 0, .1);
+}
+
+.mat-toolbar-row,
+.mat-toolbar-single-row {
+    height: 36px;
+}
+
+mat-nav-list mat-nav-list {
+    margin-left: 14px;
+    /* Indentação para submenus */
+}
+
+mat-nav-list a {
+    font-size: 12px !important;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+mat-nav-list a:hover {
+    color: var(--primary-light-color);
+}
+
+mat-form-field.mat-primary,
+mat-tab-group.mat-primary {
+    background-color: transparent !important;
+}
+
+mat-form-field.mat-primary .mat-form-field-outline {
+    border-color: transparent !important;
+}
+
+.shadow {
+    box-shadow: 0px 1px 15px 1px rgba(69, 65, 78, 0.08);
+}
+
+.mat-mdc-standard-chip:not(.mdc-evolution-chip--disabled) .mdc-evolution-chip__text-label {
+    color: #f8f9fa !important;
+}
+
+.nodes-section h2 {
+    color: var(--text-color);
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+.node-item small {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.node-details {
+    color: var(--text-secondary-color);
+}
+
+.node-details b {
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.hljs {
+    background: #1e1e1e;
+    padding: 1rem;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre;
+    overflow-x: auto;
+}
+
+.hljs-attr {
+    color: #9cdcfe;
+}
+
+.hljs-string {
+    color: #ce9178;
+}
+
+.hljs-number {
+    color: #b5cea8;
+}
+
+.hljs-literal {
+    color: #569cd6;
+}
+
+.hljs-punctuation {
+    color: #d4d4d4;
+}
+
+.mat-card {
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+    background: var(--background-color);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.mat-card:hover {
+    box-shadow: var(--card-hover-shadow);
+}
+
+.mat-card-header {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.02);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.mat-card-content {
+    padding: 20px;
+}
+
+.mat-card-subtitle {
+    color: var(--text-secondary-color);
+    font-weight: 500;
+    font-size: 1.1em;
+    margin-bottom: 12px;
+    letter-spacing: 0.3px;
+}
+
+.mt-2 {
+    margin-top: 20px;
+}
+
+.mat-form-field {
+    margin-bottom: 16px;
+}
+
+.mat-form-field.mat-focused .mat-form-field-ripple {
+    background-color: var(--primary-color);
+}
+
+.mat-chip-listbox {
+    margin-top: 16px;
+}
+
+.mat-chip {
+    background-color: var(--primary-light-color) !important;
+    color: white !important;
+    font-weight: 500;
+    padding: 8px 12px;
+}
+
+.mat-chip:hover {
+    background-color: var(--primary-color) !important;
+}
+
+.table-cell-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+}
+
+.mat-mdc-card-actions button {
+    border-radius: 8px;
+}
+
+.mat-mdc-card-actions button:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mat-slide-toggle {
+    margin: 12px 0;
+}
+
+.mat-table {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+}
+
+.mat-header-cell {
+    background: rgba(0, 0, 0, 0.02);
+    font-weight: 600;
+    color: var(--text-color);
+    padding: 16px;
+    font-size: 0.95em;
+    letter-spacing: 0.5px;
+}
+
+.mat-row {
+    transition: all 0.2s var(--transition-timing);
+}
+
+.mat-row:hover {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.mat-icon-button {
+    transition: all 0.2s var(--transition-timing);
+    border-radius: 50%;
+}
+
+.mat-icon-button:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.mat-menu-item {
+    transition: all 0.2s var(--transition-timing);
+    padding: 12px 16px;
+}
+
+.mat-menu-item:hover {
+    background: rgba(46, 125, 50, 0.08);
+}
+
+.bottom-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 5px;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 10px 0px;
+    background-color: #fafafa;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}

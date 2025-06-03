@@ -1,0 +1,51 @@
+<mat-dialog-content class="dialog-content">
+    <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="end" (selectedTabChange)="onTabChanged($event)" class="custom-tab-group" id="about-dialog-tabs">
+        <mat-tab label="About" class="about-tab" id="about-tab">
+            <div class="about-content">
+                <p [innerHTML]="'content.about' |translate" class="about-text"></p>
+                <div class="links-container">
+                    <a href="https://github.com/liberatti/nproxy" target="_blank" class="link-button" id="about-github-link">
+                        <img class="img-round github-icon" src="assets/github-mark.png" alt="GitHub"/>
+                        <span>GitHub</span>
+                    </a>
+                    <a class="link-button" href="{{_REST_API_URL}}/api-docs" target="_blank" id="about-api-link">
+                        <mat-icon>description</mat-icon>
+                        <span>API</span>
+                    </a>
+                </div>
+            </div>
+        </mat-tab>
+        <mat-tab label="Restore config" class="restore-tab" id="restore-tab">
+            <div class="restore-content">
+                <div class="loading-box" *ngIf="!restoreReady">
+                    <div class="spinner"></div>
+                </div>
+                <form enctype="multipart/form-data" *ngIf="restoreReady" #fileForm class="restore-form" id="restore-form">
+                    <p [innerHTML]="'content.restore_notice' |translate" class="restore-notice"></p>
+                    <div class="file-upload-container">
+                        <input class="file-input" type="file" id="uploadConfig"
+                               accept="application/zip, .zip" (change)="onFileSelected($event)">
+                        <label for="uploadConfig" class="file-upload-label" id="upload-config-label">
+                            <mat-icon>upload_file</mat-icon>
+                            <span>Choose file</span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+        </mat-tab>
+    </mat-tab-group>
+</mat-dialog-content>
+<mat-dialog-actions align="end" class="dialog-actions">
+    <button *ngIf="currentTab==1" mat-raised-button color="warn" (click)="onSubmit()" [disabled]="!restoreReady" class="action-button" id="restore-config-btn">
+        <mat-icon>restore</mat-icon>
+        <span>Restore</span>
+    </button>
+    <button *ngIf="currentTab==0" mat-raised-button color="primary" (click)="downloadConfig()" class="action-button" id="download-config-btn">
+        <mat-icon>file_download</mat-icon>
+        <span>Backup</span>
+    </button>
+    <button (click)="onDismiss()" mat-raised-button class="action-button" id="about-dialog-close-btn">
+        <mat-icon>exit_to_app</mat-icon>
+        <span>{{ 'actions.close'|translate }}</span>
+    </button>
+</mat-dialog-actions>

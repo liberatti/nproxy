@@ -1,0 +1,13 @@
+{
+  "name": "compromised_ips",
+  "slug": "compromised_ips",
+  "provider": "cinsscore",
+  "restricted": false,
+  "version": "latest",
+  "type": "network",
+  "action": "deny",
+  "source": "https://rules.emergingthreats.net/blockrules/compromised-ips.txt",
+  "update_interval": "day",
+  "description": "Compromised IPs managed by Emerging Threats",
+  "format": "cdir_text"
+}

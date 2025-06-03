@@ -1,0 +1,203 @@
+{
+    "database": "nproxy",
+    "collections": [
+        {
+            "name": "certificate",
+            "indexes": [
+                {
+                    "name": "_id"
+                },
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "status"
+                }
+            ]
+        },
+        {
+            "name": "config",
+            "indexes": [
+                {
+                    "name": "_id"
+                }
+            ]
+        },
+        {
+            "name": "feeds",
+            "indexes": [
+                {
+                    "name": "_id"
+                },
+                {
+                    "name": "slug",
+                    "unique": true,
+                    "type": "text"
+                },
+                {
+                    "name": "type"
+                }
+            ]
+        },
+        {
+            "name": "geoip",
+            "indexes": [
+                {
+                    "name": "_id"
+                },
+                {
+                    "name": "net_start"
+                },
+                {
+                    "name": "net_end"
+                }
+            ]
+        },
+        {
+            "name": "jail",
+            "indexes": [
+                {
+                    "name": "_id"
+                },
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "type"
+                }
+            ]
+        },
+        {
+            "name": "users",
+            "indexes": [
+                {
+                    "name": "_id"
+                },
+                {
+                    "name": "email"
+                }
+            ]
+        },
+        {
+            "name": "rbl",
+            "indexes": [
+                {
+                    "name": "_id"
+                },
+                {
+                    "name": "net_start"
+                },
+                {
+                    "name": "net_end"
+                },
+                {
+                    "name": "version"
+                },
+                {
+                    "name": "src_type"
+                },
+                {
+                    "name": "src_type_id"
+                }
+            ]
+        },
+        {
+            "name": "rule_cat",
+            "indexes": [
+                {
+                    "name": "_id"
+                },
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "phase"
+                }
+            ]
+        },
+        {
+            "name": "rule",
+            "indexes": [
+                {
+                    "name": "_id"
+                },
+                {
+                    "name": "code"
+                },
+                {
+                    "name": "category_id"
+                }
+            ]
+        },
+        {
+            "name": "sensor",
+            "indexes": [
+                {
+                    "name": "_id"
+                },
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "type"
+                }
+            ]
+        },
+        {
+            "name": "service",
+            "indexes": [
+                {
+                    "name": "_id"
+                },
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "active"
+                }
+            ]
+        },
+        {
+            "name": "telemetry",
+            "indexes": [
+                {
+                    "name": "_id"
+                },
+                {
+                    "name": "logtime"
+                }
+            ]
+        },
+        {
+            "name": "transaction",
+            "indexes": [
+                {
+                    "name": "_id"
+                },
+                {
+                    "name": "logtime"
+                },
+                {
+                    "name": "server_id"
+                },
+                {
+                    "name": "unique_id"
+                }
+            ]
+        },
+        {
+            "name": "upstream",
+            "indexes": [
+                {
+                    "name": "_id"
+                },
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "type"
+                }
+            ]
+        }
+    ]
+}

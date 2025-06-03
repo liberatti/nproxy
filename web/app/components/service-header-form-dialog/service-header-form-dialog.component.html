@@ -1,0 +1,25 @@
+<h1 mat-dialog-title>
+    Header Override
+</h1>
+
+<div mat-dialog-content>
+    <form [formGroup]="form" id="service-header-form">
+        <mat-form-field class="full-width">
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name" id="service-header-name-input">
+        </mat-form-field>
+        <mat-form-field class="full-width">
+            <mat-label>Content</mat-label>
+            <input matInput formControlName="content" id="service-header-content-input">
+        </mat-form-field>
+    </form>
+</div>
+
+<div mat-dialog-actions align="end" class="dialog-actions">
+    <button type="button" (click)="onSubmit()" mat-raised-button color="primary" id="save-service-header-btn">
+        <mat-icon>save</mat-icon> Add
+    </button>
+    <button type="button" mat-mini-fab color="primary" (click)="onCancel()" id="cancel-service-header-btn">
+        <mat-icon>keyboard_return</mat-icon>
+    </button>
+</div>

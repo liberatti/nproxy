@@ -1,0 +1,66 @@
+.fi {
+    margin-left: 5px;
+}
+
+
+.passed {
+    background-color: var(--passed-color) !important;
+}
+
+.deny {
+    background-color: var(--warn-color) !important;
+}
+
+.rejected {
+    background-color: var(--rejected-color) !important;
+}
+
+.warn {
+    background-color: var(--warning-color) !important;
+}
+
+.exp-panel-token {
+    margin-left: 5px;
+}
+
+mat-accordion {
+    width: 100%;
+}
+
+.search-box {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+.text-wrap {
+    overflow-wrap: anywhere;
+}
+
+.mat-column-score {
+    max-width: 90px;
+    align-items: center;
+    text-align: center;
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.flex-col {
+    flex: 1;
+    min-width: 200px;
+}
+
+.flex-col-lg {
+    flex: 2;
+}
+
+app-datetime-field {
+    display: block;
+    margin-top: 4px;
+}

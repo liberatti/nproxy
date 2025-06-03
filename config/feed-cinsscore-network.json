@@ -1,0 +1,13 @@
+{
+  "name": "cinsscore",
+  "slug": "cinsscore",
+  "provider": "iblocklist",
+  "restricted": false,
+  "version": "latest",
+  "type": "network",
+  "action": "deny",
+  "source": "http://list.iblocklist.com/?list=npkuuhuxcsllnhoamkvm&fileformat=cidr&archiveformat=gz",
+  "update_interval": "day",
+  "description": "The CINS Army list is a subset of the CINS Active Threat Intelligence ruleset, and consists of IP addresses that meet one of two basic criteria: 1) The IP's recent Rogue Packet score factor is very poor, or 2) The IP has tripped a designated number of 'trusted' alerts across a given number of our Sentinels deployed around the world.",
+  "format": "cdir_gz"
+}

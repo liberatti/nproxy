@@ -1,0 +1,35 @@
+  # /etc/sysctl.conf
+  # vm.max_map_count=262144
+   
+services:
+  proxy:
+    image: liberatti/nproxy:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ROLE: "main"
+      SERVERID: "dev-node"
+      PYTHONUNBUFFERED: 1
+    network_mode: "host"
+    init: true
+    volumes:
+      - ./api:/opt/nproxy/admin
+      - ./config:/opt/nproxy/admin/config
+      - ./lualib:/opt/nproxy/lualib/share/lua/5.4/nproxy
+    deploy:
+      resources:
+        limits:
+          memory: 1512M
+
+  export:
+    image: liberatti/nproxy:export
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: engine
+    entrypoint: [ '/bin/bash','-c' ]
+    command: [ 'cp /root/rpmbuild/RPMS/*/*.rpm /target' ]
+    volumes:
+      - ./target:/target
+

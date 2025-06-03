@@ -1,0 +1,11 @@
+<h2 mat-dialog-title>Transaction Content</h2>
+<mat-dialog-content class="mat-typography">
+  <pre><code [highlight]="jsonData" language="json" id="transaction-raw-content"></code></pre>
+</mat-dialog-content>
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-raised-button color="primary" (click)="onDismiss()" id="close-transaction-raw-btn">
+    <mat-icon>
+      exit_to_app
+    </mat-icon>Close
+  </button>
+</mat-dialog-actions>

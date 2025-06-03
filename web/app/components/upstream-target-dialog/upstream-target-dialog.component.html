@@ -1,0 +1,35 @@
+<h1 mat-dialog-title>Upstream Target</h1>
+<div mat-dialog-content>
+    <form [formGroup]="form" id="upstream-target-form">
+        <div class="row">
+            <div class="col">
+                <mat-form-field class='full-width'>
+                    <mat-label>Network Address</mat-label>
+                    <input id="upstream-target-host" matInput formControlName="host">
+                </mat-form-field>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <mat-form-field class='full-width'>
+                    <mat-label>Target Port</mat-label>
+                    <input id="upstream-target-port" matInput formControlName="port">
+                </mat-form-field>
+            </div>
+            <div class="col">
+                <mat-form-field class='full-width'>
+                    <mat-label>Distribution Weight</mat-label>
+                    <input id="upstream-target-weight" matInput formControlName="weight">
+                </mat-form-field>
+            </div>
+        </div>
+    </form>
+</div>
+<div mat-dialog-actions align="end" class="dialog-actions">
+    <button id="save-upstream-target-btn" type="button" (click)="onSubmit()" mat-raised-button color="primary" cdkFocusInitial>
+        <mat-icon>save</mat-icon> Save
+    </button>
+    <button id="cancel-upstream-target-btn" mat-mini-fab type="button" color="primary" (click)="cancel()">
+        <mat-icon>keyboard_return</mat-icon>
+    </button>
+</div>

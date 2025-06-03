@@ -1,0 +1,72 @@
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title>{{ 'view.service.title'|translate }}</mat-card-title>
+            <mat-card-subtitle>{{ 'view.service.subtitle'|translate }}</mat-card-subtitle>
+            <mat-card-actions>
+                <button mat-button color="primary" [routerLink]="['add']" *ngIf="oauth.isRole('superuser')" id="add-service-btn">
+                    <mat-icon>add</mat-icon>
+                    {{ 'actions.create'|translate }}
+                </button>
+            </mat-card-actions>
+        </mat-card-header>
+        <mat-card-content>
+            <table mat-table [dataSource]="serviceDS" matSort>
+                <tr mat-header-row *matHeaderRowDef="serviceDC"></tr>
+                <tr mat-row *matRowDef="let row; columns: serviceDC;"></tr>
+
+                <ng-container matColumnDef="name">
+                    <th mat-header-cell *matHeaderCellDef> {{ 'attr.name'|translate }}</th>
+                    <td mat-cell *matCellDef="let element" id="service-name-{{element._id}}"> {{ element.name }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="sans">
+                    <th mat-header-cell *matHeaderCellDef> {{ 'attr.domains'|translate }}</th>
+                    <td mat-cell *matCellDef="let element" id="service-sans-{{element._id}}">
+                        <mat-chip-listbox *ngIf="element.sans">
+                            <mat-chip-row *ngFor='let r of element.sans;' id="service-san-{{element._id}}-{{r}}">
+                                {{ r }}
+                            </mat-chip-row>
+                        </mat-chip-listbox>
+                    </td>
+                </ng-container>
+                <ng-container matColumnDef="routes">
+                    <th mat-header-cell *matHeaderCellDef> {{ 'attr.routes'|translate }}</th>
+                    <td mat-cell *matCellDef="let element; let i = index" id="service-routes-{{i}}">
+                        <mat-chip-listbox>
+                            <mat-chip-row *ngFor='let r of element.routes;' id="service-route-{{i}}">
+                                {{ r.name }}
+                            </mat-chip-row>
+                        </mat-chip-listbox>
+                    </td>
+                </ng-container>
+                <ng-container matColumnDef="action">
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat-cell *matCellDef="let element; let i = index">
+                        <div class="table-cell-actions">
+                            <div style="border:none" class="toggle-container">
+                                <mat-slide-toggle [checked]="element.active"
+                                                  (change)="toggleServiceActive(i,$event)" id="service-active-toggle-{{i}}">{{ 'attr.active'|translate }}
+                                </mat-slide-toggle>
+                                <mat-button mat-button [matMenuTriggerFor]="menu" id="service-menu-{{i}}">
+                                    <mat-icon>more_vert</mat-icon>
+                                </mat-button>
+                                <mat-menu #menu="matMenu" xPosition="before">
+                                    <button mat-menu-item type="button" [routerLink]="['edit',element._id]" id="edit-service-{{i}}">
+                                        <mat-icon>edit</mat-icon>
+                                        {{ 'actions.edit'|translate }}
+                                    </button>
+                                    <button mat-menu-item type="button" (click)="onRemove(element)"
+                                            *ngIf="oauth.isRole('superuser')" id="delete-service-{{i}}">
+                                        <mat-icon>delete</mat-icon>
+                                        {{ 'actions.remove'|translate }}
+                                    </button>
+                                </mat-menu>
+                            </div>
+                        </div>
+                    </td>
+                </ng-container>
+            </table>
+            <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" [pageSize]="servicePA.per_page"
+                           [length]="servicePA.total_elements" (page)="nextPage($event)" id="service-paginator"></mat-paginator>
+        </mat-card-content>
+    </mat-card>

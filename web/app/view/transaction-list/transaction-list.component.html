@@ -1,0 +1,277 @@
+<ng-container>
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title>{{ 'view.transaction.title'|translate }}</mat-card-title>
+            <mat-card-subtitle>{{ 'view.transaction.subtitle'|translate }}</mat-card-subtitle>
+            <mat-card-actions>
+
+            </mat-card-actions>
+        </mat-card-header>
+        <mat-card-content>
+            <div class="flex-row" style="display: flex; align-items: center; gap: 8px">
+                <mat-form-field class="flex-col-lg" style="margin-bottom: -1.25em">
+                    <mat-label>Query filter</mat-label>
+                    <input matInput [(ngModel)]="input_regex" placeholder='Example: {"action": "PASSED"} or {"http.request.method": "GET"}'>
+                    <button id="btn-add-sans" matSuffix mat-icon-button (click)="onAddFilter()">
+                        <mat-icon>add</mat-icon>
+                    </button>
+                    <mat-hint>Enter a MongoDB query filter as JSON</mat-hint>
+                </mat-form-field>
+                <app-datetime-field
+                    class="flex-col"
+                    style="margin-bottom: -1.0em"
+                    label="Start Date"
+                    placeholder="Select start date"
+                    (confirm)="onDateTimeConfirm($event,'start')"
+                    #startField>
+                </app-datetime-field>
+                <app-datetime-field
+                    class="flex-col"
+                    style="margin-bottom: -1.0em"
+                    label="End Date"
+                    placeholder="Select end date"
+                    (confirm)="onDateTimeConfirm($event,'end')"
+                    #endField>
+                </app-datetime-field>
+                <button mat-icon-button color="primary" (click)="onSearch()">
+                    <mat-icon>refresh</mat-icon>
+                </button>
+            </div>
+            <mat-chip-listbox>
+                <mat-chip-row *ngFor="let p of form.value.filters" (removed)="onRemoveFilter(p)">
+                    {{ p }}
+                    <button matChipRemove>
+                        <mat-icon>cancel</mat-icon>
+                    </button>
+                </mat-chip-row>
+            </mat-chip-listbox>
+        </mat-card-content>
+        <div class="chart-container ">
+            <canvas id="trn-chart">{{ chart }}</canvas>
+        </div>
+        <table mat-table [dataSource]="transactionDS" multiTemplateDataRows=true>
+            <ng-container matColumnDef="expand">
+                <mat-header-cell *matHeaderCellDef></mat-header-cell>
+                <mat-cell *matCellDef="let element; let row">
+                    <button mat-icon-button (click)="expandCollapse(row)">
+                        @if (element.isExpanded) {
+                            <mat-icon>keyboard_arrow_up</mat-icon>
+                        } @else {
+                            <mat-icon>keyboard_arrow_down</mat-icon>
+                        }
+                    </button>
+                    <button mat-icon-button (click)="onShowRAW(row)">
+                        <mat-icon>raw_on</mat-icon>
+                    </button>
+
+                </mat-cell>
+            </ng-container>
+
+
+            <ng-container matColumnDef="logtime">
+                <mat-header-cell *matHeaderCellDef> Time</mat-header-cell>
+                <mat-cell *matCellDef="let element">
+                    <p class="no-wrap">{{ element.logtime |dateFormat }}</p>
+                </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="score">
+                <mat-header-cell *matHeaderCellDef> Score</mat-header-cell>
+                <mat-cell *matCellDef="let element">
+                    <mat-chip class="score_chip {{element.action|lowercase}}">
+                        {{ element.score }}
+                    </mat-chip>
+                </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="source">
+                <mat-header-cell *matHeaderCellDef> Source</mat-header-cell>
+                <mat-cell *matCellDef="let element" style="text-wrap: nowrap;">
+                    @if (element.source) {
+                        {{ element.source.ip }}
+                        <span class="fi fi-{{element.source.geo.country|lowercase}}"
+                              [matTooltip]="element.source.geo.country"
+                              matTooltipPosition="below"
+                              matTooltipHideDelay="2000"
+                        ></span>
+                    }
+                </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="service">
+                <mat-header-cell *matHeaderCellDef> Service</mat-header-cell>
+                <mat-cell *matCellDef="let element">
+                    @if (element.service) {
+                        <p matTooltip="Node: {{element.server_id}}"
+                           matTooltipPosition="below">
+                            {{ element.service.name }}
+                        </p>
+                    }
+                </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="request_line" class="mat-expanded-row">
+                <mat-header-cell *matHeaderCellDef> Request</mat-header-cell>
+                <mat-cell *matCellDef="let element">
+                    @if (element.http) {
+                        <p class="text-wrap">{{ element.http.request_line }}</p>
+                    }
+                </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="duration">
+                <mat-header-cell *matHeaderCellDef> Duration</mat-header-cell>
+                <mat-cell *matCellDef="let element">
+                    {{ element.http.duration |timeFormat }}
+                </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="expandedDetail">
+                <mat-cell *matCellDef="let element" class="exp-panel {{element.action|lowercase}}" style="flex: 1;">
+                    <mat-accordion style="padding: 10px">
+                        <mat-expansion-panel>
+                            <mat-expansion-panel-header>
+                                <mat-panel-title>Request
+                                    @if (element.http && element.http.request) {
+                                        <small class="exp-panel-token">
+                                            <b>Size:</b> {{ element.http.request.bytes|byteFormat }}
+                                        </small>
+                                        <small class="exp-panel-token">
+                                            <b>Duration:</b> {{ element.http.duration |timeFormat }}
+                                        </small>
+                                        <small class="exp-panel-token">
+                                            <b>Action:</b> {{ element.action }}
+                                        </small>
+                                        <small class="exp-panel-token">
+                                            <b>Dos:</b> {{ element.limit_req_status }}
+                                        </small>
+                                        <small class="exp-panel-token">
+                                            <b>GeoIP:</b> {{ element.geoip_status }}
+                                        </small>
+                                        <small class="exp-panel-token">
+                                            <b>RBL:</b> {{ element.rbl_status }}
+                                        </small>
+
+                                    }
+                                </mat-panel-title>
+                            </mat-expansion-panel-header>
+                            <div class="mat-row">
+                                <div class="mat-col-12">
+                                    <p>
+                                        <b>User Agent:</b> {{ element.user_agent.family }},
+                                        {{ element.user_agent.major }}
+                                    </p>
+                                    @if (element.source) {
+                                        <p>
+                                            <b>Source IP:</b> {{ element.source.ip }}:{{ element.source.port }}
+                                            <b>ASN:</b> {{ element.source.geo.ans_number }}
+                                            {{ element.source.geo.organization }}
+                                        </p>
+                                    }
+
+                                    @if (element.upstream) {
+                                        <p>
+                                            <b>Upstream:</b>{{ element.upstream.name }}
+                                        </p>
+                                    }
+                                    @if (element.route_name) {
+                                        <p>
+                                            <b>Route:</b>{{ element.route_name }}
+                                        </p>
+                                    }
+                                    <strong>headers</strong>
+                                    <mat-chip-listbox>
+                                        @if (element.http && element.http.request) {
+                                            <mat-chip-row [matTooltip]="p.content"
+                                                          *ngFor="let p of element.http.request.headers">
+                                                <small><b>{{ p.name }}</b>:
+                                                    @if (p.content.length > 32) {
+                                                        {{ p.content.substring(0, 32) + '...' }}
+                                                    } @else {
+                                                        {{ p.content }}
+                                                    }
+                                                </small>
+                                            </mat-chip-row>
+                                        }
+
+                                    </mat-chip-listbox>
+
+                                </div>
+                            </div>
+                        </mat-expansion-panel>
+                        @if (element.http && element.http.response) {
+                            <mat-expansion-panel (opened)="panelOpenState.set(true)"
+                                                 (closed)="panelOpenState.set(false)">
+                                <mat-expansion-panel-header>
+                                    <mat-panel-title> Response
+                                        <small class="exp-panel-token"><b>Size: </b>{{
+                                                element.http.response.bytes
+                                                    |byteFormat
+                                            }}</small>
+                                        <small class="exp-panel-token"><b>Response Code:
+                                        </b>{{ element.http.response.status_code }}</small>
+                                    </mat-panel-title>
+                                </mat-expansion-panel-header>
+                                <div class="mat-row">
+                                    <div class="mat-col-12">
+                                        <strong>headers</strong>
+                                        <mat-chip-listbox>
+
+                                            <mat-chip-row [matTooltip]="p.content"
+                                                          *ngFor="let p of element.http.response.headers">
+                                                <small><b>{{ p.name }}</b>:
+                                                    @if (p.content.length > 32) {
+                                                        {{ p.content.substring(0, 32) + '...' }}
+                                                    } @else {
+                                                        {{ p.content }}
+                                                    }
+                                                </small>
+                                            </mat-chip-row>
+
+                                        </mat-chip-listbox>
+                                    </div>
+                                </div>
+                            </mat-expansion-panel>
+                        }
+                        @if (element.audit) {
+                            <mat-expansion-panel>
+                                <mat-expansion-panel-header>
+                                    <mat-panel-title> Inspection</mat-panel-title>
+                                    <mat-panel-description>
+                                        {{ element.audit.engine }}
+                                    </mat-panel-description>
+                                </mat-expansion-panel-header>
+                                <table mat-table [dataSource]="element.audit.messages" class="mat-elevation-z8">
+                                    <!-- Position Column -->
+                                    <ng-container matColumnDef="code">
+                                        <th mat-header-cell *matHeaderCellDef> No.</th>
+                                        <td mat-cell *matCellDef="let e1">
+                                            <button mat-button
+                                                    (click)="onShowRuleDetails(e1.rule_code)">{{ e1.rule_code }}
+                                            </button>
+                                        </td>
+                                    </ng-container>
+
+                                    <!-- Name Column -->
+                                    <ng-container matColumnDef="text">
+                                        <th mat-header-cell *matHeaderCellDef> Name</th>
+                                        <td mat-cell *matCellDef="let e1"> {{ e1.text }}</td>
+                                    </ng-container>
+
+                                    <tr mat-header-row *matHeaderRowDef="['code','text']"></tr>
+                                    <tr mat-row *matRowDef="let row; columns: ['code','text'];"></tr>
+                                </table>
+                            </mat-expansion-panel>
+                        }
+                    </mat-accordion>
+                </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="transactionDC"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: transactionDC;" matRipple class="element-row"
+                     [class.expanded]="row.isExpanded"></mat-row>
+            <mat-row *matRowDef="let row; columns: ['expandedDetail'];"
+                     [@detailExpand]="row.isExpanded == true ? 'expanded' : 'collapsed'" style="overflow: hidden">
+            </mat-row>
+        </table>
+        <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" [pageSize]="transactionPA.per_page"
+                       [length]="transactionPA.total_elements" (page)="nextPage($event)"></mat-paginator>
+
+    </mat-card>
+</ng-container>

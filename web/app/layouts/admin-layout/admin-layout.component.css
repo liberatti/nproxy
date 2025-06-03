@@ -1,0 +1,144 @@
+.navbar-spacer {
+  flex: 1 1 auto;
+}
+/* Estilos do Footer */
+.footer {
+  background: var(--footer-background);
+  color: var(--footer-text-color);
+  padding: 7px;
+  margin-top: auto;
+  text-align: center;
+  font-size: small;
+}
+
+.footer-content {
+  margin: 0px 0px 10px 0px;
+}
+
+.navbar-brand {
+  text-decoration: none;
+  color: white;
+}
+
+.navbar-container {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.navbar-is-mobile .navbar {
+  position: fixed;
+  z-index: 2;
+}
+
+.navbar-sidenav-container {
+  flex: 1;
+  background-color: #fafafa;
+}
+
+.navbar-is-mobile .navbar-sidenav-container {
+  flex: 1 0 auto;
+}
+
+.progress-bar-container {
+  height: 5px;
+}
+
+/* Sidebar styles */
+mat-sidenav {
+  width: 250px;
+  background-color: #ffffff;
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+}
+
+mat-nav-list {
+  padding: 8px 0;
+  overflow-x: hidden !important;
+}
+
+a.mat-list-item {
+  margin: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+a.mat-list-item:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+a.mat-list-item.active {
+  background-color: rgba(0, 0, 0, 0.08);
+  font-weight: 500;
+}
+
+#push-bottom {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.breadcrumb {
+  font-size: 12pt;
+}
+
+.icon-link {
+  display: flex;
+  align-items: center;
+  user-select: none;
+  padding: 0 16px;
+}
+
+.icon-link mat-icon {
+  margin-right: 12px;
+  color: rgba(0, 0, 0, 0.54);
+}
+
+.icon-link span {
+  margin-top: 4px;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.sub-1 {
+  margin-left: 16px;
+  font-size: 14px;
+  padding-left: 32px;
+}
+
+.expanded-sub {
+  background-color: #f8f9fa;
+  border-left: 3px solid #e0e0e0;
+}
+
+.expand-icon {
+  margin-left: auto;
+  transition: transform 0.2s ease;
+}
+
+.expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+/* Main content styles */
+mat-sidenav-content {
+  display: flex;
+  flex-direction: column;
+  background-color: #fafafa;
+}
+
+mat-sidenav-content > div {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+mat-mdc-card-header {
+  text-wrap: nowrap;
+}
