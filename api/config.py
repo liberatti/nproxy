@@ -2,7 +2,7 @@ import os
 import pytz
 from distutils.util import strtobool
 
-APP_VERSION = "v1.0.2-rc"
+APP_VERSION = "v1.0.3"
 APP_BASE = "/opt/nproxy"
 
 ENGINE_BASE = f"{APP_BASE}/nginx"
