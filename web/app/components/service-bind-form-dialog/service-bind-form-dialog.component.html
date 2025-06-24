@@ -6,7 +6,7 @@
     <form [formGroup]="form" id="service-bind-form">
         <div class="mat-row">
             <div class="mat-col-6">
-                <mat-form-field>
+                <mat-form-field class="full-width">
                     <mat-label>Protocol</mat-label>
                     <mat-select formControlName="protocol" id="service-bind-protocol-select">
                         <mat-option *ngFor="let ut of _supportedProtocols" [value]="ut" id="service-bind-protocol-option-{{ut}}">
@@ -16,7 +16,7 @@
                 </mat-form-field>
             </div>
             <div class="mat-col-6">
-                <mat-form-field>
+                <mat-form-field class="full-width">
                     <mat-label>Port</mat-label>
                     <input matInput type="number" formControlName="port" id="service-bind-port-input">
                     <mat-error *ngIf=" f['port'].errors">

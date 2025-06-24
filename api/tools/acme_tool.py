@@ -25,6 +25,12 @@ class AcmeTool:
     @classmethod
     def renew_self(cls, certificate):
         dao = ServiceDao()
+        ca = None
+        if ClusterTool.CONFIG:
+            ca = {
+                "certificate": SSLTool.crt_from_pem(ClusterTool.CONFIG['config']['ca_certificate']),
+                "private_key": SSLTool.private_from_pem(ClusterTool.CONFIG['config']['ca_private']),
+            }
 
         services = dao.getall_by_certificate_id(certificate["_id"])
 
@@ -37,7 +43,7 @@ class AcmeTool:
             else:
                 sans.extend(s["sans"])
 
-        self_crt = SSLTool.create_certificate(cn, sans=list(set(sans)))
+        self_crt = SSLTool.create_certificate(cn, sans=list(set(sans)), ca=ca)
         self_chain = []
         for c in self_crt["chain"]:
             self_chain.append(SSLTool.crt_to_pem(c))
@@ -73,10 +79,11 @@ class AcmeTool:
                 cn, sans=sans, email="fake@tooka.com.br"
             )
             if result:
-                chain = ""
+                chain_list = []
                 for c in result["chain"]:
                     c_pem = SSLTool.crt_to_pem(c)
-                    chain = c_pem + "\n"
+                    chain_list.append(c_pem)
+                chain = "\n".join(chain_list)
                 certificate.update(
                     {
                         "chain": chain,

@@ -13,6 +13,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.hashes import SHA256
 from cryptography.x509.oid import NameOID
 
+from tools.cluster_tool import ClusterTool
 from common_utils import logger, replace_tz
 from model.acme_model import ChallengeDao
 from model.config_model import ConfigDao
@@ -111,7 +112,7 @@ class SSLTool:
         return crypto_util.make_csr(pk_bytes, domain_names)
 
     @classmethod
-    def gen_ca(cls, crt_cn: str, crt_org: Optional[str] = None) -> Dict[str, Union[x509.Certificate, rsa.RSAPrivateKey]]:
+    def gen_ca(cls, crt_cn: str, crt_org: Optional[str] = "Nproxy-CA") -> Dict[str, Union[x509.Certificate, rsa.RSAPrivateKey]]:
         """Generate a self-signed certificate authority (CA).
         
         Args:
@@ -126,9 +127,10 @@ class SSLTool:
         subject = issuer = x509.Name(
             [
                 x509.NameAttribute(NameOID.COUNTRY_NAME, "BR"),
-                x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "SaoPaulo"),
-                x509.NameAttribute(NameOID.LOCALITY_NAME, "SaoPaulo"),
+                x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Sao Paulo"),
+                x509.NameAttribute(NameOID.LOCALITY_NAME, "Sao Paulo"),
                 x509.NameAttribute(NameOID.ORGANIZATION_NAME, crt_org),
+                x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, "Internal"),
                 x509.NameAttribute(NameOID.COMMON_NAME, crt_cn),
             ]
         )
@@ -169,7 +171,11 @@ class SSLTool:
             Dictionary containing the certificate, chain, private key and metadata
         """
         if not ca:
-            ca = cls.gen_ca("Internal", crt_org="Tooka-Internal")
+            ca = {
+                "certificate": SSLTool.crt_from_pem(ClusterTool.CONFIG['config']['ca_certificate']),
+                "private_key": SSLTool.private_from_pem(ClusterTool.CONFIG['config']['ca_private']),
+            }
+
         curr_date = datetime.now().astimezone(TZ)
         server_key = cls.generate_private_key()
 
@@ -183,9 +189,10 @@ class SSLTool:
         subject = x509.Name(
             [
                 x509.NameAttribute(NameOID.COUNTRY_NAME, "BR"),
-                x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "SaoPaulo"),
-                x509.NameAttribute(NameOID.LOCALITY_NAME, "SaoPaulo"),
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Tooka-Internal"),
+                x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Sao Paulo"),
+                x509.NameAttribute(NameOID.LOCALITY_NAME, "Sao Paulo"),
+                x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Nproxy-CA"),
+                x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, "Internal"),
                 x509.NameAttribute(NameOID.COMMON_NAME, domain),
             ]
         )
@@ -227,13 +234,19 @@ class SSLTool:
         Returns:
             Dictionary containing certificate subjects, validity dates
         """
+        if not crt:
+            raise ValueError("Certificate object is None or invalid")
+        
         subjects = []
         for c in crt.subject.get_attributes_for_oid(x509.NameOID.COMMON_NAME):
             subjects.append(c.value)
-        for c in crt.extensions.get_extension_for_class(
-            x509.SubjectAlternativeName
-        ).value:
-            subjects.append(c.value)
+        
+        try:
+            san_extension = crt.extensions.get_extension_for_class(x509.SubjectAlternativeName)
+            for c in san_extension.value:
+                subjects.append(c.value)
+        except x509.extensions.ExtensionNotFound:
+            pass
 
         return {
             "subjects": list(OrderedDict.fromkeys(subjects)),

@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import psutil
 import requests
 
-from common_utils import logger, get_server_id, API_HEADERS, replace_tz
+from common_utils import logger, get_server_id
 from model.upstream_model import UpstreamDao, NodeStatusDao
 from tools.engine_tool import EngineManager
 from tools.network_tool import NetworkTool
@@ -133,7 +133,7 @@ class ClusterTool:
                 node_st.update({"scn": cls.CONFIG["scn"]})
             upstreams = model.get_all_by_type("backend")
             if len(upstreams) > 0:
-                response = requests.get("http://127.0.0.1:9000/ngx_up_status")
+                response = requests.get("http://127.0.0.1:5001/ngx_up_status")
                 if response.status_code == 200:
                     ngx_status = response.json()
                     node_st["upstreams"] = []

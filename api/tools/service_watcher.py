@@ -12,7 +12,7 @@ class ServiceWatcher:
         self.cache = LogCache()
 
     def stop(self):
-        logger.info(f"[stop] {self.service['name']}")
+        logger.info(f"[stop] {self.service['_id']}")
         for t in self.w_threads:
             t.active = False
 
@@ -20,13 +20,13 @@ class ServiceWatcher:
             t.join()
 
     def start(self):
-        logger.info(f"[start] {self.service['name']}")
+        logger.info(f"[start] {self.service['_id']}")
         cache = LogCache()
         access_log = threading.Thread(
             target=LogParserTool.follow_file,
             args=(
                 cache,
-                f"{APP_BASE}/logs/access_log-{self.service['name']}.log",
+                f"{APP_BASE}/logs/access_log-{self.service['_id']}.log",
                 "ACCESS",
             ),
             daemon=False,
@@ -37,7 +37,7 @@ class ServiceWatcher:
             target=LogParserTool.follow_file,
             args=(
                 cache,
-                f"{APP_BASE}/logs/error_log-{self.service['name']}.log",
+                f"{APP_BASE}/logs/error_log-{self.service['_id']}.log",
                 "ERROR",
             ),
             daemon=False,
@@ -48,7 +48,7 @@ class ServiceWatcher:
             target=LogParserTool.follow_file,
             args=(
                 cache,
-                f"{APP_BASE}/logs/audit_log-{self.service['name']}.log",
+                f"{APP_BASE}/logs/audit_log-{self.service['_id']}.log",
                 "AUDIT",
             ),
             daemon=False,

@@ -98,27 +98,6 @@
           "options": {
             "buildTarget": "web-app:build"
           }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
-            "tsConfig": "tsconfig.spec.json",
-            "assets": [
-              "favicon.ico",
-              "assets"
-            ],
-            "styles": [
-              "highlight.js/styles/github.css",
-              "@angular/material/prebuilt-themes/indigo-pink.css",
-              "styles.css",
-              "theme.css"
-            ],
-            "scripts": []
-          }
         }
       }
     }

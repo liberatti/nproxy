@@ -35,7 +35,7 @@ import {
 } from 'app/components/service-route-form-dialog/service-route-form-dialog.component';
 import {Upstream} from 'app/models/upstream';
 import {Sensor} from 'app/models/sensor';
-import {Bind, Header, Route, Service} from 'app/models/service';
+import {Bind, Header, ProtocolType, Route, Service} from 'app/models/service';
 import {ServiceService} from 'app/services/service.service';
 import {NotificationService} from 'app/services/notification.service';
 import {DragDropModule} from '@angular/cdk/drag-drop';
@@ -44,6 +44,8 @@ import {Certificate} from "../../models/certificate";
 import {CertificateService} from "../../services/certificate.service";
 import {MatStepperModule} from "@angular/material/stepper";
 import {OAuthService} from "../../services/oauth.service";
+import { MultiSnackbarComponent } from '../../components/multi-snackbar/multi-snackbar.component';
+import { minArrayLength } from '../../validators/min-array-length.validator';
 
 @Component({
     selector: 'app-service-form',
@@ -99,20 +101,24 @@ export class ServiceFormComponent implements OnInit {
         }),
         body_limit: new FormControl<number>(10),
         timeout: new FormControl<number>(120),
-        bindings: new FormControl<Array<Bind>>([]),
+        bindings: new FormControl<Array<Bind>>([] as Array<Bind>, {
+            validators: [
+                Validators.required,
+                minArrayLength(1)
+            ]
+        }),
         headers: new FormControl<Array<Header>>([]),
-        routes: new FormControl<Array<Route>>([]),
+        routes: new FormControl<Array<Route>>([], [Validators.required, minArrayLength(1)]),
         inspect_level: new FormControl<number>(3),
         inbound_score: new FormControl<number>(15),
         outbound_score: new FormControl<number>(15),
         buffer: new FormControl<number>(256),
         compression: new FormControl<boolean>(true),
         compression_types: new FormControl<Array<string>>(['text/plain', 'text/css', 'application/json',
-            'application/javascript','text/javascript',
-            'application/x-javascript', 'text/xml', 'application/xml', 'application/xml+rss', 'text/javascript']),
+            'application/javascript','application/x-javascript', 'text/xml', 'application/xml', 'application/xml+rss', 'text/javascript']),
         rate_limit: new FormControl<boolean>(true),
         rate_limit_per_sec: new FormControl<number>(256),
-        sans: new FormControl<Array<string>>([]),
+        sans: new FormControl<Array<string>>([], [Validators.required, minArrayLength(1)]),
         ssl_protocols: new FormControl<Array<string>>(['TLSv1', 'TLSv1.1', 'TLSv1.2', 'TLSv1.3']),
         certificate: new FormControl<Certificate>({} as Certificate),
 
@@ -177,6 +183,8 @@ export class ServiceFormComponent implements OnInit {
         } else {
             this.form.get('headers')?.setValue(this.basicHeaders);
             this.headerDS.data = this.basicHeaders;
+            this.form.get('bindings')?.setValue([{'port': 80, 'protocol': ProtocolType.HTTP, 'ssl_upgrade': false}] as Array<Bind>);
+            this.bindingDS.data = this.form.get('bindings')?.value as Array<Bind>;
         }
 
         this.certificateService.get().subscribe(data => {
@@ -196,17 +204,14 @@ export class ServiceFormComponent implements OnInit {
 
     onAddCN(): void {
         const formData = this.sansForm.value.cn as string;
-        this.form.value.sans?.push(formData);
+        const currentSans = this.form.get('sans')?.value || [];
+        this.form.get('sans')?.setValue([...currentSans, formData]);
         this.sansForm.reset();
     }
 
     onRemoveCN(keyword: any): void {
-        if (this.form.value.sans != null) {
-            let index = this.form.value.sans.indexOf(keyword);
-            if (index >= 0) {
-                this.form.value.sans.splice(index, 1);
-            }
-        }
+        const currentSans = this.form.get('sans')?.value || [];
+        this.form.get('sans')?.setValue(currentSans.filter((item: string) => item !== keyword));
     }
 
     moveRoute(event: any) {
@@ -227,6 +232,11 @@ export class ServiceFormComponent implements OnInit {
                         errors.push(" Invalid value on " + k);
                     }
                 });
+            
+            if (errors.length > 0) {
+                console.log(this.form.value);
+                this.notificationService.openSnackBar(errors);
+            }
             return;
         }
         let _data: Service = JSON.parse(JSON.stringify(this.form.value));
@@ -237,6 +247,8 @@ export class ServiceFormComponent implements OnInit {
 
         if (!this.hasSslSupport()) {
             Reflect.deleteProperty(_data, 'certificate');
+        }else{
+            _data.certificate = {"_id": _data.certificate._id} as Certificate;
         }
 
         if (_data.routes)
@@ -330,10 +342,11 @@ export class ServiceFormComponent implements OnInit {
     }
 
     onRemoveRoute(index: number) {
-        const data = this.routeDS.data;
-        data.splice(index, 1);
-        this.routeDS.data = data;
-        this.form.get('routes')?.reset(data);
+        const currentRoutes = this.form.get('routes')?.value || [];
+        const newRoutes = currentRoutes.slice();
+        newRoutes.splice(index, 1);
+        this.form.get('routes')?.setValue(newRoutes);
+        this.routeDS.data = newRoutes;
     }
 
     onAddRoute() {
@@ -344,10 +357,9 @@ export class ServiceFormComponent implements OnInit {
 
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
-                const data = this.routeDS.data;
-                data.push(result);
-                this.routeDS.data = data;
-                this.form.get('routes')?.reset(data);
+                const currentRoutes = this.form.get('routes')?.value || [];
+                this.form.get('routes')?.setValue([...currentRoutes, result]);
+                this.routeDS.data = this.form.get('routes')?.value || [];
             }
         });
     }
@@ -361,17 +373,20 @@ export class ServiceFormComponent implements OnInit {
 
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
-                this.routeDS.data[index] = result;
+                const currentRoutes = this.form.get('routes')?.value || [];
+                const newRoutes = currentRoutes.slice();
+                newRoutes[index] = result;
+                this.form.get('routes')?.setValue(newRoutes);
+                this.routeDS.data = newRoutes;
             }
         });
     }
 
     onAddProto(): void {
-
         let data = this.protocolForm.value.text as string;
-        this.form.value.ssl_protocols?.push(data);
-        console.log(this.form.value.ssl_protocols)
-
+        const currentProtocols = this.form.get('ssl_protocols')?.value || [];
+        this.form.get('ssl_protocols')?.setValue([...currentProtocols, data]);
+        console.log(this.form.get('ssl_protocols')?.value);
         this.protocolForm.reset();
     }
 
@@ -387,7 +402,8 @@ export class ServiceFormComponent implements OnInit {
 
     onAddCompressionType(): void {
         const formData = this.compressionForm.value.type as string;
-        this.form.value.compression_types?.push(formData);
+        const currentTypes = this.form.get('compression_types')?.value || [];
+        this.form.get('compression_types')?.setValue([...currentTypes, formData]);
         this.compressionForm.reset();
     }
 

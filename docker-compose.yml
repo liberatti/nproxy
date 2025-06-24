@@ -2,7 +2,16 @@
   # vm.max_map_count=262144
    
 services:
-  proxy:
+
+  web:
+    image: node:lts
+    command: [ "npm", "run", "container" ]
+    working_dir: /app
+    volumes:
+      - ./web:/app
+    network_mode: "host"
+
+  api:
     image: liberatti/nproxy:latest
     build:
       context: .

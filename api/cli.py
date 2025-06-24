@@ -42,7 +42,7 @@ def initialize_db():
             "iblocklist_pin": "",
             "ca_certificate": SSLTool.crt_to_pem(ca["certificate"]),
             "ca_private": SSLTool.private_to_pem(ca["private_key"]),
-            "acme_directory_url": "https://acme-v02.letsencrypt.org/directory",
+            "acme_directory_url": "https://acme-v02.api.letsencrypt.org/directory",
             "telemetry": {
                 "enabled": True,
                 "url": "https://nproxy.app.br"

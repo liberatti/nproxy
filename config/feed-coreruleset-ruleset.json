@@ -107,7 +107,7 @@
         "none"
       ],
       "setvar": [
-        "tx.crs_setup_version=334"
+        "tx.crs_setup_version=336"
       ]
     }
   ],

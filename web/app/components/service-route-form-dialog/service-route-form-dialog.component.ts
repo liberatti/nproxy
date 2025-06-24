@@ -49,7 +49,6 @@ export class ServiceRouteFormDialogComponent implements OnInit {
     _supportedTypes: string[] = ['upstream', 'redirect']
     separatorKeysCodes = [COMMA, ENTER];
     _upstreams: Upstream[] = [];
-    _static_servers: StaticServer[] = [];
     _sensors: Sensor[] = [];
     _filters: RouteFilter[] = [];
     isAddMode: boolean;
@@ -101,10 +100,6 @@ export class ServiceRouteFormDialogComponent implements OnInit {
     ngOnInit(): void {
         this.upstreamService.get().subscribe(data => {
             this._upstreams = data.data;
-        });
-
-        this.staticService.get().subscribe(data => {
-            this._static_servers = data.data;
         });
 
         this.sensorService.get().subscribe(data => {

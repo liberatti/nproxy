@@ -26,7 +26,9 @@ class SensorSchema(Schema):
     block = fields.Nested(FeedSchema, many=True)
     geo_block_list = fields.List(fields.String())
     jails = fields.Nested(FeedSchema, many=True)
-
+    inspect_level = fields.Integer()
+    inbound_score = fields.Integer()
+    outbound_score = fields.Integer()
 
 class SensorDao(MongoDAO):
     """

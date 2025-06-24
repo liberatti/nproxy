@@ -99,6 +99,7 @@ class EngineManager:
     def _init_dir(self):
         os.makedirs(f"{APP_BASE}/run", exist_ok=True)
         os.makedirs(f"{APP_BASE}/temp/", exist_ok=True)
+        os.makedirs(f"{APP_BASE}/logs", exist_ok=True)
         for f in [
             "client_body",
             "fastcgi_temp",
@@ -165,9 +166,9 @@ class EngineManager:
             pass
 
         for c in self.CONFIG["certificates"]:
-            with open(f"{APP_BASE}/keystore/{c['name']}.crt", "w") as f:
+            with open(f"{APP_BASE}/keystore/{c['_id']}.crt", "w") as f:
                 f.write("\n".join([c["certificate"], c["chain"]]))
-            with open(f"{APP_BASE}/keystore/{c['name']}.key", "w") as f:
+            with open(f"{APP_BASE}/keystore/{c['_id']}.key", "w") as f:
                 f.write(c["private_key"])
 
     def flush_feeds(self):
@@ -262,10 +263,15 @@ class EngineManager:
     def add_service(self, service):
         sb = []
         ssl_support=False
+        cert=None
         for b in service["bindings"]:
             if b["protocol"] == "HTTPS":
                 ssl_support=True
-
+        if "certificate" in service:
+            for c in self.CONFIG["certificates"]:
+                if c["_id"] == service["certificate"]["_id"]:
+                    cert = c
+                    break
         if "rate_limit" in service and service["rate_limit"]:
             sb.append(
                 f" limit_req_zone $binary_remote_addr zone={service['_id']}_rate:16m rate={service['rate_limit_per_sec']}r/s;"
@@ -326,31 +332,28 @@ class EngineManager:
             sb.append(f"  ssl_prefer_server_ciphers on;")
             sb.append(f"  ssl_session_cache shared:SSL:10m;")
             sb.append(f"  ssl_session_timeout 10m;")
+            sb.append(f"  ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA:ECDHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK;")
+            sb.append(f"  ssl_ecdh_curve secp384r1;")
+            sb.append(f"  ssl_stapling on;")
+            sb.append(f"  ssl_stapling_verify on;")
 
-            sb.append(
-                f"  ssl_certificate {APP_BASE}/keystore/{service['certificate']['name']}.crt;"
-            )
-            sb.append(
-                f"  ssl_certificate_key {APP_BASE}/keystore/{service['certificate']['name']}.key;"
-            )
-
-            if (
-                "certificate" in service
-                and service["certificate"]["provider"] == "MANAGED"
-            ):
-                sb.append("  location ^~ /.well-known/acme-challenge/ {")
-                sb.append('   default_type "text/plain";')
-                sb.append("   proxy_redirect off;")
-                sb.append("   proxy_pass http://acme;")
-                sb.append(f"   proxy_read_timeout {service['timeout']}s;")
-                sb.append(f"   proxy_connect_timeout {service['timeout']}s;")
-                sb.append(f"   modsecurity_rules '")
-                sb.append(f"    SecRuleRemoveById 920272;")
-                sb.append(f"   ';")
-                sb.append("  }")
+            if cert:
+                sb.append(f"  ssl_certificate {APP_BASE}/keystore/{cert['_id']}.crt;")
+                sb.append(f"  ssl_certificate_key {APP_BASE}/keystore/{cert['_id']}.key;")
+                if  cert["provider"] == "MANAGED":
+                    sb.append("  location ^~ /.well-known/acme-challenge/ {")
+                    sb.append('   default_type "text/plain";')
+                    sb.append("   proxy_redirect off;")
+                    sb.append("   proxy_pass http://acme;")
+                    sb.append(f"   proxy_read_timeout {service['timeout']}s;")
+                    sb.append(f"   proxy_connect_timeout {service['timeout']}s;")
+                    sb.append(f"   modsecurity_rules '")
+                    sb.append(f"    SecRuleRemoveById 920272")
+                    sb.append(f"   ';")
+                    sb.append("  }")
 
             if service["ssl_client_auth"]:
-                sccf = f"{APP_BASE}/keystore/{service['name']}.clienssl"
+                sccf = f"{APP_BASE}/keystore/{service['_id']}.clientssl"
                 sb.append(f"  ssl_verify_client optional;")
                 sb.append(f"  ssl_verify_depth 5;")
                 sb.append(f"  ssl_client_certificate {sccf};")
@@ -374,17 +377,16 @@ class EngineManager:
                     sb.append(
                         f"  if ($ssl_upgrade) {{return 301 https://$server_name:{b['port']}$request_uri;}}"
                     )
-
+        
         sb.append(self.add_routes(service))
-        sb.append(self.add_log(service["name"], "ACCESS_LOG"))
-        sb.append(self.add_log(service["name"], "ERROR_LOG"))
 
-        sb.append("  error_page 404 403 500 502 503 504 /custom_error;")
-        sb.append("  location = /custom_error {")
-        sb.append("   internal;")
-        sb.append(
-            f"   content_by_lua_file {APP_BASE}/lualib/share/lua/5.4/nproxy/content_by_custom_error.lua;"
-        )
+        log_path = f"{APP_BASE}/logs"
+        sb.append(f"  access_log {log_path}/access_log-{service['_id']}.log logger-json;")
+        sb.append(f"  error_log {log_path}/error_log-{service['_id']}.log;")
+        sb.append(f"  error_page 404 403 500 502 503 504 /custom_error;")
+        sb.append(f"  location = /custom_error {{")
+        sb.append(f"   internal;")
+        sb.append(f"   content_by_lua_file {APP_BASE}/lualib/share/lua/5.4/nproxy/content_by_custom_error.lua;")
         sb.append("  }")
         sb.append(" }")
         return "\n".join(sb)
@@ -483,7 +485,7 @@ class EngineManager:
                             if rule["schema_type"] == "SecRule":
                                 exclusions.append(rule["code"])
                 exclude_sub = [
-                    exclusions[i : i + 50] for i in range(0, len(exclusions), 50)
+                    exclusions[i : i + 10] for i in range(0, len(exclusions), 10)
                 ]
                 for idx, exclude_sub in enumerate(exclude_sub):
                     exclude_list = " ".join(map(str, exclude_sub))
@@ -705,7 +707,7 @@ class EngineManager:
         sb = []
         sb.append(" server {")
         sb.append("  server_name 127.0.0.1;")
-        sb.append(f"  listen 9000;")
+        sb.append(f"  listen 5001;")
         sb.append(f"  set $service_id 'monitor';")
         sb.append(f"  set $upstream_id '-';")
         sb.append(f"  set $route_name '-';")

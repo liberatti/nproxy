@@ -2,9 +2,6 @@ import {Injectable, Injector} from "@angular/core";
 import {APIService} from "./api.service";
 import {Observable} from "rxjs";
 import {Page} from "../models/shared";
-import {HttpHeaders} from "@angular/common/http";
-import {NodeStatus} from "../models/upstream";
-import { getActiveConsumer } from "@angular/core/weak_ref.d-DWHPG08n";
 
 @Injectable({
     providedIn: 'root'
