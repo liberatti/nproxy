@@ -6,7 +6,7 @@ on:
 
 jobs:
   docker:
-    runs-on: srv751627
+    runs-on: self-hosted
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
