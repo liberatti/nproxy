@@ -38,3 +38,8 @@ jobs:
           labels: ${{ steps.docker_meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
           tags: liberatti/nproxy:${{ env.VERSION }},liberatti/nproxy:latest
+
+      - name: Deploy with docker-compose
+        run: |
+          docker compose -f /opt/nproxy/docker-compose.yml down app
+          docker compose -f /opt/nproxy/docker-compose.yml up -d
