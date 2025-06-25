@@ -32,6 +32,9 @@ export interface Sensor {
     jails: Array<Jail>;
     categories: Array<string>;
     exclusions: Array<number>;
+    inspect_level: number;
+    inbound_score: number;
+    outbound_score: number;
 }
 
 export interface SecRuleCustom {

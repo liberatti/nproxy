@@ -134,40 +134,40 @@ class RuleSetTool:
             logger.info(f"Updating ruleset {feed['slug']}")
             total_rules = 0
             serializer = None
-            if "crs" in feed["provider"]:
-                cls._download_crs(feed)
-                serializer = RuleSetParser(
-                    f"{APP_BASE}/data/{feed['slug']}-{feed['version']}/rules"
-                )
-
-            dao_rule = RuleDao()
-            dao_rule.delete_all()
-
-            dao = RuleCategoryDao()
-            dao.delete_all()
-
             try:
-                categories = []
-                for cat in feed["mapping"]:
-                    c = RuleCategorySchema().load(cat)
-                    if "file" in cat:
-                        c.update(
-                            {"rules": serializer.read_file_as_seclang(cat["file"])}
-                        )
-                    else:
-                        rules = []
-                        for r in cat["rules"]:
-                            rules.append(RuleSetParser.load(r))
-                        c.update({"rules": rules})
-                    categories.append(c)
-                    total_rules += len(c["rules"])
-                for cat in categories:
-                    dao.persist(cat)
-                logger.info(f"Indexed {total_rules} rules from {feed['slug']}")
-                cls.update_default_sensor()
-            except ValidationError as e:
-                logger.error(f"Failed to load {feed['slug']}: %s", e.messages)
-                logger.error(traceback.format_exc())
+                if feed["provider"] == "crs":
+                    cls._download_crs(feed)
+                    serializer = RuleSetParser(f"{APP_BASE}/data/{feed['slug']}-{feed['version']}/rules")
+                    dao_rule = RuleDao()
+                    dao_rule.delete_all()
+
+                    dao = RuleCategoryDao()
+                    dao.delete_all()
+
+                    try:
+                        categories = []
+                        for cat in feed["mapping"]:
+                            c = RuleCategorySchema().load(cat)
+                            if "file" in cat:
+                                c.update(
+                                    {"rules": serializer.read_file_as_seclang(cat["file"])}
+                                )
+                            else:
+                                rules = []
+                                for r in cat["rules"]:
+                                    rules.append(RuleSetParser.load(r))
+                                c.update({"rules": rules})
+                            categories.append(c)
+                            total_rules += len(c["rules"])
+                        for cat in categories:
+                            dao.persist(cat)
+                        logger.info(f"Indexed {total_rules} rules from {feed['slug']}")
+                        cls.update_default_sensor()
+                    except ValidationError as e:
+                        logger.error(f"Failed to load {feed['slug']}: %s", e.messages)
+                        logger.error(traceback.format_exc())
+            except Exception as e1:
+                    logger.error(f"Failed to update {feed['slug']}: %s", e.messages)
 
 
 class SecurityFeedTool:
@@ -179,9 +179,12 @@ class SecurityFeedTool:
 
         cls.download_ip2asn()
         if "maxmind_key" in conf and len(conf["maxmind_key"]) > 0:
-            cls.download_mmdb(conf["maxmind_key"], "GeoLite2-ASN")
-            cls.download_mmdb(conf["maxmind_key"], "GeoLite2-City")
-
+            try:
+                cls.download_mmdb(conf["maxmind_key"], "GeoLite2-ASN")
+                cls.download_mmdb(conf["maxmind_key"], "GeoLite2-City")
+            except Exception as e:
+                logger.error(f"Failed to download GeoLite2: %s", e)
+                
         feed_dao = FeedDao()
         for feed in feed_dao.get_by_type("network"):
             if "source" in feed and len(feed["source"]) > 1:

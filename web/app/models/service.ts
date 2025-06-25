@@ -82,9 +82,6 @@ export interface Service {
     routes: Array<Route>;
     body_limit: number;
     timeout: number;
-    inspect_level: number;
-    inbound_score: number;
-    outbound_score: number;
     buffer: number;
     compression: boolean;
     compression_types: Array<string>;

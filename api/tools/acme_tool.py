@@ -8,7 +8,7 @@ from common_utils import logger, replace_tz
 from model.acme_model import ChallengeDao
 from model.certificate_model import CertificateDao
 from model.service_model import ServiceDao
-from tools.cluster_tool import ClusterTool
+from model.config_model import ConfigDao
 from tools.ssl_tool import SSLLetsEncryptTool, SSLTool
 
 
@@ -26,10 +26,10 @@ class AcmeTool:
     def renew_self(cls, certificate):
         dao = ServiceDao()
         ca = None
-        if ClusterTool.CONFIG:
-            ca = {
-                "certificate": SSLTool.crt_from_pem(ClusterTool.CONFIG['config']['ca_certificate']),
-                "private_key": SSLTool.private_from_pem(ClusterTool.CONFIG['config']['ca_private']),
+        c = ConfigDao().get_active()
+        ca = {
+                "certificate": SSLTool.crt_from_pem(c['ca_certificate']),
+                "private_key": SSLTool.private_from_pem(c['ca_private']),
             }
 
         services = dao.getall_by_certificate_id(certificate["_id"])
@@ -74,28 +74,27 @@ class AcmeTool:
                 else:
                     cn = s["sans"][0]
                     sans = s["sans"][1:]
-
-            result = SSLLetsEncryptTool.create_certificate(
-                cn, sans=sans, email="fake@tooka.com.br"
-            )
-            if result:
-                chain_list = []
-                for c in result["chain"]:
-                    c_pem = SSLTool.crt_to_pem(c)
-                    chain_list.append(c_pem)
-                chain = "\n".join(chain_list)
-                certificate.update(
-                    {
-                        "chain": chain,
-                        "certificate": SSLTool.crt_to_pem(result["certificate"]),
-                        "private_key": SSLTool.private_to_pem(result["private_key"]),
-                        "status": "VALID",
-                        "force_renew": False,
-                    }
+            if cn:
+                result = SSLLetsEncryptTool.create_certificate(
+                    cn, sans=sans, email="fake@tooka.com.br"
                 )
-
-                certificate.update(SSLTool.extract_info_from_crt(result["certificate"]))
-                CertificateDao().update_by_id(certificate["_id"], certificate)
+                if result:
+                    chain_list = []
+                    for c in result["chain"]:
+                        c_pem = SSLTool.crt_to_pem(c)
+                        chain_list.append(c_pem)
+                    chain = "\n".join(chain_list)
+                    certificate.update(
+                        {
+                            "chain": chain,
+                            "certificate": SSLTool.crt_to_pem(result["certificate"]),
+                            "private_key": SSLTool.private_to_pem(result["private_key"]),
+                            "status": "VALID",
+                            "force_renew": False,
+                        }
+                    )
+                    certificate.update(SSLTool.extract_info_from_crt(result["certificate"]))
+                    CertificateDao().update_by_id(certificate["_id"], certificate)
         except ACMEerrors.ValidationError as e:
             for rs in e.failed_authzrs:
                 for challenge in rs.body.challenges:
@@ -103,7 +102,6 @@ class AcmeTool:
 
     @classmethod
     def auto_renew(cls):
-        if ClusterTool.CONFIG:
             cls.clean_expired_challenges()
             dao_service = ServiceDao()
             services = dao_service.get_all()

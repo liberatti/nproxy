@@ -113,8 +113,6 @@ def reset_password(email=None,psw=None):
     )
     logger.debug(f"User: {user['name']} reset is ok")
 
-   
-
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Uso: python cli.py <update> [options]")

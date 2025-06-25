@@ -81,6 +81,9 @@ export class SensorFormComponent implements OnInit {
         permit: new FormControl<Array<Feed>>([]),
         geo_block_list: new FormControl<string[]>([]),
         jails: new FormControl<Array<Jail>>([]),
+        inspect_level: new FormControl<number>(0),
+        inbound_score: new FormControl<number>(0),
+        outbound_score: new FormControl<number>(0),
     });
 
     constructor(
@@ -124,7 +127,10 @@ export class SensorFormComponent implements OnInit {
                     block: data.block,
                     permit: data.permit,
                     geo_block_list: data.geo_block_list || [],
-                    jails: data.jails || []
+                    jails: data.jails || [],
+                    inspect_level: data.inspect_level,
+                    inbound_score: data.inbound_score,
+                    outbound_score: data.outbound_score
                 });
             });
         }

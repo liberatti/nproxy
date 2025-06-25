@@ -19,12 +19,20 @@ from config import (
     ENGINE_VERSION,
     NODE_ROLE
 )
-
-
+from tools.feed_tool import JailTool, SecurityFeedTool, RuleSetTool
+from tools.acme_tool import AcmeTool
 class ClusterTool:
     CONFIG = None
     APPLY_ACTIVE = False
     service_watchers = []
+
+    @classmethod
+    def update(cls):
+        cls.APPLY_ACTIVE=True
+        RuleSetTool.update()
+        SecurityFeedTool().update()
+        AcmeTool.auto_renew()
+        cls.APPLY_ACTIVE=False
 
     @classmethod
     def check_tcp_port(cls, host, port):

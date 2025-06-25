@@ -13,7 +13,6 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.hashes import SHA256
 from cryptography.x509.oid import NameOID
 
-from tools.cluster_tool import ClusterTool
 from common_utils import logger, replace_tz
 from model.acme_model import ChallengeDao
 from model.config_model import ConfigDao
@@ -170,10 +169,11 @@ class SSLTool:
         Returns:
             Dictionary containing the certificate, chain, private key and metadata
         """
+        c = ConfigDao().get_active()
         if not ca:
             ca = {
-                "certificate": SSLTool.crt_from_pem(ClusterTool.CONFIG['config']['ca_certificate']),
-                "private_key": SSLTool.private_from_pem(ClusterTool.CONFIG['config']['ca_private']),
+                "certificate": SSLTool.crt_from_pem(c['ca_certificate']),
+                "private_key": SSLTool.private_from_pem(c['ca_private']),
             }
 
         curr_date = datetime.now().astimezone(TZ)

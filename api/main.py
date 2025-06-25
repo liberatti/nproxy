@@ -146,12 +146,10 @@ with app.app_context():
         if "cluster_id" not in config:
             dao.update_by_id(config["_id"], {"cluster_id": f"{gen_random_string(64)}"})
 
-        schedule.every().day.at(MAINTENANCE_WINDOW).do(RuleSetTool.update)
-        schedule.every().day.at(MAINTENANCE_WINDOW).do(SecurityFeedTool().update)
-        schedule.every().day.at(MAINTENANCE_WINDOW).do(AcmeTool.auto_renew)
+        schedule.every().day.at(MAINTENANCE_WINDOW).do(ClusterTool.update)
         schedule.every(60).seconds.do(LogArchiverTool.auto_archive)
         schedule.every(10).seconds.do(JailTool.calc_process_jails)
-        schedule.every(10).seconds.do(ClusterTool.auto_apply_config)
+        schedule.every(30).seconds.do(ClusterTool.auto_apply_config)
     else:
         schedule.every(10).seconds.do(ClusterTool.auto_replicate_config)
     schedule.every(10).seconds.do(ClusterTool().node_monitor)
