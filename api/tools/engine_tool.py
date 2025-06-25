@@ -410,24 +410,6 @@ class EngineManager:
         sensor_sb.append("SecAuditLogType Serial")
         sensor_sb.append("SecDebugLogLevel 0")
         sensor_sb.append(self.add_log(service["name"], "AUDIT"))
-
-        r10 = SecAction().load(
-            {
-                "schema_type": "SecAction",
-                "phase": 1,
-                "code": 10,
-                "action": "pass",
-                "t": ["none"],
-                "logging": "nolog",
-                "setvar": [
-                    f"tx.sensor_level={service['inspect_level']}",
-                    f"tx.sensor_iscore={service['inbound_score']}",
-                    f"tx.sensor_oscore={service['outbound_score']}",
-                ],
-                "order": 1,
-            }
-        )
-        sensor_sb.append(RuleSetParser.as_seclang(r10, ruleset_path))
         with open(policy_file, "w") as f:
             f.write("\n".join(sensor_sb))
 
@@ -472,6 +454,23 @@ class EngineManager:
                     if s["_id"] == route["sensor"]["_id"]:
                         sensor = copy.deepcopy(s)
                         break
+                r10 = SecAction().load(
+                    {
+                        "schema_type": "SecAction",
+                        "phase": 1,
+                        "code": 10,
+                        "action": "pass",
+                        "t": ["none"],
+                        "logging": "nolog",
+                        "setvar": [
+                            f"tx.sensor_level={sensor['inspect_level']}",
+                            f"tx.sensor_iscore={sensor['inbound_score']}",
+                            f"tx.sensor_oscore={sensor['outbound_score']}",
+                        ],
+                        "order": 1,
+                    }
+                )
+                psb.append(RuleSetParser.as_seclang(r10))
                 exclusions = []
                 if "exclusions" in sensor:
                     exclusions = sensor["exclusions"]
