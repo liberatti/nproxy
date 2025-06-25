@@ -156,8 +156,6 @@ with app.app_context():
     
     try:
         ClusterTool.apply_config(reconfigure=True)
-        if "main" in NODE_ROLE:
-            AcmeTool.auto_renew()
     except Exception as e:
         app.logger.error(f"Failed to apply configuration: {e}")
         app.logger.error(traceback.format_exc())
