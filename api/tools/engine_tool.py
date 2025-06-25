@@ -716,7 +716,8 @@ class EngineManager:
         sb.append(f"  set $sensor_id '-';")
         sb.append(f"  set $geoip_status '-';")
         sb.append(f"  set $rbl_status '-';")
-
+        sb.append(f"  set $real_method $request_method;")
+        
         sb.append("  access_log off;error_log /dev/null crit;")
         sb.append("  location /ngx_up_status {")
         sb.append("   add_header Content-Type application/json;")

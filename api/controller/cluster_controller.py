@@ -155,13 +155,14 @@ def health_check() -> Response:
         Response: JSON response containing the node health status information
     """
     st=ClusterTool.node_monitor()
-    
-    dao = ChangeDao()
-    result = dao.get_all()
-    if result["metadata"]["total_elements"] > 0:
-        st["apply_pendding"] = [x["name"] for x in result["data"]]
+    if st:
+        dao = ChangeDao()
+        result = dao.get_all()
+        if result["metadata"]["total_elements"] > 0:
+            st["apply_pendding"] = [x["name"] for x in result["data"]]
 
-    return ResponseBuilder.data(st, NodeStatusSchema())
+        return ResponseBuilder.data(st, NodeStatusSchema())
+    return ResponseBuilder.data({}, NodeStatusSchema())
 
 @routes.route("/apply", methods=["GET"])
 @has_any_authority(authorities=["superuser"])
