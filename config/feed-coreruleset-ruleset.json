@@ -365,6 +365,42 @@
     },
     {
       "name": "global",
+      "phase": 5,
+      "rules": [
+        {
+         "schema_type": "SecRule",
+          "scope": [
+            "TX.SENSOR_ISCORE"
+          ],
+          "condition": "@lt 1",
+          "code": 90,
+          "order": 1,
+          "phase": 1,
+          "action": "pass",
+          "logging": "nolog",
+          "audit_log": "noauditlog",
+          "logdata": "'%{tx.anomaly_score}'",
+          "skipAfter":"END-RESPONSE-980-CORRELATION"
+        },
+         {
+         "schema_type": "SecRule",
+          "scope": [
+            "TX.SENSOR_OSCORE"
+          ],
+          "condition": "@lt 1",
+          "code": 91,
+          "order": 1,
+          "phase": 1,
+          "action": "pass",
+          "logging": "nolog",
+          "audit_log": "noauditlog",
+          "logdata": "'%{tx.anomaly_score}'",
+          "skipAfter":"END-RESPONSE-980-CORRELATION"
+        }
+      ]
+    },
+    {
+      "name": "global",
       "phase": 6,
       "file": "RESPONSE-959-BLOCKING-EVALUATION.conf",
       "rules": []
