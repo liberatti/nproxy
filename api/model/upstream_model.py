@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Dict, Any, List, Optional, Union
 from bson import ObjectId
 from marshmallow import EXCLUDE, Schema, fields
-
+from datetime import datetime
 from common_utils import logger
 from model.mongo_base_model import MongoDAO
 from config import DATETIME_FMT
@@ -141,6 +141,28 @@ class NodeStatusDao(MongoDAO):
         Initializes the DAO with the 'nodes' collection and schema.
         """
         super().__init__("nodes", schema=NodeStatusSchema)
+
+    def purge_before_date(self, last_check: datetime) -> int:
+        """
+        Purges transactions older than the specified date.
+        
+        Args:
+            purge_date (datetime): Cutoff date for purging
+            
+        Returns:
+            int: Number of documents deleted
+            
+        Raises:
+            PyMongoError: If an error occurs during the purge operation
+        """
+        try:
+            query = {"logtime": {"$lte": last_check}}
+            rs = self.collection.delete_many(query)
+            logger.debug(query)
+            return rs.deleted_count
+        except Exception as e:
+            logger.error(f"Error purging transactions: {str(e)}")
+            raise
 
     def get_upstream_healthy(self, upstream_id: str) -> bool:
         """

@@ -16,7 +16,6 @@ from tools.acme_tool import AcmeTool
 from tools.cluster_tool import ClusterTool
 from tools.feed_tool import SecurityFeedTool
 from tools.mongo_tool import MongoTool
-
 routes = Blueprint("cluster", __name__)
 
 

@@ -33,7 +33,7 @@ from tools.network_tool import NetworkTool
 
 # noinspection PyMethodMayBeStatic
 class EngineManager:
-    __LOG_FORMAT = '{"time":"$time_local","service_id":"$service_id","route_name":"$route_name","upstream_id":"$upstream_id","target_addr":"$upstream_addr","sensor_id":"$sensor_id","uniqueid":"$request_id","host":"$http_host","remote_addr":"$remote_addr","remote_port":$remote_port,"server_port":$server_port,"request_line":"$request","method":"$request_method","status":$status,"bytes_in":$request_length,"bytes_out":$body_bytes_sent,"duration":$request_time,"uht":"$upstream_header_time","urt":"$upstream_response_time","referer":"$http_referer","user_agent":"$http_user_agent","limit_req_status":"$limit_req_status","geoip_status":"$geoip_status","rbl_status":"$rbl_status"}'
+    __LOG_FORMAT = '{"time":"$time_local","service_id":"$service_id","route_name":"$route_name","upstream_id":"$upstream_id","target_addr":"$upstream_addr","sensor_id":"$sensor_id","uniqueid":"$request_id","host":"$http_host","remote_addr":"$remote_addr","remote_port":$remote_port,"server_port":$server_port,"request_line":"$request","method":"$real_method","status":$status,"bytes_in":$request_length,"bytes_out":$body_bytes_sent,"duration":$request_time,"uht":"$upstream_header_time","urt":"$upstream_response_time","referer":"$http_referer","user_agent":"$http_user_agent","limit_req_status":"$limit_req_status","geoip_status":"$geoip_status","rbl_status":"$rbl_status"}'
     CONFIG = None
 
     nginx = f"{ENGINE_BASE}/sbin/nginx"
@@ -302,6 +302,9 @@ class EngineManager:
         sb.append(f"  set $sensor_id '-';")
         sb.append(f"  set $geoip_status '-';")
         sb.append(f"  set $rbl_status '-';")
+        sb.append(f"  set $real_method $request_method;")
+        
+
 
         sb.append(f"  client_max_body_size {service['body_limit']}m;")
         if "compression" in service and service["compression"]:

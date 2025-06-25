@@ -21,6 +21,8 @@ from config import (
 )
 from tools.feed_tool import JailTool, SecurityFeedTool, RuleSetTool
 from tools.acme_tool import AcmeTool
+from model.transaction_model import TransactionDao
+from config import TZ
 class ClusterTool:
     CONFIG = None
     APPLY_ACTIVE = False
@@ -33,6 +35,27 @@ class ClusterTool:
         SecurityFeedTool().update()
         AcmeTool.auto_renew()
         cls.APPLY_ACTIVE=False
+
+    @classmethod
+    def clean(cls):
+        now = datetime.now(TZ)
+        dao = NodeStatusDao()
+        dao.purge_before_date(now - timedelta(hours=1))
+        if ClusterTool.CONFIG:
+            if (
+                    "purge" in ClusterTool.CONFIG["config"]
+                    and ClusterTool.CONFIG["config"]["purge"]["enabled"]
+                ):
+                trn_dao = TransactionDao()
+                purge_config = ClusterTool.CONFIG["config"]["purge"]
+                try:
+                    t_purged = trn_dao.purge_before_date(
+                            now - timedelta(days=purge_config["purge_after"])
+                    )
+                    if t_purged > 0:
+                        logger.info(f"Purged {t_purged} transactions")
+                except Exception as e:
+                    logger.error(e)
 
     @classmethod
     def check_tcp_port(cls, host, port):
