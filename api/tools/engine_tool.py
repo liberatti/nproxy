@@ -409,7 +409,7 @@ class EngineManager:
         sensor_sb.append("SecAuditLogFormat JSON")
         sensor_sb.append("SecAuditLogType Serial")
         sensor_sb.append("SecDebugLogLevel 0")
-        sensor_sb.append(self.add_log(service["name"], "AUDIT"))
+        sensor_sb.append(self.add_log(service["_id"], "AUDIT"))
         with open(policy_file, "w") as f:
             f.write("\n".join(sensor_sb))
 
